@@ -1,0 +1,35 @@
+FROM php:8.2-fpm-alpine
+
+# Instalar nginx, supervisor y extensiones PHP
+RUN apk add --no-cache nginx supervisor \
+    libpng-dev libjpeg-turbo-dev freetype-dev \
+    libzip-dev libxml2-dev oniguruma-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql mbstring exif bcmath intl mysqli zip gd
+
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Copiar código
+WORKDIR /var/www
+COPY www/ .
+
+# Instalar dependencias PHP
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Permisos
+RUN mkdir -p writable/cache writable/logs writable/session writable/uploads public/uploads \
+    && chmod -R 775 writable public/uploads \
+    && chown -R www-data:www-data writable public/uploads
+
+# Configuración nginx
+COPY docker-compose/nginx/project.conf /etc/nginx/http.d/default.conf
+RUN sed -i 's|root /var/www/public|root /var/www/public|g' /etc/nginx/http.d/default.conf \
+    && sed -i 's|fastcgi_pass app:9000|fastcgi_pass 127.0.0.1:9000|g' /etc/nginx/http.d/default.conf
+
+# Supervisor (gestiona nginx + php-fpm juntos)
+COPY docker-compose/supervisord.conf /etc/supervisord.conf
+
+EXPOSE 80
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
