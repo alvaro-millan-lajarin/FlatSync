@@ -19,6 +19,6 @@ database.default.DBDriver = MySQLi
 EOF
 
 # Run database migrations (fresh = drop all tables and recreate)
-php /var/www/spark migrate:fresh --no-interaction
+php /var/www/spark migrate:refresh --no-interaction
 
 exec /usr/bin/supervisord -c /etc/supervisord.conf
