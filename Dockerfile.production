@@ -9,6 +9,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copiar código
 WORKDIR /var/www
+ARG CACHE_BUST=1
+RUN echo "Cache bust: $CACHE_BUST"
 COPY www/ .
 
 # Instalar dependencias PHP
