@@ -4,7 +4,7 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class CreateFlatmateTables extends Migration
+class CreateAllTables extends Migration
 {
     public function up(): void
     {
@@ -12,28 +12,43 @@ class CreateFlatmateTables extends Migration
         $this->forge->addField([
             'id'              => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
             'name'            => ['type' => 'VARCHAR', 'constraint' => 100],
-            'invite_code'     => ['type' => 'VARCHAR', 'constraint' => 10, 'unique' => true],
+            'invite_code'     => ['type' => 'VARCHAR', 'constraint' => 10],
             'default_penalty' => ['type' => 'DECIMAL', 'constraint' => '8,2', 'default' => '2.00'],
             'created_at'      => ['type' => 'DATETIME', 'null' => true],
             'updated_at'      => ['type' => 'DATETIME', 'null' => true],
         ]);
         $this->forge->addPrimaryKey('id');
+        $this->forge->addUniqueKey('invite_code');
         $this->forge->createTable('homes');
 
         // ── users ──────────────────────────────────────────────────────────
         $this->forge->addField([
             'id'         => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
-            'home_id'    => ['type' => 'INT', 'unsigned' => true, 'null' => true],
             'username'   => ['type' => 'VARCHAR', 'constraint' => 50],
-            'email'      => ['type' => 'VARCHAR', 'constraint' => 150, 'unique' => true],
+            'email'      => ['type' => 'VARCHAR', 'constraint' => 150],
             'password'   => ['type' => 'VARCHAR', 'constraint' => 255],
+            'home_id'    => ['type' => 'INT', 'unsigned' => true, 'null' => true, 'default' => null],
             'is_admin'   => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0],
+            'avatar_url' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'created_at' => ['type' => 'DATETIME', 'null' => true],
             'updated_at' => ['type' => 'DATETIME', 'null' => true],
         ]);
         $this->forge->addPrimaryKey('id');
-        $this->forge->addForeignKey('home_id', 'homes', 'id', 'SET NULL', 'CASCADE');
+        $this->forge->addUniqueKey('email');
         $this->forge->createTable('users');
+
+        // ── user_homes ─────────────────────────────────────────────────────
+        $this->forge->addField([
+            'id'        => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'user_id'   => ['type' => 'INT', 'unsigned' => true],
+            'home_id'   => ['type' => 'INT', 'unsigned' => true],
+            'is_admin'  => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0],
+            'joined_at' => ['type' => 'DATETIME', 'null' => true],
+        ]);
+        $this->forge->addPrimaryKey('id');
+        $this->forge->addForeignKey('user_id', 'users', 'id', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('home_id', 'homes', 'id', 'CASCADE', 'CASCADE');
+        $this->forge->createTable('user_homes');
 
         // ── chores ─────────────────────────────────────────────────────────
         $this->forge->addField([
@@ -76,15 +91,15 @@ class CreateFlatmateTables extends Migration
 
         // ── swap_requests ──────────────────────────────────────────────────
         $this->forge->addField([
-            'id'                 => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
-            'chore_id'           => ['type' => 'INT', 'unsigned' => true],
-            'requester_user_id'  => ['type' => 'INT', 'unsigned' => true],
-            'target_user_id'     => ['type' => 'INT', 'unsigned' => true],
-            'compensation'       => ['type' => 'DECIMAL', 'constraint' => '8,2', 'default' => '0.00'],
-            'message'            => ['type' => 'TEXT', 'null' => true],
-            'status'             => ['type' => 'ENUM', 'constraint' => ['pending', 'accepted', 'declined'], 'default' => 'pending'],
-            'created_at'         => ['type' => 'DATETIME', 'null' => true],
-            'updated_at'         => ['type' => 'DATETIME', 'null' => true],
+            'id'                => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'chore_id'          => ['type' => 'INT', 'unsigned' => true],
+            'requester_user_id' => ['type' => 'INT', 'unsigned' => true],
+            'target_user_id'    => ['type' => 'INT', 'unsigned' => true],
+            'compensation'      => ['type' => 'DECIMAL', 'constraint' => '8,2', 'default' => '0.00'],
+            'message'           => ['type' => 'TEXT', 'null' => true],
+            'status'            => ['type' => 'ENUM', 'constraint' => ['pending', 'accepted', 'declined'], 'default' => 'pending'],
+            'created_at'        => ['type' => 'DATETIME', 'null' => true],
+            'updated_at'        => ['type' => 'DATETIME', 'null' => true],
         ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->addForeignKey('chore_id', 'chores', 'id', 'CASCADE', 'CASCADE');
@@ -106,14 +121,56 @@ class CreateFlatmateTables extends Migration
         $this->forge->addForeignKey('from_user_id', 'users', 'id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('to_user_id', 'users', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('settlements');
+
+        // ── messages ───────────────────────────────────────────────────────
+        $this->forge->addField([
+            'id'         => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'home_id'    => ['type' => 'INT', 'unsigned' => true],
+            'user_id'    => ['type' => 'INT', 'unsigned' => true],
+            'message'    => ['type' => 'TEXT'],
+            'created_at' => ['type' => 'DATETIME', 'null' => true],
+        ]);
+        $this->forge->addPrimaryKey('id');
+        $this->forge->addForeignKey('home_id', 'homes', 'id', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('user_id', 'users', 'id', 'CASCADE', 'CASCADE');
+        $this->forge->createTable('messages');
+
+        // ── api_tokens ─────────────────────────────────────────────────────
+        $this->forge->addField([
+            'id'         => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'user_id'    => ['type' => 'INT', 'unsigned' => true],
+            'token'      => ['type' => 'VARCHAR', 'constraint' => 64],
+            'home_id'    => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+            'created_at' => ['type' => 'DATETIME', 'null' => true],
+            'updated_at' => ['type' => 'DATETIME', 'null' => true],
+        ]);
+        $this->forge->addPrimaryKey('id');
+        $this->forge->addUniqueKey('token');
+        $this->forge->createTable('api_tokens');
+
+        // ── notes ──────────────────────────────────────────────────────────
+        $this->forge->addField([
+            'id'         => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'home_id'    => ['type' => 'INT', 'unsigned' => true],
+            'user_id'    => ['type' => 'INT', 'unsigned' => true],
+            'content'    => ['type' => 'TEXT'],
+            'created_at' => ['type' => 'DATETIME', 'null' => true],
+            'updated_at' => ['type' => 'DATETIME', 'null' => true],
+        ]);
+        $this->forge->addPrimaryKey('id');
+        $this->forge->createTable('notes');
     }
 
     public function down(): void
     {
+        $this->forge->dropTable('notes', true);
+        $this->forge->dropTable('api_tokens', true);
+        $this->forge->dropTable('messages', true);
         $this->forge->dropTable('settlements', true);
         $this->forge->dropTable('swap_requests', true);
         $this->forge->dropTable('expenses', true);
         $this->forge->dropTable('chores', true);
+        $this->forge->dropTable('user_homes', true);
         $this->forge->dropTable('users', true);
         $this->forge->dropTable('homes', true);
     }
