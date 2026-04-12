@@ -194,9 +194,15 @@ class Database extends Config
     {
         parent::__construct();
 
-        // Ensure that we always set the database group to 'tests' if
-        // we are currently running an automated test suite, so that
-        // we don't overwrite live data on accident.
+        // Read Railway MySQL env vars if available
+        if (getenv('MYSQLHOST') !== false) {
+            $this->default['hostname'] = getenv('MYSQLHOST');
+            $this->default['database'] = getenv('MYSQLDATABASE');
+            $this->default['username'] = getenv('MYSQLUSER');
+            $this->default['password'] = getenv('MYSQLPASSWORD');
+            $this->default['port']     = (int) getenv('MYSQLPORT');
+        }
+
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
         }
