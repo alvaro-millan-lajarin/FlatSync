@@ -1,7 +1,7 @@
 FROM php:8.2-fpm-alpine
 
 # Instalar nginx, supervisor y extensiones PHP
-RUN apk add --no-cache nginx supervisor libxml2-dev oniguruma-dev \
+RUN apk add --no-cache nginx supervisor libxml2-dev oniguruma-dev icu-dev \
     && docker-php-ext-install pdo_mysql mbstring intl mysqli
 
 # Composer
