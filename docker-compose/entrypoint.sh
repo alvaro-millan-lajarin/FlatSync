@@ -5,7 +5,10 @@ set -e
 cat > /var/www/.env << EOF
 CI_ENVIRONMENT = production
 
-app.baseURL = https://${RAILWAY_PUBLIC_DOMAIN}/
+app.baseURL  = https://${RAILWAY_PUBLIC_DOMAIN}/
+app.indexPage =
+
+encryption.key = hex2bin:${APP_ENCRYPTION_KEY}
 
 database.default.hostname = ${MYSQLHOST}
 database.default.database = ${MYSQLDATABASE}
