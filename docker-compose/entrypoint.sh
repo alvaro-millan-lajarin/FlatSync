@@ -3,7 +3,7 @@ set -e
 
 # Generar .env de CodeIgniter con las variables de Railway
 cat > /var/www/.env << EOF
-CI_ENVIRONMENT = production
+CI_ENVIRONMENT = development
 
 app.baseURL  = https://${RAILWAY_PUBLIC_DOMAIN}/
 app.indexPage =
