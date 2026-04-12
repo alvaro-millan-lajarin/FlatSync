@@ -27,6 +27,10 @@ RUN sed -i 's|root /var/www/public|root /var/www/public|g' /etc/nginx/http.d/def
 # Supervisor (gestiona nginx + php-fpm juntos)
 COPY docker-compose/supervisord.conf /etc/supervisord.conf
 
+# Entrypoint: genera .env en runtime con variables de Railway
+COPY docker-compose/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 80
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+CMD ["/entrypoint.sh"]
