@@ -1,11 +1,8 @@
 FROM php:8.2-fpm-alpine
 
 # Instalar nginx, supervisor y extensiones PHP
-RUN apk add --no-cache nginx supervisor \
-    libpng-dev libjpeg-turbo-dev freetype-dev \
-    libzip-dev libxml2-dev oniguruma-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring exif bcmath intl mysqli zip gd
+RUN apk add --no-cache nginx supervisor libxml2-dev oniguruma-dev \
+    && docker-php-ext-install pdo_mysql mbstring intl mysqli
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
