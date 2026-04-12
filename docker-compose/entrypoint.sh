@@ -18,4 +18,7 @@ database.default.port     = ${MYSQLPORT}
 database.default.DBDriver = MySQLi
 EOF
 
+# Run database migrations
+php /var/www/spark migrate --no-interaction
+
 exec /usr/bin/supervisord -c /etc/supervisord.conf
