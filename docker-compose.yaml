@@ -1,0 +1,85 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      args:
+        user: ${USERNAME}
+        uid: ${UID}
+        targetPlatform: ${ARCH}
+      context: ./
+      dockerfile: Dockerfile
+    image: ${PROJECT_NAME}
+    container_name: ${PROJECT_PREFIX}-local-environment_app
+    restart: unless-stopped
+    working_dir: /var/www/
+    environment:
+      - PHP_IDE_CONFIG=serverName=0.0.0.0:${XDEBUG_PORT}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./www/:/var/www
+      - ./docker-compose/PHP/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./docker-compose/xdebug/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./docker-compose/xdebug/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini
+    networks:
+      - pw_network
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.4
+    container_name: ${PROJECT_PREFIX}-local-environment_mysql
+    restart: unless-stopped
+    ports:
+      - ${MYSQL_PORT}:3306
+    environment:
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - pw_network
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: ${PROJECT_PREFIX}-local-environment_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_ARBITRARY: 1
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USERNAME}
+      PMA_PASSWORD: ${DB_PASSWORD}
+    restart: unless-stopped
+    ports:
+      - ${PHPMYADMIN_PORT}:80
+    depends_on:
+      - mysql
+    networks:
+      - pw_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: ${PROJECT_PREFIX}-local-environment_nginx
+    restart: unless-stopped
+    ports:
+      - ${NGINX_PORT}:80
+    volumes:
+      - ./www/:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+    networks:
+      - pw_network
+    depends_on:
+      - app
+
+networks:
+  pw_network:
+    driver: bridge
+
+volumes:
+  mysql_data:

@@ -1,0 +1,21 @@
+# CodeIgniter
+www/writable/
+www/vendor/
+www/public/uploads/*
+!www/public/uploads/.gitkeep
+
+# Env
+www/.env
+.env
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
