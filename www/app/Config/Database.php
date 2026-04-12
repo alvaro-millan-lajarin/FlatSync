@@ -194,13 +194,15 @@ class Database extends Config
     {
         parent::__construct();
 
-        // Read Railway MySQL env vars if available
-        if (getenv('MYSQLHOST') !== false) {
-            $this->default['hostname'] = getenv('MYSQLHOST');
-            $this->default['database'] = getenv('MYSQLDATABASE');
-            $this->default['username'] = getenv('MYSQLUSER');
-            $this->default['password'] = getenv('MYSQLPASSWORD');
-            $this->default['port']     = (int) getenv('MYSQLPORT');
+        // Parse DATABASE_URL if set (Railway production)
+        $url = getenv('DATABASE_URL') ?: getenv('MYSQL_URL') ?: getenv('MYSQL_PUBLIC_URL');
+        if ($url) {
+            $p = parse_url($url);
+            $this->default['hostname'] = $p['host'] ?? 'localhost';
+            $this->default['port']     = (int) ($p['port'] ?? 3306);
+            $this->default['username'] = $p['user'] ?? '';
+            $this->default['password'] = isset($p['pass']) ? urldecode($p['pass']) : '';
+            $this->default['database'] = ltrim($p['path'] ?? '', '/');
         }
 
         if (ENVIRONMENT === 'testing') {
