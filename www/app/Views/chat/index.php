@@ -258,24 +258,28 @@
 .chat-bubble--me .chat-time { color: rgba(255,255,255,.75); opacity: 1; }
 
 /* Delete button on own messages */
-.chat-msg { position: relative; }
 .msg-delete-btn {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 24px; height: 24px;
   background: none;
   border: none;
   border-radius: 50%;
-  color: rgba(255,255,255,0.55);
+  color: var(--muted);
+  opacity: 0;
   cursor: pointer;
   flex-shrink: 0;
   align-self: center;
-  transition: color .15s, background .15s;
+  transition: color .15s, background .15s, opacity .15s;
   padding: 0;
 }
-.msg-delete-btn:hover { color: #fff; background: rgba(239,68,68,0.4); }
-.chat-msg--me:hover .msg-delete-btn { display: flex; }
+.msg-delete-btn:hover { color: var(--danger); background: rgba(239,68,68,0.1); opacity: 1 !important; }
+.chat-msg--me:hover .msg-delete-btn { opacity: 0.5; }
+/* Always visible on touch devices */
+@media (hover: none) {
+  .msg-delete-btn { opacity: 0.4; }
+}
 
 /* Input */
 .chat-input-wrap {
