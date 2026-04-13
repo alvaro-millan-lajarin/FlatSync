@@ -25,10 +25,13 @@ helper('avatar');
 <body>
 <div class="app-shell">
 
-<!-- Hamburger (mobile only) -->
-<button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menú">
-  <span class="hamburger-icon"></span>
-</button>
+<!-- Mobile top bar (only visible on mobile) -->
+<div class="mobile-topbar" id="mobile-topbar">
+  <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menú">
+    <span class="hamburger-icon"></span>
+  </button>
+  <span class="mobile-topbar-title">flat<span>sync</span></span>
+</div>
 
 <!-- Overlay (mobile only) -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
