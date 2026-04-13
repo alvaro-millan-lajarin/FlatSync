@@ -1,15 +1,15 @@
 FROM php:8.2-fpm-alpine
 
 # Instalar nginx, supervisor y extensiones PHP
-RUN apk add --no-cache nginx supervisor libxml2-dev oniguruma-dev icu-dev curl-dev \
-    && docker-php-ext-install pdo_mysql mbstring intl mysqli curl
+RUN apk add --no-cache nginx supervisor libxml2-dev oniguruma-dev icu-dev \
+    && docker-php-ext-install pdo_mysql mbstring intl mysqli
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copiar código
 WORKDIR /var/www
-ARG CACHE_BUST=20260413
+ARG CACHE_BUST=20260414
 COPY www/ .
 
 # Instalar dependencias PHP
