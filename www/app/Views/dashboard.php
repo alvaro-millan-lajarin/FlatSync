@@ -76,7 +76,7 @@ $catLabels = ['food'=>'Comida','cleaning'=>'Limpieza','bills'=>'Facturas','other
   <!-- Evolución mensual -->
   <div class="card">
     <div class="card-header"><span class="card-title"><i data-lucide="trending-up"></i> Evolución de gastos</span></div>
-    <?php $maxEvol = max(array_column($monthlyEvolution, 'total') ?: [1]); ?>
+    <?php $maxEvol = max(1, max(array_column($monthlyEvolution, 'total') ?: [0])); ?>
     <div class="chart-bar-group">
       <?php foreach ($monthlyEvolution as $me): ?>
       <div class="chart-row">

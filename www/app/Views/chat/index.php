@@ -325,7 +325,7 @@ document.getElementById('chat-form').addEventListener('submit', function(e) {
   const text = input.value.trim();
   if (!text) return;
   const fd = new FormData(this);
-  fetch(this.action, { method: 'POST', body: fd, headers: { 'Accept': 'application/json' } })
+  fetch(this.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(() => { input.value = ''; input.style.height = 'auto'; poll(); })
     .catch(() => {});
 });
