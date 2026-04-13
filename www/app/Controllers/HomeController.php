@@ -26,6 +26,12 @@ class HomeController extends BaseController
 
         $home = $homeModel->find($homeId);
 
+        // Stale session: home no longer exists → clear and redirect
+        if (!$home) {
+            session()->remove(['home_id', 'home_name', 'is_admin']);
+            return redirect()->to('/homes')->with('error', 'Tu sesión de hogar ha caducado. Selecciona uno de nuevo.');
+        }
+
         // Today's chores assigned to this user
         $todayChores = $choreModel
             ->where('assigned_user_id', $userId)

@@ -12,7 +12,7 @@ class CreateAllTables extends Migration
         $this->forge->addField([
             'id'              => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
             'name'            => ['type' => 'VARCHAR', 'constraint' => 100],
-            'invite_code'     => ['type' => 'VARCHAR', 'constraint' => 10],
+            'invite_code'     => ['type' => 'VARCHAR', 'constraint' => 20],
             'default_penalty' => ['type' => 'DECIMAL', 'constraint' => '8,2', 'default' => '2.00'],
             'created_at'      => ['type' => 'DATETIME', 'null' => true],
             'updated_at'      => ['type' => 'DATETIME', 'null' => true],

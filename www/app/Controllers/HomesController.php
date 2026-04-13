@@ -37,6 +37,11 @@ class HomesController extends BaseController
 
         $homeModel = new HomeModel();
         $home      = $homeModel->find($homeId);
+
+        if (!$home) {
+            return redirect()->to('/homes')->with('error', 'Hogar no encontrado.');
+        }
+
         $isAdmin   = $uhModel->isAdmin($userId, $homeId);
 
         session()->set([
@@ -166,9 +171,10 @@ class HomesController extends BaseController
         }
 
         $uhModel->insert([
-            'user_id'  => $userId,
-            'home_id'  => $home['id'],
-            'is_admin' => 0,
+            'user_id'   => $userId,
+            'home_id'   => $home['id'],
+            'is_admin'  => 0,
+            'joined_at' => date('Y-m-d H:i:s'),
         ]);
 
         session()->set([
@@ -214,9 +220,10 @@ class HomesController extends BaseController
 
         $uhModel = new UserHomesModel();
         $uhModel->insert([
-            'user_id'  => $userId,
-            'home_id'  => $homeId,
-            'is_admin' => 1,
+            'user_id'   => $userId,
+            'home_id'   => $homeId,
+            'is_admin'  => 1,
+            'joined_at' => date('Y-m-d H:i:s'),
         ]);
 
         $home = $homeModel->find($homeId);
