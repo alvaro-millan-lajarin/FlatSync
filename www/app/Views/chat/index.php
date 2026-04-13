@@ -1,5 +1,15 @@
 <?= view('layouts/header') ?>
 
+<!-- Mobile tab switcher (hidden on desktop) -->
+<div class="chat-tabs">
+  <button class="chat-tab active" id="tab-chat" onclick="switchTab('chat')">
+    💬 Chat
+  </button>
+  <button class="chat-tab" id="tab-notes" onclick="switchTab('notes')">
+    📝 Notas
+  </button>
+</div>
+
 <div class="chat-layout">
 
   <!-- ── PANEL IZQUIERDO: NOTAS ── -->
@@ -257,9 +267,41 @@
 }
 .chat-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
+/* Mobile tab switcher */
+.chat-tabs {
+  display: none;
+  gap: 0;
+  margin-bottom: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+}
+.chat-tab {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  border-radius: calc(var(--radius) - 3px);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, color .15s;
+}
+.chat-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
 @media (max-width: 768px) {
+  .chat-tabs   { display: flex; }
   .chat-layout { grid-template-columns: 1fr; height: auto; }
-  .chat-panel  { height: calc(100vh - 145px); }
+  .chat-panel  { height: calc(100vh - 210px); }
+  .notes-panel.hidden-mobile { display: none; }
+  .chat-panel.hidden-mobile  { display: none; }
 }
 </style>
 
@@ -345,6 +387,30 @@ function handleKey(e) {
 
 scrollBottom();
 setInterval(poll, 3000);
+
+function switchTab(tab) {
+  const notes = document.querySelector('.notes-panel');
+  const chat  = document.querySelector('.chat-panel');
+  const tabChat  = document.getElementById('tab-chat');
+  const tabNotes = document.getElementById('tab-notes');
+  if (tab === 'chat') {
+    notes.classList.add('hidden-mobile');
+    chat.classList.remove('hidden-mobile');
+    tabChat.classList.add('active');
+    tabNotes.classList.remove('active');
+    scrollBottom();
+  } else {
+    chat.classList.add('hidden-mobile');
+    notes.classList.remove('hidden-mobile');
+    tabNotes.classList.add('active');
+    tabChat.classList.remove('active');
+  }
+}
+
+// On mobile, start with chat visible and notes hidden
+if (window.innerWidth <= 768) {
+  document.querySelector('.notes-panel').classList.add('hidden-mobile');
+}
 </script>
 
 <?= view('layouts/footer') ?>
