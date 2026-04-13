@@ -75,6 +75,11 @@
             <div class="chat-text"><?= nl2br(esc($m['message'])) ?></div>
             <div class="chat-time"><?= date('H:i', strtotime($m['created_at'])) ?></div>
           </div>
+          <?php if ($isMe): ?>
+          <button class="msg-delete-btn" onclick="deleteMessage(<?= $m['id'] ?>, this)" title="Eliminar">
+            <i data-lucide="trash-2" style="width:11px;height:11px"></i>
+          </button>
+          <?php endif; ?>
         </div>
       <?php endforeach; ?>
       <?php if (empty($messages)): ?>
@@ -252,6 +257,26 @@
 .chat-time { font-size: 0.63rem; opacity: .55; margin-top: 4px; text-align: right; }
 .chat-bubble--me .chat-time { color: rgba(255,255,255,.75); opacity: 1; }
 
+/* Delete button on own messages */
+.chat-msg { position: relative; }
+.msg-delete-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: center;
+  transition: color .15s, background .15s;
+  padding: 0;
+}
+.msg-delete-btn:hover { color: #fff; background: rgba(239,68,68,0.4); }
+.chat-msg--me:hover .msg-delete-btn { display: flex; }
+
 /* Input */
 .chat-input-wrap {
   background: var(--surface); border: 1px solid var(--border);
@@ -327,12 +352,17 @@ function avatarHtml(m) {
   return `<div class="chat-avatar-wrap"><div class="chat-avatar-initials" title="${escHtml(m.username)}">${escHtml(m.username[0].toUpperCase())}</div></div>`;
 }
 
+const DEL_MSG_URL = '<?= site_url('/chat/message/delete/') ?>';
+
 function buildMsg(m) {
   const isMe = m.user_id == ME_ID;
   const cls  = isMe ? 'chat-msg--me' : 'chat-msg--them';
   const bcls = isMe ? 'chat-bubble--me' : 'chat-bubble--them';
   const time = m.created_at ? new Date(m.created_at.replace(' ', 'T')).toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'}) : '';
   const name = isMe ? '' : `<div class="chat-name">${escHtml(m.username)}</div>`;
+  const delBtn = isMe ? `<button class="msg-delete-btn" onclick="deleteMessage(${m.id}, this)" title="Eliminar">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+  </button>` : '';
   return `<div class="chat-msg ${cls}" data-id="${m.id}">
     ${avatarHtml(m)}
     <div class="chat-bubble ${bcls}">
@@ -340,7 +370,25 @@ function buildMsg(m) {
       <div class="chat-text">${escHtml(m.message).replace(/\n/g,'<br>')}</div>
       <div class="chat-time">${time}</div>
     </div>
+    ${delBtn}
   </div>`;
+}
+
+function deleteMessage(id, btn) {
+  if (!confirm('¿Eliminar este mensaje?')) return;
+  const fd = new FormData();
+  fd.append('<?= csrf_token() ?>', document.querySelector('[name="<?= csrf_token() ?>"]').value);
+  fetch(`${DEL_MSG_URL}${id}`, { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        const row = btn.closest('.chat-msg');
+        row.style.transition = 'opacity .2s';
+        row.style.opacity = '0';
+        setTimeout(() => row.remove(), 200);
+      }
+    })
+    .catch(() => {});
 }
 
 function escHtml(s) {

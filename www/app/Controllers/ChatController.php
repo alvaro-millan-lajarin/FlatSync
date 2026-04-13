@@ -92,6 +92,22 @@ class ChatController extends BaseController
         return redirect()->to('/chat');
     }
 
+    /** POST: eliminar mensaje propio */
+    public function messageDelete(int $id)
+    {
+        if ($this->requireHome()) return;
+
+        $msgModel = new MessageModel();
+        $msg = $msgModel->find($id);
+
+        if ($msg && $msg['home_id'] == session()->get('home_id') && $msg['user_id'] == session()->get('user_id')) {
+            $msgModel->delete($id);
+            return $this->response->setJSON(['ok' => true]);
+        }
+
+        return $this->response->setStatusCode(403)->setJSON(['ok' => false]);
+    }
+
     /** GET JSON: mensajes nuevos desde un id (para polling) */
     public function poll()
     {

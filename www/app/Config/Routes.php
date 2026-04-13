@@ -74,8 +74,9 @@ $routes->post('/profile/edit','ProfileController::update');
 $routes->get('/chat',           'ChatController::index');
 $routes->post('/chat/send',     'ChatController::send');
 $routes->get('/chat/poll',      'ChatController::poll');
-$routes->post('/chat/notes/store',        'ChatController::noteStore');
-$routes->post('/chat/notes/delete/(:num)','ChatController::noteDelete/$1');
+$routes->post('/chat/notes/store',           'ChatController::noteStore');
+$routes->post('/chat/notes/delete/(:num)',   'ChatController::noteDelete/$1');
+$routes->post('/chat/message/delete/(:num)', 'ChatController::messageDelete/$1');
 
 // Homes (multi-sesión)
 $routes->get('/homes',                'HomesController::select');
