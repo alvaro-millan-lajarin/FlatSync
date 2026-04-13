@@ -27,7 +27,7 @@ helper('avatar');
 
 <!-- Hamburger (mobile only) -->
 <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menú">
-  <i data-lucide="menu" style="width:20px;height:20px"></i>
+  <span class="hamburger-icon"></span>
 </button>
 
 <!-- Overlay (mobile only) -->

@@ -796,12 +796,33 @@ tr:hover td { background: #FAFCFF; }
   background: var(--sidebar-bg);
   border: none;
   border-radius: 8px;
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   align-items: center; justify-content: center;
   cursor: pointer;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  padding: 0;
 }
+
+/* Three-line icon drawn in pure CSS — no icon font needed */
+.hamburger-icon,
+.hamburger-icon::before,
+.hamburger-icon::after {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  position: relative;
+  transition: transform .2s;
+}
+.hamburger-icon::before,
+.hamburger-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+.hamburger-icon::before { top: -6px; }
+.hamburger-icon::after  { top:  6px; }
 
 /* Overlay behind sidebar on mobile */
 .sidebar-overlay {
