@@ -107,7 +107,7 @@ foreach ($calDays as $day) {
           <!-- Responsable -->
           <div style="flex:1;display:flex;align-items:center;gap:6px">
             <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($c['assigned_name'], 0, 1)) ?></div>
-            <span style="font-size:0.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($c['assigned_name']) ?></span>
+            <span class="chore-person-name" style="font-size:0.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($c['assigned_name']) ?></span>
           </div>
           <!-- Penalización -->
           <div style="flex:0 0 80px;text-align:right;font-size:1rem;font-weight:700;color:var(--danger)">
@@ -290,6 +290,28 @@ foreach ($calDays as $day) {
   flex-wrap: wrap;
 }
 .day-task-row:last-child { margin-bottom: 0; }
+
+@media (max-width: 768px) {
+  /* Calendar: hide task name chips in cells, show coloured dot instead */
+  .cal-task {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.6rem;
+    padding: 1px 4px;
+  }
+  /* Day-panel actions: wrap to their own line on mobile */
+  .day-task-row {
+    gap: 8px;
+  }
+  .day-task-row > div:last-child {
+    flex-shrink: 1 !important;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  /* Missed chores: hide person name, keep avatar */
+  .chore-person-name { display: none; }
+}
 </style>
 
 <script>

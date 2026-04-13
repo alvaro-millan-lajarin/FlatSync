@@ -102,16 +102,16 @@
             <span class="badge badge-accent"><?= $cats[$e['category']] ?? esc($e['category']) ?></span>
           </div>
           <!-- Importe -->
-          <div style="flex:0 0 80px;text-align:right;font-size:1rem;font-weight:700;color:var(--primary)">
+          <div class="expense-col-amount" style="flex:0 0 80px;text-align:right;font-size:1rem;font-weight:700;color:var(--primary)">
             €<?= number_format($e['amount'], 2) ?>
           </div>
           <!-- Pagado por -->
-          <div style="flex:0 0 130px;display:flex;align-items:center;gap:6px">
+          <div class="expense-col-person" style="flex:0 0 130px;display:flex;align-items:center;gap:6px">
             <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($e['paid_by_name'], 0, 1)) ?></div>
             <span style="font-size:0.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($e['paid_by_name']) ?></span>
           </div>
           <!-- Prueba -->
-          <div style="flex:0 0 60px;text-align:center">
+          <div class="expense-col-receipt" style="flex:0 0 60px;text-align:center">
             <?php if ($e['receipt_image']): ?>
               <a href="<?= base_url('uploads/' . $e['receipt_image']) ?>" target="_blank" class="btn btn-sm btn-secondary"><i data-lucide="image" style="width:12px;height:12px"></i></a>
             <?php else: ?>
@@ -244,5 +244,18 @@ function openEditModal(expense) {
   openModal('modal-edit-expense');
 }
 </script>
+
+<style>
+@media (max-width: 768px) {
+  /* Hide receipt & paid-by text on mobile; keep avatar */
+  .expense-col-receipt { display: none !important; }
+  .expense-col-person  { flex: 0 0 auto !important; }
+  .expense-col-person span { display: none; }
+  .expense-col-amount  { flex: 0 0 60px !important; font-size: 0.9rem !important; }
+  /* Card header stacks on mobile */
+  .expense-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+  .expense-card-header > div { width: 100%; justify-content: flex-end; }
+}
+</style>
 
 <?= view('layouts/footer') ?>
