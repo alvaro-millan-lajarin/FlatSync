@@ -45,9 +45,10 @@ class ChatController extends BaseController
 
         $msgModel = new MessageModel();
         $msgModel->insert([
-            'home_id' => session()->get('home_id'),
-            'user_id' => session()->get('user_id'),
-            'message' => $text,
+            'home_id'    => session()->get('home_id'),
+            'user_id'    => session()->get('user_id'),
+            'message'    => $text,
+            'created_at' => date('Y-m-d H:i:s'),
         ]);
 
         // If AJAX fetch, return JSON; otherwise redirect (form fallback)

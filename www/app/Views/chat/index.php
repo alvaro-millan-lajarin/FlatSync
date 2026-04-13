@@ -285,7 +285,7 @@ function buildMsg(m) {
   const isMe = m.user_id == ME_ID;
   const cls  = isMe ? 'chat-msg--me' : 'chat-msg--them';
   const bcls = isMe ? 'chat-bubble--me' : 'chat-bubble--them';
-  const time = new Date(m.created_at.replace(' ', 'T')).toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'});
+  const time = m.created_at ? new Date(m.created_at.replace(' ', 'T')).toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'}) : '';
   const name = isMe ? '' : `<div class="chat-name">${escHtml(m.username)}</div>`;
   return `<div class="chat-msg ${cls}" data-id="${m.id}">
     ${avatarHtml(m)}
