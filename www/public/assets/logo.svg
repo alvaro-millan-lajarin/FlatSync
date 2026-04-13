@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#7C6AF7"/>
+      <stop offset="100%" style="stop-color:#60A5FA"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon: two overlapping squares (sync/flat symbol) -->
+  <rect x="8" y="14" width="26" height="26" rx="6" fill="url(#grad)" opacity="0.85"/>
+  <rect x="18" y="20" width="26" height="26" rx="6" fill="#7C6AF7"/>
+  <!-- Checkmark inside -->
+  <polyline points="24,33 28,37 36,28" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Wordmark -->
+  <text x="54" y="38"
+    font-family="'Syne', 'Arial Black', sans-serif"
+    font-size="22"
+    font-weight="700"
+    letter-spacing="-0.5"
+    fill="#1E1B3A">flat</text>
+  <text x="95" y="38"
+    font-family="'Syne', 'Arial Black', sans-serif"
+    font-size="22"
+    font-weight="700"
+    letter-spacing="-0.5"
+    fill="url(#grad)">sync</text>
+</svg>
