@@ -25,7 +25,15 @@ helper('avatar');
 <body>
 <div class="app-shell">
 
-<aside class="sidebar">
+<!-- Hamburger (mobile only) -->
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menú">
+  <i data-lucide="menu" style="width:20px;height:20px"></i>
+</button>
+
+<!-- Overlay (mobile only) -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
 
   <!-- Logo / home selector -->
   <div class="sidebar-logo" onclick="toggleHomeMenu()" title="Cambiar hogar">
@@ -173,5 +181,21 @@ document.addEventListener('click', function(e) {
   if (menu && !logo.contains(e.target) && !menu.contains(e.target)) {
     menu.style.display = 'none';
   }
+});
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').style.display =
+    document.getElementById('sidebar').classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').style.display = 'none';
+}
+// Close sidebar when a nav link is clicked on mobile
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
+    link.addEventListener('click', closeSidebar);
+  });
 });
 </script>
