@@ -6,7 +6,7 @@
   <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700"><?= $monthLabel ?></span>
   <a href="<?= site_url('/?month=' . $nextMonth) ?>" class="btn btn-secondary">Siguiente ›</a>
   <?php if ($filterMonth !== date('Y-m')): ?>
-    <a href="<?= site_url('/') ?>" class="btn btn-secondary">Mes actual</a>
+    <a href="<?= site_url('/dashboard') ?>" class="btn btn-secondary">Mes actual</a>
   <?php endif; ?>
 </div>
 

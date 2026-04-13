@@ -32,8 +32,9 @@ $routes->post('/api/chat',                   'ChatController::send');
 $routes->get('/api/chat/poll',               'ChatController::poll');
 $routes->get('/api/members',                 'MembersController::index');
 
-// Dashboard
-$routes->get('/', 'HomeController::index');
+// Landing & Dashboard
+$routes->get('/',          'HomeController::landing');
+$routes->get('/dashboard', 'HomeController::index');
 
 // Chores
 $routes->get('/chores',                          'ChoresController::index');

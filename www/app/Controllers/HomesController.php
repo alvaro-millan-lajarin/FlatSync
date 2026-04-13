@@ -59,7 +59,7 @@ class HomesController extends BaseController
             return $this->apiOk(['home' => $home]);
         }
 
-        return redirect()->to('/')->with('success', 'Sesión cambiada a «' . $home['name'] . '».');
+        return redirect()->to('/dashboard')->with('success', 'Sesión cambiada a «' . $home['name'] . '».');
     }
 
     /** Desactivar sesión activa (sigue siendo miembro del hogar) */
@@ -167,7 +167,7 @@ class HomesController extends BaseController
                 'home_name' => $home['name'],
                 'is_admin'  => $uhModel->isAdmin($userId, $home['id']),
             ]);
-            return redirect()->to('/')->with('success', 'Ya eres miembro. Sesión cambiada a «' . $home['name'] . '».');
+            return redirect()->to('/dashboard')->with('success', 'Ya eres miembro. Sesión cambiada a «' . $home['name'] . '».');
         }
 
         $uhModel->insert([
@@ -190,7 +190,7 @@ class HomesController extends BaseController
             ]);
         }
 
-        return redirect()->to('/')->with('success', '¡Te has unido a «' . $home['name'] . '»!');
+        return redirect()->to('/dashboard')->with('success', '¡Te has unido a «' . $home['name'] . '»!');
     }
 
     /** Crear un nuevo hogar desde dentro de la app */
@@ -241,6 +241,6 @@ class HomesController extends BaseController
             ]);
         }
 
-        return redirect()->to('/')->with('success', '¡Hogar «' . $homeName . '» creado! Comparte el código en Miembros.');
+        return redirect()->to('/dashboard')->with('success', '¡Hogar «' . $homeName . '» creado! Comparte el código en Miembros.');
     }
 }

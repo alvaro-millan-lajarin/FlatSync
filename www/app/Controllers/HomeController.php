@@ -11,6 +11,15 @@ use App\Models\UserHomesModel;
 
 class HomeController extends BaseController
 {
+    public function landing()
+    {
+        // Redirect logged-in users straight to dashboard
+        if (session()->get('isLoggedIn')) {
+            return redirect()->to('/dashboard');
+        }
+        return view('landing');
+    }
+
     public function index()
     {
         if ($this->requireHome()) return;

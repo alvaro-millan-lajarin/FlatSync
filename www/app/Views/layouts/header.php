@@ -89,7 +89,7 @@ helper('avatar');
   <!-- Nav sections -->
   <div class="sidebar-section">
     <div class="sidebar-section-label">General</div>
-    <a href="<?= site_url('/') ?>" class="nav-item <?= $activeNav === 'dashboard' ? 'active' : '' ?>">
+    <a href="<?= site_url('/dashboard') ?>" class="nav-item <?= $activeNav === 'dashboard' ? 'active' : '' ?>">
       <i data-lucide="layout-dashboard" class="nav-icon"></i> Dashboard
     </a>
   </div>
