@@ -250,7 +250,6 @@
       width: 44px; height: 44px;
       border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem;
       margin-bottom: 16px;
     }
     .feature-card h3 { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
@@ -324,12 +323,12 @@
 <!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-text">
-    <div class="hero-badge">✨ Gestión de piso compartido</div>
+    <div class="hero-badge"><i data-lucide="home" style="width:13px;height:13px"></i> Gestión de piso compartido</div>
     <h1>Vivir juntos,<br><em>sin complicaciones.</em></h1>
     <p>Controla gastos, organiza tareas, chatea con tus compañeros y encuentra servicios cercanos, todo desde un mismo sitio.</p>
     <div class="hero-actions">
       <a href="<?= site_url('/register') ?>" class="btn-hero">
-        Empezar gratis →
+        Empezar gratis <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
       </a>
       <a href="<?= site_url('/login') ?>" class="btn-hero-ghost">Iniciar sesión</a>
     </div>
@@ -389,22 +388,22 @@
     <h2>Una app para gestionar<br>todo el piso</h2>
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-icon" style="background:#EFF6FF">💰</div>
+        <div class="feature-icon" style="background:#EFF6FF"><i data-lucide="wallet" style="width:20px;height:20px;color:#2563EB"></i></div>
         <h3>Gastos compartidos</h3>
         <p>Registra quién pagó qué, divide automáticamente y salda deudas con un clic.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon" style="background:#F0FDF4">✅</div>
+        <div class="feature-icon" style="background:#F0FDF4"><i data-lucide="calendar-check" style="width:20px;height:20px;color:#16A34A"></i></div>
         <h3>Tareas del hogar</h3>
         <p>Asigna y rota las tareas entre compañeros. Multas automáticas si alguien falla.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon" style="background:#FFF7ED">💬</div>
+        <div class="feature-icon" style="background:#FFF7ED"><i data-lucide="message-circle" style="width:20px;height:20px;color:#EA580C"></i></div>
         <h3>Chat y notas</h3>
         <p>Comunícate con todos en tiempo real y deja notas importantes para el piso.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon" style="background:#FDF4FF">🔧</div>
+        <div class="feature-icon" style="background:#FDF4FF"><i data-lucide="wrench" style="width:20px;height:20px;color:#9333EA"></i></div>
         <h3>Servicios cercanos</h3>
         <p>Encuentra fontaneros, electricistas y limpiadores cerca de tu hogar al instante.</p>
       </div>
@@ -416,14 +415,16 @@
 <section class="cta-section">
   <h2>¿Listo para<br>simplificar tu piso?</h2>
   <p>Únete en menos de 2 minutos. Es completamente gratis.</p>
-  <a href="<?= site_url('/register') ?>" class="btn-cta">Crear mi hogar →</a>
+  <a href="<?= site_url('/register') ?>" class="btn-cta">Crear mi hogar <i data-lucide="arrow-right" style="width:16px;height:16px"></i></a>
 </section>
 
 <!-- ── FOOTER ── -->
 <footer>
   <span class="logo">flat<span>sync</span></span>
-  <p>Hecho con ❤️ para compañeros de piso</p>
+  <p>Hecho para compañeros de piso</p>
 </footer>
 
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>
