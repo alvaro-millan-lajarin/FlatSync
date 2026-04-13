@@ -296,6 +296,76 @@
     footer .logo span { color: var(--primary); }
     footer p { font-size: 0.8rem; color: var(--muted); }
 
+    /* ── ANIMATIONS ── */
+
+    /* Entrance keyframes */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(36px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* Floating card */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-10px); }
+    }
+    .hero-illustration { animation: float 5s ease-in-out infinite; }
+
+    /* Hero text — staggered entrance */
+    .hero-badge  { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .1s; }
+    .hero h1     { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .25s; }
+    .hero > .hero-text > p { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .4s; }
+    .hero-actions { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .55s; }
+    .hero-note   { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .65s; }
+    .hero-illustration { opacity: 0; animation: fadeInRight .7s ease forwards, float 5s ease-in-out 0.7s infinite; animation-fill-mode: forwards; }
+
+    /* Scroll-reveal base */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .55s ease, transform .55s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Staggered delay for feature cards */
+    .feature-card:nth-child(1) { transition-delay: .0s; }
+    .feature-card:nth-child(2) { transition-delay: .1s; }
+    .feature-card:nth-child(3) { transition-delay: .2s; }
+    .feature-card:nth-child(4) { transition-delay: .3s; }
+
+    /* Pulsing badge dot */
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50%       { transform: scale(1.5); opacity: .6; }
+    }
+    .badge-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--primary);
+      animation: pulse-dot 1.8s ease infinite;
+      flex-shrink: 0;
+    }
+
+    /* Member row highlight sweep */
+    @keyframes highlight {
+      0%   { background: #fff; }
+      40%  { background: #EFF6FF; }
+      100% { background: #fff; }
+    }
+    .flat-member { animation: highlight 3.5s ease infinite; }
+    .flat-member:nth-child(2) { animation-delay: 1.2s; }
+    .flat-member:nth-child(3) { animation-delay: 2.4s; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .hero { grid-template-columns: 1fr; gap: 40px; padding: 48px 5% 56px; }
@@ -323,7 +393,7 @@
 <!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-text">
-    <div class="hero-badge"><i data-lucide="home" style="width:13px;height:13px"></i> Gestión de piso compartido</div>
+    <div class="hero-badge"><span class="badge-dot"></span> Gestión de piso compartido</div>
     <h1>Vivir juntos,<br><em>sin complicaciones.</em></h1>
     <p>Controla gastos, organiza tareas, chatea con tus compañeros y encuentra servicios cercanos, todo desde un mismo sitio.</p>
     <div class="hero-actions">
@@ -375,7 +445,7 @@
       </div>
       <div class="flat-total">
         <span class="flat-total-label">Total este mes</span>
-        <span class="flat-total-value">€487.50</span>
+        <span class="flat-total-value" id="counter">€0.00</span>
       </div>
     </div>
   </div>
@@ -384,25 +454,25 @@
 <!-- ── FEATURES ── -->
 <section class="features">
   <div class="features-inner">
-    <p class="features-label">Todo lo que necesitas</p>
-    <h2>Una app para gestionar<br>todo el piso</h2>
+    <p class="features-label reveal">Todo lo que necesitas</p>
+    <h2 class="reveal">Una app para gestionar<br>todo el piso</h2>
     <div class="features-grid">
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon" style="background:#EFF6FF"><i data-lucide="wallet" style="width:20px;height:20px;color:#2563EB"></i></div>
         <h3>Gastos compartidos</h3>
         <p>Registra quién pagó qué, divide automáticamente y salda deudas con un clic.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon" style="background:#F0FDF4"><i data-lucide="calendar-check" style="width:20px;height:20px;color:#16A34A"></i></div>
         <h3>Tareas del hogar</h3>
         <p>Asigna y rota las tareas entre compañeros. Multas automáticas si alguien falla.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon" style="background:#FFF7ED"><i data-lucide="message-circle" style="width:20px;height:20px;color:#EA580C"></i></div>
         <h3>Chat y notas</h3>
         <p>Comunícate con todos en tiempo real y deja notas importantes para el piso.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon" style="background:#FDF4FF"><i data-lucide="wrench" style="width:20px;height:20px;color:#9333EA"></i></div>
         <h3>Servicios cercanos</h3>
         <p>Encuentra fontaneros, electricistas y limpiadores cerca de tu hogar al instante.</p>
@@ -413,8 +483,8 @@
 
 <!-- ── CTA ── -->
 <section class="cta-section">
-  <h2>¿Listo para<br>simplificar tu piso?</h2>
-  <p>Únete en menos de 2 minutos. Es completamente gratis.</p>
+  <h2 class="reveal" style="color:#fff">¿Listo para<br>simplificar tu piso?</h2>
+  <p class="reveal">Únete en menos de 2 minutos. Es completamente gratis.</p>
   <a href="<?= site_url('/register') ?>" class="btn-cta">Crear mi hogar <i data-lucide="arrow-right" style="width:16px;height:16px"></i></a>
 </section>
 
@@ -425,6 +495,42 @@
 </footer>
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script>lucide.createIcons();</script>
+<script>
+lucide.createIcons();
+
+// ── Scroll-reveal ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Counter animation ──
+function animateCounter(el, target, duration) {
+  const start = performance.now();
+  const update = (now) => {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    el.textContent = '€' + (target * ease).toFixed(2);
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = '€' + target.toFixed(2);
+  };
+  requestAnimationFrame(update);
+}
+
+const counterEl = document.getElementById('counter');
+const counterObserver = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting) {
+    animateCounter(counterEl, 487.50, 1800);
+    counterObserver.unobserve(counterEl);
+  }
+}, { threshold: 0.5 });
+counterObserver.observe(counterEl);
+</script>
 </body>
 </html>
