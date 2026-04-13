@@ -785,7 +785,6 @@ tr:hover td { background: #FAFCFF; }
   .calendar-grid { grid-template-columns: repeat(7,1fr); gap: 3px; }
   .cal-day { min-height: 55px; padding: 5px 3px; }
   .hamburger { display: flex; }
-  .sidebar-overlay { display: block; }
 }
 
 /* Hamburger button */
