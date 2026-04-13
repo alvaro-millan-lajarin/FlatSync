@@ -11,6 +11,8 @@ $routes->get('/register', 'AuthController::register');
 $routes->post('/register','AuthController::registerPost');
 $routes->get('/logout',   'AuthController::logout');
 $routes->post('/logout',  'AuthController::logout');
+$routes->get('/auth/google',          'AuthController::googleRedirect');
+$routes->get('/auth/google/callback', 'AuthController::googleCallback');
 
 // API — rutas exclusivas para la app móvil
 $routes->post('/api/login',    'AuthController::loginPost');

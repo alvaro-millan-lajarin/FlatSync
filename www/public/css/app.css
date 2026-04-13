@@ -732,6 +732,47 @@ tr:hover td { background: #FAFCFF; }
 .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
 .auth-footer a:hover { text-decoration: underline; }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #3c4043;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s, box-shadow .15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.btn-google:hover {
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  color: #3c4043;
+}
+
 /* ── EMPTY STATE ── */
 .empty-state {
   text-align: center;
