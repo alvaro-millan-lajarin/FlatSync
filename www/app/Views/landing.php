@@ -366,6 +366,94 @@
     .flat-member:nth-child(2) { animation-delay: 1.2s; }
     .flat-member:nth-child(3) { animation-delay: 2.4s; }
 
+    /* ── SCROLL PROGRESS BAR ── */
+    #scroll-progress {
+      position: fixed; top: 0; left: 0; height: 3px;
+      background: linear-gradient(90deg, #2563EB, #7C6AF7, #60A5FA);
+      width: 0%; z-index: 9999;
+      transition: width .05s linear;
+    }
+
+    /* ── HERO BLOBS ── */
+    .hero { position: relative; overflow: hidden; }
+    .hero-text, .hero-illustration { position: relative; z-index: 1; }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: .45;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes blobMove1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%      { transform: translate(40px,-30px) scale(1.08); }
+      66%      { transform: translate(-20px,20px) scale(.95); }
+    }
+    @keyframes blobMove2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%      { transform: translate(-50px,25px) scale(1.05); }
+      66%      { transform: translate(30px,-20px) scale(.97); }
+    }
+    .blob-1 {
+      width: 380px; height: 380px;
+      background: #BFDBFE;
+      top: -80px; left: -60px;
+      animation: blobMove1 9s ease-in-out infinite;
+    }
+    .blob-2 {
+      width: 300px; height: 300px;
+      background: #DDD6FE;
+      bottom: -60px; right: 10%;
+      animation: blobMove2 11s ease-in-out infinite;
+    }
+    .blob-3 {
+      width: 200px; height: 200px;
+      background: #BAE6FD;
+      top: 40%; left: 45%;
+      animation: blobMove1 13s ease-in-out infinite reverse;
+    }
+
+    /* ── STATS SECTION ── */
+    .stats-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 36px 6%;
+    }
+    .stats-bar-inner {
+      max-width: 900px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-around;
+      gap: 24px; flex-wrap: wrap;
+    }
+    .stat-item { text-align: center; }
+    .stat-item .num {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--dark);
+      display: block;
+      line-height: 1.1;
+    }
+    .stat-item .num span { color: var(--primary); }
+    .stat-item .lbl {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 4px;
+      display: block;
+    }
+    .stat-divider {
+      width: 1px; height: 40px;
+      background: var(--border);
+    }
+    @media (max-width: 600px) { .stat-divider { display: none; } }
+
+    /* ── TILT CARD ── */
+    .flat-card {
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .hero { grid-template-columns: 1fr; gap: 40px; padding: 48px 5% 56px; }
@@ -381,6 +469,8 @@
 </head>
 <body>
 
+<div id="scroll-progress"></div>
+
 <!-- ── NAV ── -->
 <nav>
   <a href="<?= site_url('/') ?>" class="nav-logo">flat<span>sync</span></a>
@@ -392,9 +482,12 @@
 
 <!-- ── HERO ── -->
 <section class="hero">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
   <div class="hero-text">
     <div class="hero-badge"><span class="badge-dot"></span> Gestión de piso compartido</div>
-    <h1>Vivir juntos,<br><em>sin complicaciones.</em></h1>
+    <h1>Vivir juntos,<br><em id="typewriter-text"></em></h1>
     <p>Controla gastos, organiza tareas, chatea con tus compañeros y encuentra servicios cercanos, todo desde un mismo sitio.</p>
     <div class="hero-actions">
       <a href="<?= site_url('/register') ?>" class="btn-hero">
@@ -451,6 +544,31 @@
   </div>
 </section>
 
+<!-- ── STATS BAR ── -->
+<div class="stats-bar">
+  <div class="stats-bar-inner">
+    <div class="stat-item reveal">
+      <span class="num" data-target="500">0<span>+</span></span>
+      <span class="lbl">Pisos activos</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item reveal" style="transition-delay:.1s">
+      <span class="num" data-target="10000">0<span>+</span></span>
+      <span class="lbl">Gastos registrados</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item reveal" style="transition-delay:.2s">
+      <span class="num" data-target="98">0<span>%</span></span>
+      <span class="lbl">Satisfacción</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item reveal" style="transition-delay:.3s">
+      <span class="num" data-target="2">0<span> min</span></span>
+      <span class="lbl">Para empezar</span>
+    </div>
+  </div>
+</div>
+
 <!-- ── FEATURES ── -->
 <section class="features">
   <div class="features-inner">
@@ -498,39 +616,102 @@
 <script>
 lucide.createIcons();
 
-// ── Scroll-reveal ──
-const observer = new IntersectionObserver((entries) => {
+// ── 1. Scroll progress bar ──
+const progressBar = document.getElementById('scroll-progress');
+window.addEventListener('scroll', () => {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  progressBar.style.width = (window.scrollY / max * 100) + '%';
+}, { passive: true });
+
+// ── 2. Scroll-reveal ──
+const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      observer.unobserve(e.target);
-    }
+    if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
   });
 }, { threshold: 0.15 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-// ── Counter animation ──
-function animateCounter(el, target, duration) {
+// ── 3. Typewriter ──
+function typewriter(el, text, speed = 55) {
+  let i = 0;
+  el.textContent = '';
+  const type = () => {
+    if (i < text.length) { el.textContent += text[i++]; setTimeout(type, speed); }
+  };
+  setTimeout(type, 900); // start after hero entrance
+}
+typewriter(document.getElementById('typewriter-text'), 'sin complicaciones.');
+
+// ── 4. Counter helper ──
+function animateCount(el, target, duration, suffix) {
   const start = performance.now();
+  const isFloat = String(target).includes('.');
   const update = (now) => {
-    const elapsed = now - start;
-    const progress = Math.min(elapsed / duration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-    el.textContent = '€' + (target * ease).toFixed(2);
-    if (progress < 1) requestAnimationFrame(update);
-    else el.textContent = '€' + target.toFixed(2);
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const val = target * ease;
+    el.childNodes[0].textContent = isFloat ? val.toFixed(2) : Math.round(val).toLocaleString('es');
+    if (p < 1) requestAnimationFrame(update);
+    else el.childNodes[0].textContent = isFloat ? target.toFixed(2) : target.toLocaleString('es');
   };
   requestAnimationFrame(update);
 }
 
-const counterEl = document.getElementById('counter');
-const counterObserver = new IntersectionObserver((entries) => {
+// ── 5. Hero card counter (€487.50) ──
+const heroCounter = document.getElementById('counter');
+new IntersectionObserver((entries) => {
   if (entries[0].isIntersecting) {
-    animateCounter(counterEl, 487.50, 1800);
-    counterObserver.unobserve(counterEl);
+    const start = performance.now();
+    const run = (now) => {
+      const p = Math.min((now - start) / 1800, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      heroCounter.textContent = '€' + (487.50 * ease).toFixed(2);
+      if (p < 1) requestAnimationFrame(run);
+      else heroCounter.textContent = '€487.50';
+    };
+    requestAnimationFrame(run);
   }
-}, { threshold: 0.5 });
-counterObserver.observe(counterEl);
+}, { threshold: 0.5 }).observe(heroCounter);
+
+// ── 6. Stats bar counters ──
+document.querySelectorAll('.stat-item .num').forEach(el => {
+  const target = parseInt(el.dataset.target);
+  const suffix = el.querySelector('span');
+  new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      let i = 0;
+      const duration = 1400;
+      const start = performance.now();
+      const run = (now) => {
+        const p = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        const val = Math.round(target * ease);
+        el.childNodes[0].textContent = val.toLocaleString('es');
+        if (p < 1) requestAnimationFrame(run);
+        else el.childNodes[0].textContent = target.toLocaleString('es');
+      };
+      requestAnimationFrame(run);
+      entries[0].target.closest('.stat-item') && entries[0].target.closest('.stat-item').classList.add('counted');
+    }
+  }, { threshold: 0.8 }).observe(el);
+});
+
+// ── 7. 3D tilt on hero card ──
+const card = document.querySelector('.flat-card');
+const illustration = document.querySelector('.hero-illustration');
+card.addEventListener('mousemove', (e) => {
+  const rect = card.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width  - 0.5;
+  const y = (e.clientY - rect.top)  / rect.height - 0.5;
+  illustration.style.animationPlayState = 'paused';
+  card.style.transform = `perspective(800px) rotateY(${x * 18}deg) rotateX(${-y * 14}deg) scale(1.03)`;
+  card.style.transition = 'transform .1s ease';
+});
+card.addEventListener('mouseleave', () => {
+  card.style.transform = 'perspective(800px) rotateY(0deg) rotateX(0deg) scale(1)';
+  card.style.transition = 'transform .6s ease';
+  setTimeout(() => { illustration.style.animationPlayState = 'running'; }, 600);
+});
 </script>
 </body>
 </html>
