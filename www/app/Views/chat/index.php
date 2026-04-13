@@ -3,10 +3,10 @@
 <!-- Mobile tab switcher (hidden on desktop) -->
 <div class="chat-tabs">
   <button class="chat-tab active" id="tab-chat" onclick="switchTab('chat')">
-    💬 Chat
+    <i data-lucide="message-circle" style="width:14px;height:14px"></i> Chat
   </button>
   <button class="chat-tab" id="tab-notes" onclick="switchTab('notes')">
-    📝 Notas
+    <i data-lucide="sticky-note" style="width:14px;height:14px"></i> Notas
   </button>
 </div>
 
@@ -290,6 +290,10 @@
   cursor: pointer;
   font-family: inherit;
   transition: background .15s, color .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 .chat-tab.active {
   background: var(--primary);
