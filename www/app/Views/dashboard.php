@@ -2,9 +2,9 @@
 
 <!-- Selector de mes -->
 <div style="display:flex;gap:10px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
-  <a href="<?= site_url('/?month=' . $prevMonth) ?>" class="btn btn-secondary">‹ Anterior</a>
+  <a href="<?= site_url('/dashboard?month=' . $prevMonth) ?>" class="btn btn-secondary">‹ Anterior</a>
   <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700"><?= $monthLabel ?></span>
-  <a href="<?= site_url('/?month=' . $nextMonth) ?>" class="btn btn-secondary">Siguiente ›</a>
+  <a href="<?= site_url('/dashboard?month=' . $nextMonth) ?>" class="btn btn-secondary">Siguiente ›</a>
   <?php if ($filterMonth !== date('Y-m')): ?>
     <a href="<?= site_url('/dashboard') ?>" class="btn btn-secondary">Mes actual</a>
   <?php endif; ?>
