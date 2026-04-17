@@ -55,24 +55,17 @@ const COLOR_MAP = {
 let userLat = null, userLng = null;
 
 /* ── Arranque ───────────────────────────────────────────────── */
-function isInsecureContext() {
-  const h = location.hostname;
-  return location.protocol !== 'https:' &&
-         h !== 'localhost' && h !== '127.0.0.1' && !h.endsWith('.localhost');
-}
-
 function loadAll() {
-  if (isInsecureContext()) {
-    showState('error', 'Se necesita HTTPS',
-      'Los navegadores móviles bloquean la geolocalización en conexiones HTTP. Accede mediante https:// o usa una IP de localhost.');
-    return;
-  }
   if (!navigator.geolocation) {
     showState('error', 'Geolocalización no disponible', 'Tu navegador no soporta geolocalización.');
     return;
   }
   const btn = document.getElementById('btn-locate');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="width:14px;height:14px"></i> Buscando…'; if (window.lucide) lucide.createIcons(btn); }
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" style="width:14px;height:14px"></i> Buscando…';
+    if (window.lucide) lucide.createIcons(btn);
+  }
   showState('loader', 'Solicitando permiso de ubicación…', 'Acepta el permiso que aparece en tu dispositivo.');
   navigator.geolocation.getCurrentPosition(onGeo, onGeoError, { timeout: 15000, enableHighAccuracy: false });
 }
@@ -101,12 +94,21 @@ function onGeo(pos) {
 
 function onGeoError(err) {
   resetBtn();
-  const msgs = {
-    1: 'Permiso denegado. Si no te apareció ningún diálogo, revisa los ajustes de tu navegador (Ajustes > Safari/Chrome > Ubicación) y permite el acceso para este sitio. En conexión HTTP el navegador deniega automáticamente sin preguntar.',
-    2: 'No se pudo obtener la posición. Comprueba que el GPS/Localización está activado en el dispositivo.',
-    3: 'Tiempo de espera agotado. Asegúrate de tener señal GPS y vuelve a intentarlo.',
-  };
-  showState('error', 'Sin ubicación', msgs[err.code] || 'Error desconocido.');
+  let titulo = 'Sin ubicación';
+  let detalle = '';
+  if (err.code === 1) {
+    titulo = 'Permiso de ubicación denegado';
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      detalle = 'Estás en HTTP: los navegadores móviles bloquean la ubicación en conexiones no seguras. Accede por HTTPS para que funcione.';
+    } else {
+      detalle = 'El navegador recuerda que denegaste el permiso. Para restablecerlo: Ajustes del móvil → Safari/Chrome → Ubicación → Permitir para este sitio.';
+    }
+  } else if (err.code === 2) {
+    detalle = 'No se pudo obtener la posición. Comprueba que el GPS/Localización está activado.';
+  } else {
+    detalle = 'Tiempo de espera agotado. Asegúrate de tener señal y vuelve a intentarlo.';
+  }
+  showState('error', titulo, detalle);
 }
 
 /* ── Fetch por categoría ────────────────────────────────────── */

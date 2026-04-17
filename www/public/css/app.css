@@ -865,6 +865,27 @@ tr:hover td { background: #FAFCFF; }
 .hamburger-icon::before { top: -5px; }
 .hamburger-icon::after  { top:  5px; }
 
+/* ── FILTER FORM (expenses) ── */
+.expense-filter-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+.expense-filter-field { margin: 0; }
+.expense-filter-actions { display: flex; gap: 8px; align-items: flex-end; }
+.expense-filter-actions .btn { white-space: nowrap; }
+
+/* Normalizar input[type=month] en móvil */
+input[type="month"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   .mobile-topbar { display: flex; }
@@ -889,6 +910,12 @@ tr:hover td { background: #FAFCFF; }
   .chart-label { width: 80px !important; font-size: 0.78rem; }
   /* Modal: ocupa todo el ancho con margen */
   .modal { max-width: calc(100vw - 32px) !important; margin: 0 auto; }
+}
+
+@media (max-width: 640px) {
+  .expense-filter-form { grid-template-columns: 1fr; }
+  .expense-filter-actions { width: 100%; }
+  .expense-filter-actions .btn { flex: 1; justify-content: center; }
 }
 
 @media (max-width: 480px) {
