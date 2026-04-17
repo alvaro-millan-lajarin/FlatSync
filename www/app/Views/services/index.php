@@ -55,11 +55,16 @@ const COLOR_MAP = {
 let userLat = null, userLng = null;
 
 /* ── Arranque ───────────────────────────────────────────────── */
+function isInsecureContext() {
+  const h = location.hostname;
+  return location.protocol !== 'https:' &&
+         h !== 'localhost' && h !== '127.0.0.1' && !h.endsWith('.localhost');
+}
+
 function loadAll() {
-  // Contexto inseguro (HTTP fuera de localhost): el navegador bloquea la geolocalización sin avisar
-  if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-    showState('error', 'Conexión no segura',
-      'La geolocalización requiere HTTPS. Accede a la app mediante una conexión segura (https://) para usar esta función.');
+  if (isInsecureContext()) {
+    showState('error', 'Se necesita HTTPS',
+      'Los navegadores móviles bloquean la geolocalización en conexiones HTTP. Accede mediante https:// o usa una IP de localhost.');
     return;
   }
   if (!navigator.geolocation) {
@@ -97,8 +102,8 @@ function onGeo(pos) {
 function onGeoError(err) {
   resetBtn();
   const msgs = {
-    1: 'Permiso denegado. Ve a los ajustes de tu navegador/dispositivo y permite el acceso a la ubicación para este sitio.',
-    2: 'No se pudo determinar la ubicación. Comprueba que el GPS está activado.',
+    1: 'Permiso denegado. Si no te apareció ningún diálogo, revisa los ajustes de tu navegador (Ajustes > Safari/Chrome > Ubicación) y permite el acceso para este sitio. En conexión HTTP el navegador deniega automáticamente sin preguntar.',
+    2: 'No se pudo obtener la posición. Comprueba que el GPS/Localización está activado en el dispositivo.',
     3: 'Tiempo de espera agotado. Asegúrate de tener señal GPS y vuelve a intentarlo.',
   };
   showState('error', 'Sin ubicación', msgs[err.code] || 'Error desconocido.');

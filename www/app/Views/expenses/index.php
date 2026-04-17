@@ -20,7 +20,7 @@
 </div>
 
 <!-- Filter bar -->
-<div class="card" style="margin-bottom:20px">
+<div class="card expense-filter-card" style="margin-bottom:20px;overflow:hidden">
   <form method="get" action="<?= site_url('/expenses') ?>" class="expense-filter-form" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
     <div class="form-group" style="margin:0;flex:1;min-width:150px">
       <label>Mes</label>
@@ -250,8 +250,10 @@ function openEditModal(expense) {
 <style>
 @media (max-width: 768px) {
   /* Filter form: columna única */
-  .expense-filter-form { flex-direction: column !important; align-items: stretch !important; }
-  .expense-filter-form .form-group { min-width: 0 !important; flex: none !important; width: 100%; margin: 0 !important; }
+  .expense-filter-form { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
+  .expense-filter-form .form-group { min-width: 0 !important; flex: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; }
+  .expense-filter-form input,
+  .expense-filter-form select { width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; }
   .filter-btn-group { width: 100%; }
   .filter-btn-group .btn { flex: 1; justify-content: center; }
   /* Hide receipt column */
