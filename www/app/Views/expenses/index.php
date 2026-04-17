@@ -248,26 +248,6 @@ function openEditModal(expense) {
 </script>
 
 <style>
-/* ── Filter form layout ── */
-.expense-filter-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
-  gap: 12px;
-  align-items: end;
-}
-.expense-filter-field { margin: 0; }
-.expense-filter-actions { display: flex; gap: 8px; align-items: flex-end; }
-.expense-filter-actions .btn { white-space: nowrap; }
-
-@media (max-width: 640px) {
-  .expense-filter-form {
-    grid-template-columns: 1fr;
-  }
-  .expense-filter-actions { flex-direction: row; }
-  .expense-filter-actions .btn { flex: 1; justify-content: center; }
-}
-
-/* ── Expense list mobile ── */
 @media (max-width: 768px) {
   .expense-col-receipt { display: none !important; }
   .expense-col-person  { flex: 0 0 auto !important; }
@@ -279,7 +259,6 @@ function openEditModal(expense) {
 @media (max-width: 480px) {
   .expense-col-category { display: none !important; }
   .expense-col-amount { flex: 0 0 52px !important; font-size: 0.85rem !important; }
-  .btn-icon { min-width: 36px; min-height: 36px; }
 }
 </style>
 
