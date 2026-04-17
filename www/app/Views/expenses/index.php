@@ -45,14 +45,16 @@
         <?php endforeach; ?>
       </select>
     </div>
-    <button type="submit" class="btn btn-secondary" style="margin-bottom:0">Filtrar</button>
-    <a href="<?= site_url('/expenses') ?>" class="btn btn-secondary" style="margin-bottom:0"><i data-lucide="x" style="width:13px;height:13px"></i> Limpiar</a>
+    <div class="filter-btn-group" style="display:flex;gap:8px;align-items:flex-end">
+      <button type="submit" class="btn btn-secondary" style="margin-bottom:0">Filtrar</button>
+      <a href="<?= site_url('/expenses') ?>" class="btn btn-secondary" style="margin-bottom:0"><i data-lucide="x" style="width:13px;height:13px"></i> Limpiar</a>
+    </div>
   </form>
 </div>
 
 <!-- Expenses table -->
 <div class="card">
-  <div class="card-header">
+  <div class="card-header expense-card-header">
     <span class="card-title">Historial de gastos</span>
     <div style="display:flex;gap:8px">
       <button class="btn btn-primary" onclick="openModal('modal-add-expense')"><i data-lucide="plus" style="width:14px;height:14px"></i> Añadir gasto</button>
@@ -98,7 +100,7 @@
             <?php endif; ?>
           </div>
           <!-- Categoría -->
-          <div style="flex:0 0 auto">
+          <div class="expense-col-category" style="flex:0 0 auto">
             <span class="badge badge-accent"><?= $cats[$e['category']] ?? esc($e['category']) ?></span>
           </div>
           <!-- Importe -->
@@ -247,14 +249,27 @@ function openEditModal(expense) {
 
 <style>
 @media (max-width: 768px) {
-  /* Hide receipt & paid-by text on mobile; keep avatar */
+  /* Hide receipt column */
   .expense-col-receipt { display: none !important; }
+  /* Collapse paid-by to avatar only */
   .expense-col-person  { flex: 0 0 auto !important; }
   .expense-col-person span { display: none; }
+  /* Narrower amount column */
   .expense-col-amount  { flex: 0 0 60px !important; font-size: 0.9rem !important; }
-  /* Card header stacks on mobile */
+  /* Card header stacks */
   .expense-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
-  .expense-card-header > div { width: 100%; justify-content: flex-end; }
+  .expense-card-header > div { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  /* Filter form inputs stack */
+  .filter-btn-group { width: 100%; }
+  .filter-btn-group .btn { flex: 1; justify-content: center; }
+}
+@media (max-width: 480px) {
+  /* Hide category badge on very small screens */
+  .expense-col-category { display: none !important; }
+  /* Reduce row gap */
+  .expense-col-amount { flex: 0 0 52px !important; font-size: 0.85rem !important; }
+  /* Action buttons: ensure minimum touch target */
+  .btn-icon { min-width: 36px; min-height: 36px; }
 }
 </style>
 

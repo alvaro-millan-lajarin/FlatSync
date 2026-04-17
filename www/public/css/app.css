@@ -881,6 +881,20 @@ tr:hover td { background: #FAFCFF; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .calendar-grid { grid-template-columns: repeat(7,1fr); gap: 3px; }
   .cal-day { min-height: 55px; padding: 5px 3px; }
+  /* Card padding reducido en mobile */
+  .card { padding: 16px; }
+  /* Balance: forzar 1 columna */
+  .balance-top-grid { grid-template-columns: 1fr !important; }
+  /* Chart label más estrecha */
+  .chart-label { width: 80px !important; font-size: 0.78rem; }
+  /* Modal: ocupa todo el ancho con margen */
+  .modal { max-width: calc(100vw - 32px) !important; margin: 0 auto; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr !important; }
+  /* Botones icon más grandes para touch */
+  .btn-icon { min-width: 36px !important; min-height: 36px !important; padding: 8px !important; }
 }
 
 /* Overlay behind sidebar on mobile */

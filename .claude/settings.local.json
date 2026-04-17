@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync\" log --oneline -10)",
+      "Bash(git -C \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync\" status)",
+      "Bash(git -C \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync\" log --oneline --follow -- railway.json)",
+      "Bash(git -C \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync\" log --oneline --follow -- www/public/health.php)",
+      "Bash(git -C \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync\" show 679d865:railway.json)",
+      "Bash(git -C \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync\" show 679d865:www/app/Config/Filters.php)",
+      "Bash(git:*)"
+    ]
+  }
+}

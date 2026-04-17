@@ -1,6 +1,6 @@
 <?= view('layouts/header') ?>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+<div class="balance-top-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
 
   <!-- Individual balances -->
   <div class="card">
@@ -40,13 +40,15 @@
     <div style="display:flex;flex-direction:column;gap:12px">
       <?php foreach ($settlements as $s): ?>
       <div style="padding:14px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-          <div class="user-avatar" style="width:28px;height:28px;font-size:0.72rem"><?= strtoupper(substr($s['from_name'], 0, 1)) ?></div>
-          <span style="font-weight:500"><?= esc($s['from_name']) ?></span>
-          <span style="color:var(--muted)">→</span>
-          <div class="user-avatar" style="width:28px;height:28px;font-size:0.72rem"><?= strtoupper(substr($s['to_name'], 0, 1)) ?></div>
-          <span style="font-weight:500"><?= esc($s['to_name']) ?></span>
-          <span style="margin-left:auto;font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--danger)">€<?= number_format($s['amount'], 2) ?></span>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+            <div class="user-avatar" style="width:28px;height:28px;font-size:0.72rem;flex-shrink:0"><?= strtoupper(substr($s['from_name'], 0, 1)) ?></div>
+            <span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px"><?= esc($s['from_name']) ?></span>
+            <span style="color:var(--muted);flex-shrink:0">→</span>
+            <div class="user-avatar" style="width:28px;height:28px;font-size:0.72rem;flex-shrink:0"><?= strtoupper(substr($s['to_name'], 0, 1)) ?></div>
+            <span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px"><?= esc($s['to_name']) ?></span>
+          </div>
+          <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--danger);flex-shrink:0">€<?= number_format($s['amount'], 2) ?></span>
         </div>
         <?php if ($s['from_id'] == session()->get('user_id')): ?>
         <form method="post" action="<?= site_url('/expenses/settle') ?>">
@@ -114,5 +116,11 @@
   </div>
   <?php endif; ?>
 </div>
+
+<style>
+@media (max-width: 640px) {
+  .balance-top-grid { grid-template-columns: 1fr !important; }
+}
+</style>
 
 <?= view('layouts/footer') ?>

@@ -62,7 +62,7 @@
         <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center">
           Guardar cambios
         </button>
-        <a href="<?= site_url('/profile') ?>" class="btn btn-secondary">Cancelar</a>
+        <a href="<?= site_url('/profile') ?>" class="btn btn-secondary" style="flex:1;justify-content:center">Cancelar</a>
       </div>
     </form>
   </div>

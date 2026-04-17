@@ -4,7 +4,7 @@
 
   <!-- Profile card -->
   <div class="card" style="margin-bottom:20px">
-    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+    <div class="profile-header-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
 
       <!-- Avatar -->
       <div style="position:relative;flex-shrink:0">
@@ -36,7 +36,7 @@
   </div>
 
   <!-- Stats row -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+  <div class="profile-stats-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
     <div class="card" style="text-align:center;padding:20px 16px">
       <div style="font-size:1.6rem;font-weight:700;color:var(--primary);letter-spacing:-0.03em"><?= esc($user['username'][0]) ?></div>
       <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">Inicial</div>
@@ -58,5 +58,14 @@
   </div>
 
 </div>
+
+<style>
+@media (max-width: 480px) {
+  .profile-header-inner { gap: 16px; }
+  .profile-header-inner > a.btn { width: 100%; justify-content: center; }
+  .profile-stats-grid { grid-template-columns: 1fr 1fr !important; }
+  .profile-stats-grid .card:last-child { grid-column: 1 / -1; }
+}
+</style>
 
 <?= view('layouts/footer') ?>
