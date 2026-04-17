@@ -2,32 +2,34 @@
 
 <!-- Barra superior: búsqueda + ubicación -->
 <div class="card" style="margin-bottom:24px">
-  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-    <div style="flex:1;min-width:220px;position:relative">
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="position:relative">
       <i data-lucide="search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted)"></i>
       <input type="text" id="service-search" placeholder="Buscar categoría…"
-             style="width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:8px;font-size:0.875rem;font-family:inherit;background:var(--surface2);color:var(--text);outline:none"
+             style="width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:8px;font-size:0.875rem;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;box-sizing:border-box"
              oninput="filterCategories(this.value)">
     </div>
-    <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--muted)">
-      <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--primary)"></i>
-      <span id="location-label">Solicitando ubicación…</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--muted);min-width:0;flex:1">
+        <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--primary);flex-shrink:0"></i>
+        <span id="location-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Sin ubicación</span>
+      </div>
+      <button id="btn-locate" onclick="loadAll()" class="btn btn-primary" style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <i data-lucide="locate" style="width:14px;height:14px"></i> Buscar lugares cercanos
+      </button>
     </div>
-    <button onclick="loadAll()" class="btn btn-sm btn-secondary" style="display:flex;align-items:center;gap:5px">
-      <i data-lucide="locate" style="width:12px;height:12px"></i> Actualizar
-    </button>
   </div>
 </div>
 
 <!-- Categorías (rellenado por JS) -->
 <div id="services-container"></div>
 
-<!-- Estado global (sin permiso / error) -->
-<div id="state-msg" style="display:none">
+<!-- Estado global (inicial / error) -->
+<div id="state-msg">
   <div class="empty-state" style="padding:60px 0">
-    <div id="state-icon"></div>
-    <h3 id="state-title"></h3>
-    <p id="state-body"></p>
+    <div id="state-icon"><i data-lucide="map-pin" style="width:40px;height:40px;color:var(--primary)"></i></div>
+    <h3 id="state-title">Encuentra servicios cercanos</h3>
+    <p id="state-body">Pulsa el botón de arriba para buscar supermercados, farmacias, fontaneros y más cerca de tu hogar.</p>
   </div>
 </div>
 
@@ -54,20 +56,34 @@ let userLat = null, userLng = null;
 
 /* ── Arranque ───────────────────────────────────────────────── */
 function loadAll() {
-  showState('loader', 'Obteniendo ubicación…', '');
-  if (!navigator.geolocation) {
-    showState('error', 'Geolocalización no disponible', 'Tu navegador no soporta esta función.');
+  // Contexto inseguro (HTTP fuera de localhost): el navegador bloquea la geolocalización sin avisar
+  if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    showState('error', 'Conexión no segura',
+      'La geolocalización requiere HTTPS. Accede a la app mediante una conexión segura (https://) para usar esta función.');
     return;
   }
-  navigator.geolocation.getCurrentPosition(onGeo, onGeoError, { timeout: 10000 });
+  if (!navigator.geolocation) {
+    showState('error', 'Geolocalización no disponible', 'Tu navegador no soporta geolocalización.');
+    return;
+  }
+  const btn = document.getElementById('btn-locate');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="width:14px;height:14px"></i> Buscando…'; if (window.lucide) lucide.createIcons(btn); }
+  showState('loader', 'Solicitando permiso de ubicación…', 'Acepta el permiso que aparece en tu dispositivo.');
+  navigator.geolocation.getCurrentPosition(onGeo, onGeoError, { timeout: 15000, enableHighAccuracy: false });
+}
+
+function resetBtn() {
+  const btn = document.getElementById('btn-locate');
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="locate" style="width:14px;height:14px"></i> Buscar lugares cercanos'; if (window.lucide) lucide.createIcons(btn); }
 }
 
 function onGeo(pos) {
   userLat = pos.coords.latitude;
   userLng = pos.coords.longitude;
   document.getElementById('location-label').textContent =
-    userLat.toFixed(5) + ', ' + userLng.toFixed(5);
+    userLat.toFixed(4) + ', ' + userLng.toFixed(4);
 
+  resetBtn();
   hideState();
   document.getElementById('services-container').innerHTML = '';
 
@@ -79,10 +95,11 @@ function onGeo(pos) {
 }
 
 function onGeoError(err) {
+  resetBtn();
   const msgs = {
-    1: 'Permiso de ubicación denegado. Actívalo en tu navegador.',
-    2: 'No se pudo determinar la ubicación.',
-    3: 'Tiempo de espera agotado.',
+    1: 'Permiso denegado. Ve a los ajustes de tu navegador/dispositivo y permite el acceso a la ubicación para este sitio.',
+    2: 'No se pudo determinar la ubicación. Comprueba que el GPS está activado.',
+    3: 'Tiempo de espera agotado. Asegúrate de tener señal GPS y vuelve a intentarlo.',
   };
   showState('error', 'Sin ubicación', msgs[err.code] || 'Error desconocido.');
 }
@@ -238,8 +255,6 @@ function hideState() {
 /* ── CSS skeleton ───────────────────────────────────────────── */
 document.head.insertAdjacentHTML('beforeend',
   '<style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}</style>');
-
-loadAll();
 </script>
 
 <?= view('layouts/footer') ?>

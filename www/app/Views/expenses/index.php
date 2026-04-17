@@ -21,7 +21,7 @@
 
 <!-- Filter bar -->
 <div class="card" style="margin-bottom:20px">
-  <form method="get" action="<?= site_url('/expenses') ?>" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+  <form method="get" action="<?= site_url('/expenses') ?>" class="expense-filter-form" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
     <div class="form-group" style="margin:0;flex:1;min-width:150px">
       <label>Mes</label>
       <input type="month" name="month" value="<?= $filterMonth ?>">
@@ -249,6 +249,11 @@ function openEditModal(expense) {
 
 <style>
 @media (max-width: 768px) {
+  /* Filter form: columna única */
+  .expense-filter-form { flex-direction: column !important; align-items: stretch !important; }
+  .expense-filter-form .form-group { min-width: 0 !important; flex: none !important; width: 100%; margin: 0 !important; }
+  .filter-btn-group { width: 100%; }
+  .filter-btn-group .btn { flex: 1; justify-content: center; }
   /* Hide receipt column */
   .expense-col-receipt { display: none !important; }
   /* Collapse paid-by to avatar only */
@@ -259,16 +264,11 @@ function openEditModal(expense) {
   /* Card header stacks */
   .expense-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
   .expense-card-header > div { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
-  /* Filter form inputs stack */
-  .filter-btn-group { width: 100%; }
-  .filter-btn-group .btn { flex: 1; justify-content: center; }
 }
 @media (max-width: 480px) {
   /* Hide category badge on very small screens */
   .expense-col-category { display: none !important; }
-  /* Reduce row gap */
   .expense-col-amount { flex: 0 0 52px !important; font-size: 0.85rem !important; }
-  /* Action buttons: ensure minimum touch target */
   .btn-icon { min-width: 36px; min-height: 36px; }
 }
 </style>
