@@ -24,12 +24,12 @@
 <!-- Categorías (rellenado por JS) -->
 <div id="services-container"></div>
 
-<!-- Estado global (inicial / error) -->
-<div id="state-msg">
+<!-- Estado global (loader / error) -->
+<div id="state-msg" style="display:none">
   <div class="empty-state" style="padding:60px 0">
-    <div id="state-icon"><i data-lucide="map-pin" style="width:40px;height:40px;color:var(--primary)"></i></div>
-    <h3 id="state-title">Encuentra servicios cercanos</h3>
-    <p id="state-body">Pulsa el botón de arriba para buscar supermercados, farmacias, fontaneros y más cerca de tu hogar.</p>
+    <div id="state-icon"></div>
+    <h3 id="state-title"></h3>
+    <p id="state-body"></p>
   </div>
 </div>
 
@@ -260,6 +260,9 @@ function hideState() {
 /* ── CSS skeleton ───────────────────────────────────────────── */
 document.head.insertAdjacentHTML('beforeend',
   '<style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}</style>');
+
+/* Auto-trigger al cargar */
+loadAll();
 </script>
 
 <?= view('layouts/footer') ?>

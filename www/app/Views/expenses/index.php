@@ -20,13 +20,13 @@
 </div>
 
 <!-- Filter bar -->
-<div class="card expense-filter-card" style="margin-bottom:20px;overflow:hidden">
-  <form method="get" action="<?= site_url('/expenses') ?>" class="expense-filter-form" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-    <div class="form-group" style="margin:0;flex:1;min-width:150px">
+<div class="card" style="margin-bottom:20px">
+  <form method="get" action="<?= site_url('/expenses') ?>" class="expense-filter-form">
+    <div class="form-group expense-filter-field">
       <label>Mes</label>
       <input type="month" name="month" value="<?= $filterMonth ?>">
     </div>
-    <div class="form-group" style="margin:0;flex:1;min-width:150px">
+    <div class="form-group expense-filter-field">
       <label>Categoría</label>
       <select name="category">
         <option value="">Todas</option>
@@ -36,7 +36,7 @@
         <option value="other" <?= $filterCategory === 'other' ? 'selected' : '' ?>>Otros</option>
       </select>
     </div>
-    <div class="form-group" style="margin:0;flex:1;min-width:150px">
+    <div class="form-group expense-filter-field">
       <label>Pagado por</label>
       <select name="paid_by">
         <option value="">Todos</option>
@@ -45,9 +45,9 @@
         <?php endforeach; ?>
       </select>
     </div>
-    <div class="filter-btn-group" style="display:flex;gap:8px;align-items:flex-end">
-      <button type="submit" class="btn btn-secondary" style="margin-bottom:0">Filtrar</button>
-      <a href="<?= site_url('/expenses') ?>" class="btn btn-secondary" style="margin-bottom:0"><i data-lucide="x" style="width:13px;height:13px"></i> Limpiar</a>
+    <div class="expense-filter-actions">
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      <a href="<?= site_url('/expenses') ?>" class="btn btn-secondary"><i data-lucide="x" style="width:13px;height:13px"></i> Limpiar</a>
     </div>
   </form>
 </div>
@@ -248,27 +248,35 @@ function openEditModal(expense) {
 </script>
 
 <style>
+/* ── Filter form layout ── */
+.expense-filter-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+.expense-filter-field { margin: 0; }
+.expense-filter-actions { display: flex; gap: 8px; align-items: flex-end; }
+.expense-filter-actions .btn { white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .expense-filter-form {
+    grid-template-columns: 1fr;
+  }
+  .expense-filter-actions { flex-direction: row; }
+  .expense-filter-actions .btn { flex: 1; justify-content: center; }
+}
+
+/* ── Expense list mobile ── */
 @media (max-width: 768px) {
-  /* Filter form: columna única */
-  .expense-filter-form { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
-  .expense-filter-form .form-group { min-width: 0 !important; flex: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; }
-  .expense-filter-form input,
-  .expense-filter-form select { width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; }
-  .filter-btn-group { width: 100%; }
-  .filter-btn-group .btn { flex: 1; justify-content: center; }
-  /* Hide receipt column */
   .expense-col-receipt { display: none !important; }
-  /* Collapse paid-by to avatar only */
   .expense-col-person  { flex: 0 0 auto !important; }
   .expense-col-person span { display: none; }
-  /* Narrower amount column */
   .expense-col-amount  { flex: 0 0 60px !important; font-size: 0.9rem !important; }
-  /* Card header stacks */
   .expense-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
   .expense-card-header > div { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
 }
 @media (max-width: 480px) {
-  /* Hide category badge on very small screens */
   .expense-col-category { display: none !important; }
   .expense-col-amount { flex: 0 0 52px !important; font-size: 0.85rem !important; }
   .btn-icon { min-width: 36px; min-height: 36px; }
