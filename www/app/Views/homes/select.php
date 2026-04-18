@@ -50,7 +50,7 @@
       <!-- Abandon / Delete actions -->
       <div style="display:flex;gap:8px;padding:0 4px 2px">
         <form method="post" action="<?= site_url('/homes/' . $h['id'] . '/leave-home') ?>"
-              onsubmit="return confirm('¿Abandonar «<?= esc(addslashes($h['name'])) ?>»? Dejarás de ser miembro.')">
+              data-confirm="¿Abandonar «<?= esc(addslashes($h['name'])) ?>»? Dejarás de ser miembro del hogar.">
           <?= csrf_field() ?>
           <button type="submit" class="btn btn-sm btn-secondary" style="color:var(--danger);border-color:rgba(239,68,68,0.3)">
             <i data-lucide="log-out" style="width:12px;height:12px"></i> Abandonar
@@ -58,7 +58,7 @@
         </form>
         <?php if ($h['is_admin']): ?>
         <form method="post" action="<?= site_url('/homes/' . $h['id'] . '/delete') ?>"
-              onsubmit="return confirm('¿ELIMINAR el hogar «<?= esc(addslashes($h['name'])) ?>»? Se borrarán TODOS los datos permanentemente.')">
+              data-confirm="¿Eliminar el hogar «<?= esc(addslashes($h['name'])) ?>»? Se borrarán TODOS los datos permanentemente.">
           <?= csrf_field() ?>
           <button type="submit" class="btn btn-sm btn-danger">
             <i data-lucide="trash-2" style="width:12px;height:12px"></i> Eliminar hogar

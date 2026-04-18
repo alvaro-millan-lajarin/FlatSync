@@ -116,6 +116,40 @@ class ChoresController extends BaseController
         ]);
     }
 
+    /** GET JSON: tareas nuevas desde ?after=id (igual que el chat) */
+    public function poll()
+    {
+        if (!session()->get('isLoggedIn') || !session()->get('home_id')) {
+            return $this->response->setJSON(['chores' => []]);
+        }
+        $homeId  = session()->get('home_id');
+        $afterId = (int) ($this->request->getGet('after') ?? 0);
+
+        $uhModel  = new UserHomesModel();
+        $members  = $uhModel->getMembersOfHome($homeId);
+        $colorMap = [];
+        foreach ($members as $i => $m) {
+            $colorMap[$m['id']] = self::USER_COLORS[$i % count(self::USER_COLORS)];
+        }
+
+        $choreModel = new ChoreModel();
+        $chores = $choreModel
+            ->select('chores.*, users.username AS assigned_name')
+            ->join('users', 'users.id = chores.assigned_user_id')
+            ->where('chores.home_id', $homeId)
+            ->where('chores.id >', $afterId)
+            ->orderBy('chores.due_date', 'ASC')
+            ->findAll();
+
+        foreach ($chores as &$c) {
+            $colors          = $colorMap[$c['assigned_user_id']] ?? self::USER_COLORS[0];
+            $c['color']      = $colors[0];
+            $c['text_color'] = $colors[1];
+        }
+
+        return $this->response->setJSON(['chores' => $chores]);
+    }
+
     public function store()
     {
         if ($this->requireHome()) return;
@@ -129,7 +163,11 @@ class ChoresController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('error', implode(' ', $this->validator->getErrors()));
+            $errors = implode(' ', $this->validator->getErrors());
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['ok' => false, 'error' => $errors]);
+            }
+            return redirect()->back()->with('error', $errors);
         }
 
         $choreModel = new ChoreModel();
@@ -144,7 +182,7 @@ class ChoresController extends BaseController
             'status'           => 'pending',
         ];
 
-        $choreModel->insert($data);
+        $newId = $choreModel->insert($data);
 
         // If recurring, generate next occurrences (4 iterations)
         $recurrence = $data['recurrence'];
@@ -167,7 +205,29 @@ class ChoresController extends BaseController
             }
         }
 
-        if ($this->isApi()) return $this->apiOk();
+        if ($this->request->isAJAX()) {
+            // Devolver la tarea completa con color, igual que el chat devuelve la nota
+            $members  = (new UserHomesModel())->getMembersOfHome($homeId);
+            $colorMap = [];
+            foreach ($members as $i => $m) {
+                $colorMap[$m['id']] = self::USER_COLORS[$i % count(self::USER_COLORS)];
+            }
+            $assignedId   = (int) $data['assigned_user_id'];
+            $colors       = $colorMap[$assignedId] ?? self::USER_COLORS[0];
+            $assignedName = '';
+            foreach ($members as $m) {
+                if ((int)$m['id'] === $assignedId) { $assignedName = $m['username']; break; }
+            }
+            return $this->response->setJSON([
+                'ok'    => true,
+                'chore' => array_merge($data, [
+                    'id'            => $newId,
+                    'assigned_name' => $assignedName,
+                    'color'         => $colors[0],
+                    'text_color'    => $colors[1],
+                ]),
+            ]);
+        }
 
         return redirect()->to('/chores')->with('success', 'Tarea creada correctamente.');
     }
@@ -188,6 +248,28 @@ class ChoresController extends BaseController
         if ($this->isApi()) return $this->apiOk();
 
         return redirect()->back()->with('success', '¡Tarea completada!');
+    }
+
+    public function toggleDone(int $id)
+    {
+        if ($this->requireHome()) return;
+
+        $choreModel = new ChoreModel();
+        $chore      = $choreModel->find($id);
+
+        if (!$chore || $chore['assigned_user_id'] != session()->get('user_id')) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false]);
+        }
+
+        if ($chore['status'] === 'done') {
+            $choreModel->update($id, ['status' => 'pending', 'completed_at' => null]);
+            $newStatus = 'pending';
+        } else {
+            $choreModel->update($id, ['status' => 'done', 'completed_at' => date('Y-m-d H:i:s')]);
+            $newStatus = 'done';
+        }
+
+        return $this->response->setJSON(['ok' => true, 'status' => $newStatus]);
     }
 
     public function update(int $id)

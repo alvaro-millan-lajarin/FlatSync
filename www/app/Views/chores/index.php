@@ -116,7 +116,7 @@ foreach ($calDays as $day) {
           <!-- Eliminar -->
           <div style="flex:0 0 auto">
             <form method="post" action="<?= site_url('/chores/delete/' . $c['id']) ?>"
-                  onsubmit="return confirm('¿Eliminar «<?= esc(addslashes($c['task_name'])) ?>»?')">
+                  data-confirm="¿Eliminar la tarea «<?= esc(addslashes($c['task_name'])) ?>»?">
               <?= csrf_field() ?>
               <button class="btn btn-sm btn-danger btn-icon" title="Eliminar">
                 <i data-lucide="trash-2" style="width:13px;height:13px"></i>
@@ -322,103 +322,113 @@ const ME_ID    = <?= (int) session()->get('user_id') ?>;
 const IS_ADMIN = <?= session()->get('is_admin') ? 'true' : 'false' ?>;
 const CSRF     = '<?= csrf_hash() ?>';
 const CSRF_KEY = '<?= csrf_token() ?>';
-const MARK_URL = '<?= site_url('/chores/mark-done/') ?>';
-const UPD_URL  = '<?= site_url('/chores/update/') ?>';
-const DEL_URL  = '<?= site_url('/chores/delete/') ?>';
+const MARK_URL   = '<?= site_url('/chores/mark-done/') ?>';
+const TOGGLE_URL = '<?= site_url('/chores/toggle/') ?>';
+const UPD_URL    = '<?= site_url('/chores/update/') ?>';
+const DEL_URL    = '<?= site_url('/chores/delete/') ?>';
 
 let selectedEl = null;
 
 function selectDay(date, el) {
-  // Toggle off if same day clicked again
-  if (selectedEl === el) {
-    closePanel();
-    return;
-  }
-
-  // Deselect previous
+  if (selectedEl === el) { closePanel(); return; }
   if (selectedEl) selectedEl.classList.remove('selected');
   selectedEl = el;
   el.classList.add('selected');
+  renderPanel(date);
+}
 
+function renderPanel(date) {
   const tasks = TASKS[date] || [];
   const panel = document.getElementById('day-panel');
   const title = document.getElementById('day-panel-title');
   const body  = document.getElementById('day-panel-body');
 
-  // Format date nicely
   const d     = new Date(date + 'T00:00:00');
   const label = d.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
   title.textContent = label.charAt(0).toUpperCase() + label.slice(1);
 
-  if (tasks.length === 0) {
-    closePanel();
-    return;
-  } else {
-    let html = '';
-    tasks.forEach(t => {
-      const isMe     = t.assigned_user_id == ME_ID;
-      const canAct   = true;
-      const isPending = t.status === 'pending';
+  if (tasks.length === 0) { closePanel(); return; }
 
-      const statusBadge = {
-        done:    `<span class="badge badge-done"   style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Completada</span>`,
-        missed:  `<span class="badge badge-missed" style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No realizada</span>`,
-        pending: `<span class="badge badge-pending" style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente</span>`,
-      }[t.status] || '';
+  let html = '';
+  tasks.forEach(t => {
+    const isMe = t.assigned_user_id == ME_ID;
 
-      let actions = '';
-      if (isPending && isMe) {
-        actions += `
-          <form method="post" action="${MARK_URL}${t.id}" style="display:inline">
-            <input type="hidden" name="${CSRF_KEY}" value="${CSRF}">
-            <button class="btn btn-sm btn-primary" type="submit">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Completar
-            </button>
-          </form>
-          <button class="btn btn-sm btn-secondary" onclick="openSwapModal(${t.id},'${escJs(t.task_name)}')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            Cambiar
-          </button>`;
-      }
-      if (canAct) {
-        actions += `
-          <button class="btn btn-sm btn-secondary btn-icon" title="Editar"
-                  onclick="openEditChoreModal(${t.id})">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-          </button>
-          <form method="post" action="${DEL_URL}${t.id}" style="display:inline"
-                onsubmit="return confirm('¿Eliminar «${escJs(t.task_name)}»?')">
-            <input type="hidden" name="${CSRF_KEY}" value="${CSRF}">
-            <button class="btn btn-sm btn-danger btn-icon" type="submit" title="Eliminar">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            </button>
-          </form>`;
-      }
+    const statusBadge = {
+      done:    `<span class="badge badge-done"   style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Completada</span>`,
+      missed:  `<span class="badge badge-missed" style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No realizada</span>`,
+      pending: `<span class="badge badge-pending" style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente</span>`,
+    }[t.status] || '';
 
-      html += `
-        <div class="day-task-row">
-          <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
-            <div style="width:36px;height:36px;background:${t.color ?? 'rgba(37,99,235,0.1)'};border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${t.text_color ?? 'var(--primary)'}" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 11 12 14 22 4"/></svg>
-            </div>
-            <div style="min-width:0">
-              <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(t.task_name)}</div>
-              <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">${escHtml(t.assigned_name)}</div>
-            </div>
+    let actions = '';
+    if (isMe && t.status === 'pending') {
+      actions += `
+        <button class="btn btn-sm btn-primary" onclick="toggleDone(${t.id})">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Completar
+        </button>
+        <button class="btn btn-sm btn-secondary" onclick="openSwapModal(${t.id},'${escJs(t.task_name)}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Cambiar
+        </button>`;
+    }
+    if (isMe && t.status === 'done') {
+      actions += `
+        <button class="btn btn-sm btn-secondary" onclick="toggleDone(${t.id})">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Deshacer
+        </button>`;
+    }
+    actions += `
+      <button class="btn btn-sm btn-secondary btn-icon" title="Editar"
+              onclick="openEditChoreModal(${t.id})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+      </button>
+      <form method="post" action="${DEL_URL}${t.id}" style="display:inline"
+            data-confirm="¿Eliminar la tarea «${escJs(t.task_name)}»?">
+        <input type="hidden" name="${CSRF_KEY}" value="${CSRF}">
+        <button class="btn btn-sm btn-danger btn-icon" type="submit" title="Eliminar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </form>`;
+
+    html += `
+      <div class="day-task-row">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+          <div style="width:36px;height:36px;background:${t.color ?? 'rgba(37,99,235,0.1)'};border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${t.text_color ?? 'var(--primary)'}" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 11 12 14 22 4"/></svg>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
-            ${statusBadge}
-            ${actions}
+          <div style="min-width:0">
+            <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(t.task_name)}</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">${escHtml(t.assigned_name)}</div>
           </div>
-        </div>`;
-    });
-    body.innerHTML = html;
-  }
-
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
+          ${statusBadge}
+          ${actions}
+        </div>
+      </div>`;
+  });
+  body.innerHTML = html;
   panel.style.display = 'block';
-  // Scroll panel into view smoothly
   setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function toggleDone(id) {
+  const fd = new FormData();
+  fd.append(CSRF_KEY, CSRF);
+  fetch(`${TOGGLE_URL}${id}`, { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.ok) return;
+      // Update status in all JS structures
+      if (TASKS_BY_ID[id]) TASKS_BY_ID[id].status = data.status;
+      Object.keys(TASKS).forEach(date => {
+        TASKS[date].forEach(t => { if (t.id == id) t.status = data.status; });
+      });
+      // Re-render the open panel
+      if (selectedEl) renderPanel(selectedEl.dataset.date);
+    })
+    .catch(() => {});
 }
 
 function closePanel() {
@@ -451,6 +461,43 @@ function openSwapModal(choreId, choreName) {
   openModal('modal-swap');
 }
 
+// Envío AJAX del formulario de nueva tarea — igual que el chat con buildNote(data.note)
+document.querySelector('#modal-add-chore form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const fd = new FormData(this);
+  fetch(this.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        closeModal('modal-add-chore');
+        this.reset();
+        // Renderizar directamente desde la respuesta (como buildNote en el chat)
+        if (data.chore) {
+          const t = data.chore;
+          lastChoreId = Math.max(lastChoreId, parseInt(t.id));
+          if (!TASKS[t.due_date]) TASKS[t.due_date] = [];
+          TASKS[t.due_date].push(t);
+          TASKS_BY_ID[t.id] = t;
+          const cell = document.querySelector(`.cal-day[data-date="${t.due_date}"]`);
+          if (cell) {
+            const chip = document.createElement('div');
+            chip.className = 'cal-task';
+            chip.style.background = t.color || 'rgba(37,99,235,0.12)';
+            chip.style.color = t.text_color || 'var(--text)';
+            chip.textContent = t.task_name;
+            cell.appendChild(chip);
+          }
+          if (selectedEl && selectedEl.dataset.date === t.due_date) {
+            selectDay(t.due_date, selectedEl);
+          }
+        }
+      } else if (data.error) {
+        alert(data.error);
+      }
+    })
+    .catch(() => {});
+});
+
 // Auto-open today's panel if today is in the calendar
 <?php
 $today = date('Y-m-d');
@@ -465,6 +512,49 @@ document.addEventListener('DOMContentLoaded', () => {
   if (todayEl) selectDay('<?= $today ?>', todayEl);
 });
 <?php endif; ?>
+</script>
+
+<script>
+// Polling de tareas — mismo patrón que el chat
+const CHORE_POLL_URL = '<?= site_url('/chores/poll') ?>';
+let lastChoreId = Object.keys(TASKS_BY_ID).length
+  ? Math.max(...Object.keys(TASKS_BY_ID).map(Number))
+  : 0;
+
+function pollChores() {
+  fetch(`${CHORE_POLL_URL}?after=${lastChoreId}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.chores || data.chores.length === 0) return;
+      data.chores.forEach(t => {
+        lastChoreId = Math.max(lastChoreId, parseInt(t.id));
+
+        // Actualizar estructuras JS
+        if (!TASKS[t.due_date]) TASKS[t.due_date] = [];
+        TASKS[t.due_date].push(t);
+        TASKS_BY_ID[t.id] = t;
+
+        // Añadir chip en la celda del calendario si está visible
+        const cell = document.querySelector(`.cal-day[data-date="${t.due_date}"]`);
+        if (cell) {
+          const chip = document.createElement('div');
+          chip.className = 'cal-task';
+          chip.style.background = t.color || 'rgba(37,99,235,0.12)';
+          chip.style.color = t.text_color || 'var(--text)';
+          chip.textContent = t.task_name;
+          cell.appendChild(chip);
+        }
+
+        // Re-renderizar panel de día si está abierto para esta fecha
+        if (selectedEl && selectedEl.dataset.date === t.due_date) {
+          selectDay(t.due_date, selectedEl);
+        }
+      });
+    })
+    .catch(() => {});
+}
+
+setInterval(pollChores, 3000);
 </script>
 
 <?= view('layouts/footer') ?>

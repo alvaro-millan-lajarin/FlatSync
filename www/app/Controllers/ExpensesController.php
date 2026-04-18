@@ -14,11 +14,9 @@ class ExpensesController extends BaseController
 
         $homeId          = session()->get('home_id');
         $userId          = session()->get('user_id');
-        $filterMonth     = $this->request->getGet('month') ?? date('Y-m');
+        $filterMonth     = $this->request->getGet('month') ?: '';
         $filterCategory  = $this->request->getGet('category') ?? '';
         $filterPaidBy    = $this->request->getGet('paid_by') ?? '';
-
-        [$year, $month] = explode('-', $filterMonth);
 
         $expenseModel = new ExpenseModel();
         $uhModel      = new UserHomesModel();
@@ -26,9 +24,13 @@ class ExpensesController extends BaseController
         $query = $expenseModel
             ->select('expenses.*, users.username AS paid_by_name')
             ->join('users', 'users.id = expenses.paid_by')
-            ->where('expenses.home_id', $homeId)
-            ->where('YEAR(expenses.date)', $year)
-            ->where('MONTH(expenses.date)', $month);
+            ->where('expenses.home_id', $homeId);
+
+        if ($filterMonth !== '') {
+            [$year, $month] = explode('-', $filterMonth);
+            $query->where('YEAR(expenses.date)', $year)
+                  ->where('MONTH(expenses.date)', $month);
+        }
 
         if ($filterCategory) $query->where('expenses.category', $filterCategory);
         if ($filterPaidBy)   $query->where('expenses.paid_by', $filterPaidBy);
@@ -74,6 +76,34 @@ class ExpensesController extends BaseController
         ]);
     }
 
+    /** GET JSON: gastos nuevos desde ?after=id — igual que el chat */
+    public function poll()
+    {
+        if (!session()->get('isLoggedIn') || !session()->get('home_id')) {
+            return $this->response->setJSON(['expenses' => []]);
+        }
+        $homeId      = session()->get('home_id');
+        $userId      = session()->get('user_id');
+        $afterId     = (int) ($this->request->getGet('after') ?? 0);
+        $filterMonth = $this->request->getGet('month') ?: '';
+
+        $query = (new ExpenseModel())
+            ->select('expenses.*, users.username AS paid_by_name')
+            ->join('users', 'users.id = expenses.paid_by')
+            ->where('expenses.home_id', $homeId)
+            ->where('expenses.id >', $afterId);
+
+        if ($filterMonth !== '') {
+            [$year, $month] = explode('-', $filterMonth);
+            $query->where('YEAR(expenses.date)', $year)
+                  ->where('MONTH(expenses.date)', $month);
+        }
+
+        $expenses = $query->orderBy('expenses.date', 'DESC')->findAll();
+
+        return $this->response->setJSON(['expenses' => $expenses]);
+    }
+
     public function store()
     {
         if ($this->requireHome()) return;
@@ -86,7 +116,11 @@ class ExpensesController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('error', implode(' ', $this->validator->getErrors()));
+            $errors = implode(' ', $this->validator->getErrors());
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['ok' => false, 'error' => $errors]);
+            }
+            return redirect()->back()->with('error', $errors);
         }
 
         $receiptFile = null;
@@ -97,9 +131,11 @@ class ExpensesController extends BaseController
             $receiptFile = $newName;
         }
 
+        $homeId       = session()->get('home_id');
+        $userId       = session()->get('user_id');
         $expenseModel = new ExpenseModel();
         $newId = $expenseModel->insert([
-            'home_id'       => session()->get('home_id'),
+            'home_id'       => $homeId,
             'title'         => $this->request->getPost('title'),
             'description'   => $this->request->getPost('description'),
             'amount'        => (float) $this->request->getPost('amount'),
@@ -109,8 +145,36 @@ class ExpensesController extends BaseController
             'receipt_image' => $receiptFile,
         ]);
 
-        if ($this->isApi()) {
-            return $this->apiOk(['expense' => $expenseModel->find($newId)]);
+        if ($this->request->isAJAX()) {
+            // Devolver el gasto completo (con nombre) + stats actualizadas, igual que el chat devuelve la nota
+            $expense = (new ExpenseModel())
+                ->select('expenses.*, users.username AS paid_by_name')
+                ->join('users', 'users.id = expenses.paid_by')
+                ->where('expenses.id', $newId)
+                ->first();
+
+            $filterMonth = substr($this->request->getPost('date'), 0, 7) ?: date('Y-m');
+            [$year, $month] = explode('-', $filterMonth);
+            $all = (new ExpenseModel())
+                ->select('amount, paid_by')
+                ->where('home_id', $homeId)
+                ->where('YEAR(date)', $year)
+                ->where('MONTH(date)', $month)
+                ->findAll();
+            $memberCount = count((new UserHomesModel())->getMembersOfHome($homeId));
+            $monthTotal  = array_sum(array_column($all, 'amount'));
+            $myShare     = $memberCount > 0 ? $monthTotal / $memberCount : 0;
+            $myPaid      = array_sum(array_map(fn($e) => $e['paid_by'] == $userId ? (float)$e['amount'] : 0, $all));
+
+            return $this->response->setJSON([
+                'ok'      => true,
+                'expense' => $expense,
+                'stats'   => [
+                    'monthTotal' => round($monthTotal, 2),
+                    'myPaid'     => round($myPaid, 2),
+                    'myBalance'  => round($myPaid - $myShare, 2),
+                ],
+            ]);
         }
 
         return redirect()->to('/expenses')->with('success', 'Gasto añadido correctamente.');
@@ -124,8 +188,8 @@ class ExpensesController extends BaseController
         $expenseModel = new ExpenseModel();
         $expense      = $expenseModel->find($id);
 
-        if (!$expense || $expense['home_id'] != session()->get('home_id')) {
-            return redirect()->back()->with('error', 'Gasto no encontrado.');
+        if (!$expense || $expense['home_id'] != session()->get('home_id') || $expense['paid_by'] != $userId) {
+            return redirect()->back()->with('error', 'No tienes permiso para editar este gasto.');
         }
 
         $expenseModel->update($id, [
@@ -148,8 +212,8 @@ class ExpensesController extends BaseController
         $expenseModel = new ExpenseModel();
         $expense      = $expenseModel->find($id);
 
-        if (!$expense || $expense['home_id'] != $homeId) {
-            return redirect()->back()->with('error', 'Gasto no encontrado.');
+        if (!$expense || $expense['home_id'] != $homeId || $expense['paid_by'] != $userId) {
+            return redirect()->back()->with('error', 'No tienes permiso para eliminar este gasto.');
         }
 
 

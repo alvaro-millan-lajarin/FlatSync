@@ -91,7 +91,9 @@ function previewAvatar(input) {
 }
 
 function confirmRemove() {
-  if (!confirm('¿Eliminar la foto de perfil?')) return;
+  showConfirm('¿Eliminar la foto de perfil?', _doRemoveAvatar, { title: 'Eliminar foto', okText: 'Eliminar foto' });
+}
+function _doRemoveAvatar() {
   document.getElementById('remove-avatar-field').value = '1';
 
   // Reset preview to initials

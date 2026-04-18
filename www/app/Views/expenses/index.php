@@ -4,18 +4,18 @@
 <div class="stats-grid" style="margin-bottom:24px">
   <div class="stat-card accent">
     <div class="stat-icon"><i data-lucide="wallet"></i></div>
-    <div class="stat-value">€<?= number_format($monthTotal, 2) ?></div>
-    <div class="stat-label">Total gastado este mes</div>
+    <div id="stat-month-total" class="stat-value">€<?= number_format($monthTotal, 2) ?></div>
+    <div class="stat-label"><?= $filterMonth ? 'Total gastado este mes' : 'Total gastado' ?></div>
   </div>
   <div class="stat-card warning">
     <div class="stat-icon"><i data-lucide="user"></i></div>
-    <div class="stat-value">€<?= number_format($myPaid, 2) ?></div>
+    <div id="stat-my-paid" class="stat-value">€<?= number_format($myPaid, 2) ?></div>
     <div class="stat-label">Lo que has pagado tú</div>
   </div>
-  <div class="stat-card <?= $myBalance > 0 ? 'success' : ($myBalance < 0 ? 'danger' : 'accent') ?>">
-    <div class="stat-icon"><i data-lucide="<?= $myBalance >= 0 ? 'trending-up' : 'trending-down' ?>"></i></div>
-    <div class="stat-value"><?= $myBalance >= 0 ? '+' : '-' ?>€<?= number_format(abs($myBalance), 2) ?></div>
-    <div class="stat-label"><?= $myBalance > 0 ? 'Te deben' : ($myBalance < 0 ? 'Debes' : 'Estás al día') ?></div>
+  <div id="stat-card-balance" class="stat-card <?= $myBalance > 0 ? 'success' : ($myBalance < 0 ? 'danger' : 'accent') ?>">
+    <div class="stat-icon"><i id="stat-icon-balance" data-lucide="<?= $myBalance >= 0 ? 'trending-up' : 'trending-down' ?>"></i></div>
+    <div id="stat-balance" class="stat-value"><?= $myBalance >= 0 ? '+' : '-' ?>€<?= number_format(abs($myBalance), 2) ?></div>
+    <div id="stat-label-balance" class="stat-label"><?= $myBalance > 0 ? 'Te deben' : ($myBalance < 0 ? 'Debes' : 'Estás al día') ?></div>
   </div>
 </div>
 
@@ -63,7 +63,7 @@
   </div>
 
   <?php if (empty($expenses)): ?>
-    <div class="empty-state"><div class="icon"><i data-lucide="receipt" style="width:32px;height:32px;color:var(--muted)"></i></div><h3>Sin gastos registrados</h3><p>Añade el primer gasto compartido del hogar</p></div>
+    <div id="expense-empty-state" class="empty-state"><div class="icon"><i data-lucide="receipt" style="width:32px;height:32px;color:var(--muted)"></i></div><h3>Sin gastos registrados</h3><p>Añade el primer gasto compartido del hogar</p></div>
   <?php else: ?>
   <?php
     $cats = ['food'=>'Comida','cleaning'=>'Limpieza','bills'=>'Facturas','other'=>'Otros'];
@@ -72,9 +72,9 @@
     $today     = date('Y-m-d');
     $yesterday = date('Y-m-d', strtotime('-1 day'));
   ?>
-  <div style="display:flex;flex-direction:column;gap:20px">
+  <div id="expense-list" style="display:flex;flex-direction:column;gap:20px">
     <?php foreach ($grouped as $date => $dayExpenses): ?>
-    <div>
+    <div id="expense-group-<?= $date ?>">
       <!-- Separador de fecha -->
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);white-space:nowrap">
@@ -89,9 +89,9 @@
       </div>
 
       <!-- Filas de gastos -->
-      <div style="display:flex;flex-direction:column;gap:2px">
+      <div id="expense-rows-<?= $date ?>" class="expense-rows">
         <?php foreach ($dayExpenses as $e): ?>
-        <div style="display:flex;align-items:center;gap:16px;padding:12px 4px;border-bottom:1px solid var(--divider)">
+        <div style="display:flex;align-items:center;gap:16px;padding:12px 4px">
           <!-- Título -->
           <div style="flex:2;min-width:0">
             <div style="font-weight:500;font-size:0.9rem"><?= esc($e['title']) ?></div>
@@ -112,21 +112,15 @@
             <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($e['paid_by_name'], 0, 1)) ?></div>
             <span style="font-size:0.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($e['paid_by_name']) ?></span>
           </div>
-          <!-- Prueba -->
-          <div class="expense-col-receipt" style="flex:0 0 60px;text-align:center">
-            <?php if ($e['receipt_image']): ?>
-              <a href="<?= base_url('uploads/' . $e['receipt_image']) ?>" target="_blank" class="btn btn-sm btn-secondary"><i data-lucide="image" style="width:12px;height:12px"></i></a>
-            <?php else: ?>
-              <span style="color:var(--muted);font-size:0.8rem">—</span>
-            <?php endif; ?>
-          </div>
           <!-- Acciones -->
-          <div style="flex:0 0 auto;display:flex;gap:6px">
-            <button class="btn btn-sm btn-secondary btn-icon" onclick="openEditModal(<?= htmlspecialchars(json_encode($e), ENT_QUOTES) ?>)" title="Editar"><i data-lucide="pencil" style="width:13px;height:13px"></i></button>
-            <form method="post" action="<?= site_url('/expenses/delete/' . $e['id']) ?>" onsubmit="return confirm('¿Eliminar este gasto?')">
+          <div style="flex:0 0 80px;display:flex;gap:6px;justify-content:flex-end">
+            <?php if ($e['paid_by'] == session()->get('user_id')): ?>
+            <button class="btn btn-sm btn-secondary btn-icon" onclick="openEditModal(this)" data-expense="<?= htmlspecialchars(json_encode($e, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG), ENT_QUOTES) ?>" title="Editar"><i data-lucide="pencil" style="width:13px;height:13px"></i></button>
+            <form method="post" action="<?= site_url('/expenses/delete/' . $e['id']) ?>" data-confirm="¿Eliminar «<?= esc(addslashes($e['title'])) ?>»? Esta acción no se puede deshacer.">
               <?= csrf_field() ?>
               <button class="btn btn-sm btn-danger btn-icon" title="Eliminar"><i data-lucide="trash-2" style="width:13px;height:13px"></i></button>
             </form>
+            <?php endif; ?>
           </div>
         </div>
         <?php endforeach; ?>
@@ -204,7 +198,6 @@
     </div>
     <form method="post" id="form-edit-expense" enctype="multipart/form-data">
       <?= csrf_field() ?>
-      <input type="hidden" name="_method" value="PUT">
       <div class="form-group">
         <label>Descripción</label>
         <input type="text" name="title" id="edit-title" required>
@@ -237,19 +230,43 @@
 </div>
 
 <script>
-function openEditModal(expense) {
-  document.getElementById('edit-title').value   = expense.title;
-  document.getElementById('edit-amount').value  = expense.amount;
+function openEditModal(btn) {
+  const expense = JSON.parse(btn.dataset.expense);
+  document.getElementById('edit-title').value    = expense.title;
+  document.getElementById('edit-amount').value   = expense.amount;
   document.getElementById('edit-category').value = expense.category;
-  document.getElementById('edit-date').value    = expense.date;
-  document.getElementById('form-edit-expense').action = '/expenses/update/' + expense.id;
+  document.getElementById('edit-date').value     = expense.date;
+  document.getElementById('form-edit-expense').action = '<?= site_url('/expenses/update/') ?>' + expense.id;
   openModal('modal-edit-expense');
 }
+
+// Envío AJAX del formulario de añadir gasto — igual que el chat con buildNote(data.note)
+document.querySelector('#modal-add-expense form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const fd = new FormData(this);
+  fetch(this.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        closeModal('modal-add-expense');
+        this.reset();
+        // Renderizar directamente desde la respuesta (como buildNote en el chat)
+        if (data.expense) {
+          injectExpenses([data.expense]);
+          knownId = Math.max(knownId, parseInt(data.expense.id));
+        }
+        if (data.stats) updateStats(data.stats);
+      } else if (data.error) {
+        alert(data.error);
+      }
+    })
+    .catch(() => {});
+});
 </script>
 
 <style>
+.expense-rows > div + div { border-top: 1px solid var(--divider); }
 @media (max-width: 768px) {
-  .expense-col-receipt { display: none !important; }
   .expense-col-person  { flex: 0 0 auto !important; }
   .expense-col-person span { display: none; }
   .expense-col-amount  { flex: 0 0 60px !important; font-size: 0.9rem !important; }
@@ -261,5 +278,175 @@ function openEditModal(expense) {
   .expense-col-amount { flex: 0 0 52px !important; font-size: 0.85rem !important; }
 }
 </style>
+
+<script>
+const POLL_URL      = '<?= site_url('/expenses/poll') ?>';
+const DEL_URL       = '<?= site_url('/expenses/delete/') ?>';
+const BASE_URL      = '<?= base_url() ?>';
+const CSRF_KEY      = '<?= csrf_token() ?>';
+const CSRF_VAL      = '<?= csrf_hash() ?>';
+const EDIT_URL_BASE = '<?= site_url('/expenses/update/') ?>';
+const ME_ID         = <?= (int) session()->get('user_id') ?>;
+
+  <?php $maxId = !empty($expenses) ? max(array_column($expenses, 'id')) : 0; ?>
+  let knownId = <?= $maxId ?>;
+
+  const CATS = {food:'Comida', cleaning:'Limpieza', bills:'Facturas', other:'Otros'};
+
+  function isModalOpen() {
+    return !!document.querySelector('.modal-overlay.open');
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function jsonAttr(obj) {
+    return JSON.stringify(obj)
+      .replace(/&/g,'\\u0026').replace(/</g,'\\u003c').replace(/>/g,'\\u003e')
+      .replace(/'/g,'\\u0027').replace(/"/g,'&quot;');
+  }
+
+  function dateLabel(dateStr) {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const d = new Date(dateStr + 'T00:00:00');
+    const parts = d.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'});
+    if (dateStr === todayStr)     return 'Hoy · ' + parts;
+    if (dateStr === yesterdayStr) return 'Ayer · ' + parts;
+    const dow = d.toLocaleDateString('es-ES', {weekday:'long'});
+    return dow.charAt(0).toUpperCase() + dow.slice(1) + ' · ' + parts;
+  }
+
+  function buildRow(e) {
+    const catLabel = CATS[e.category] || esc(e.category);
+    const initial  = (e.paid_by_name || '?').charAt(0).toUpperCase();
+    const expAttr  = jsonAttr(e);
+    const confirmMsg = esc('¿Eliminar «' + e.title + '»? Esta acción no se puede deshacer.');
+    return `
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 4px">
+        <div style="flex:2;min-width:0">
+          <div style="font-weight:500;font-size:0.9rem">${esc(e.title)}</div>
+          ${e.description ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:1px">${esc(e.description)}</div>` : ''}
+        </div>
+        <div class="expense-col-category" style="flex:0 0 auto">
+          <span class="badge badge-accent">${catLabel}</span>
+        </div>
+        <div class="expense-col-amount" style="flex:0 0 80px;text-align:right;font-size:1rem;font-weight:700;color:var(--primary)">
+          €${Number(e.amount).toFixed(2)}
+        </div>
+        <div class="expense-col-person" style="flex:0 0 130px;display:flex;align-items:center;gap:6px">
+          <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0">${initial}</div>
+          <span style="font-size:0.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.paid_by_name)}</span>
+        </div>
+        <div style="flex:0 0 80px;display:flex;gap:6px;justify-content:flex-end">
+          ${parseInt(e.paid_by) === ME_ID ? `
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="openEditModal(this)" data-expense="${expAttr}" title="Editar">
+            <i data-lucide="pencil" style="width:13px;height:13px"></i>
+          </button>
+          <form method="post" action="${DEL_URL}${e.id}" data-confirm="${confirmMsg}">
+            <input type="hidden" name="${CSRF_KEY}" value="${CSRF_VAL}">
+            <button class="btn btn-sm btn-danger btn-icon" title="Eliminar">
+              <i data-lucide="trash-2" style="width:13px;height:13px"></i>
+            </button>
+          </form>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function updateStats(stats) {
+    const totalEl  = document.getElementById('stat-month-total');
+    const paidEl   = document.getElementById('stat-my-paid');
+    const balEl    = document.getElementById('stat-balance');
+    const balCard  = document.getElementById('stat-card-balance');
+    const balIcon  = document.getElementById('stat-icon-balance');
+    const balLabel = document.getElementById('stat-label-balance');
+    if (totalEl) totalEl.textContent = '€' + Number(stats.monthTotal).toFixed(2);
+    if (paidEl)  paidEl.textContent  = '€' + Number(stats.myPaid).toFixed(2);
+    if (balEl) {
+      const b = Number(stats.myBalance);
+      balEl.textContent = (b >= 0 ? '+' : '-') + '€' + Math.abs(b).toFixed(2);
+    }
+    if (balCard) {
+      const b = Number(stats.myBalance);
+      balCard.className = 'stat-card ' + (b > 0 ? 'success' : b < 0 ? 'danger' : 'accent');
+    }
+    if (balIcon) {
+      balIcon.setAttribute('data-lucide', Number(stats.myBalance) >= 0 ? 'trending-up' : 'trending-down');
+    }
+    if (balLabel) {
+      const b = Number(stats.myBalance);
+      balLabel.textContent = b > 0 ? 'Te deben' : b < 0 ? 'Debes' : 'Estás al día';
+    }
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function injectExpenses(newExpenses) {
+    // Remove empty state and create list if needed
+    const emptyState = document.getElementById('expense-empty-state');
+    if (emptyState) {
+      const listDiv = document.createElement('div');
+      listDiv.id = 'expense-list';
+      listDiv.style.cssText = 'display:flex;flex-direction:column;gap:20px';
+      emptyState.replaceWith(listDiv);
+    }
+
+    const list = document.getElementById('expense-list');
+    if (!list) return;
+
+    // Group new expenses by date
+    const byDate = {};
+    newExpenses.forEach(e => {
+      if (!byDate[e.date]) byDate[e.date] = [];
+      byDate[e.date].push(e);
+    });
+
+    // Sort dates DESC so most recent appears first
+    const sortedDates = Object.keys(byDate).sort().reverse();
+
+    sortedDates.forEach(date => {
+      const rowsHtml = byDate[date].map(buildRow).join('');
+      let rowsEl = document.getElementById('expense-rows-' + date);
+
+      if (rowsEl) {
+        // Date group already exists — prepend new rows
+        rowsEl.insertAdjacentHTML('afterbegin', rowsHtml);
+      } else {
+        // Create a new date group and insert at top of list
+        const groupHtml = `
+          <div id="expense-group-${date}">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);white-space:nowrap">
+                ${dateLabel(date)}
+              </span>
+              <div style="flex:1;height:1px;background:var(--divider)"></div>
+            </div>
+            <div id="expense-rows-${date}" class="expense-rows">
+              ${rowsHtml}
+            </div>
+          </div>`;
+        list.insertAdjacentHTML('afterbegin', groupHtml);
+      }
+    });
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+function pollExpenses() {
+  fetch(`${POLL_URL}?after=${knownId}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.expenses && data.expenses.length > 0) {
+        data.expenses.forEach(e => {
+          knownId = Math.max(knownId, parseInt(e.id));
+        });
+        injectExpenses(data.expenses);
+      }
+    })
+    .catch(() => {});
+}
+
+setInterval(pollExpenses, 3000);
+</script>
 
 <?= view('layouts/footer') ?>

@@ -8,7 +8,7 @@ class MessageModel extends Model
 {
     protected $table         = 'messages';
     protected $primaryKey    = 'id';
-    protected $allowedFields = ['home_id', 'user_id', 'message'];
+    protected $allowedFields = ['home_id', 'user_id', 'message', 'edited'];
     protected $useTimestamps = false;
 
     public function __construct()
@@ -27,16 +27,22 @@ class MessageModel extends Model
                     home_id    INT UNSIGNED NOT NULL,
                     user_id    INT UNSIGNED NOT NULL,
                     message    TEXT NOT NULL,
+                    edited     TINYINT(1) NOT NULL DEFAULT 0,
                     created_at DATETIME NULL
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             ");
+        } else {
+            $fields = $db->getFieldNames('messages');
+            if (!in_array('edited', $fields)) {
+                $db->query("ALTER TABLE messages ADD COLUMN edited TINYINT(1) NOT NULL DEFAULT 0");
+            }
         }
     }
 
     public function getMessages(int $homeId, int $limit = 60, int $afterId = 0): array
     {
         $q = $this->db->table('messages m')
-            ->select('m.id, m.message, m.created_at, u.username, u.id AS user_id, u.avatar_url')
+            ->select('m.id, m.message, m.edited, m.created_at, u.username, u.id AS user_id, u.avatar_url')
             ->join('users u', 'u.id = m.user_id')
             ->where('m.home_id', $homeId)
             ->orderBy('m.created_at', 'ASC')

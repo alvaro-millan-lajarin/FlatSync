@@ -1,23 +1,45 @@
 <?= view('layouts/header') ?>
 
-<!-- Barra superior: búsqueda + ubicación -->
+<!-- Barra superior -->
 <div class="card" style="margin-bottom:24px">
-  <div style="display:flex;flex-direction:column;gap:12px">
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <!-- Búsqueda de categoría -->
     <div style="position:relative">
       <i data-lucide="search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted)"></i>
       <input type="text" id="service-search" placeholder="Buscar categoría…"
              style="width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:8px;font-size:0.875rem;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;box-sizing:border-box"
              oninput="filterCategories(this.value)">
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--muted);min-width:0;flex:1">
-        <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--primary);flex-shrink:0"></i>
+
+    <!-- Ubicación actual + botón GPS -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--muted);min-width:0;flex:1">
+        <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--primary);flex-shrink:0"></i>
         <span id="location-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Sin ubicación</span>
       </div>
-      <button id="btn-locate" onclick="loadAll()" class="btn btn-primary" style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-        <i data-lucide="locate" style="width:14px;height:14px"></i> Buscar lugares cercanos
+      <button id="btn-locate" onclick="loadAll()" class="btn btn-sm btn-primary" style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+        <i data-lucide="locate" style="width:13px;height:13px"></i> Mi ubicación
+      </button>
+      <button onclick="toggleManual()" class="btn btn-sm btn-secondary" style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+        <i data-lucide="map" style="width:13px;height:13px"></i> Cambiar
       </button>
     </div>
+
+    <!-- Panel cambiar ubicación (oculto por defecto) -->
+    <div id="manual-location-panel" style="display:none;border-top:1px solid var(--divider);padding-top:12px">
+      <label style="display:block;font-size:0.78rem;font-weight:500;color:var(--text-secondary);margin-bottom:6px">Buscar ciudad o dirección</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="manual-location-input" placeholder="Ej: Valencia, Madrid, Calle Gran Vía…"
+               style="flex:1;padding:9px 13px;border:1px solid var(--border);border-radius:8px;font-size:0.875rem;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;min-width:0"
+               onkeydown="if(event.key==='Enter'){searchManualLocation();event.preventDefault()}">
+        <button onclick="searchManualLocation()" class="btn btn-primary" style="flex-shrink:0;display:flex;align-items:center;gap:5px">
+          <i data-lucide="search" style="width:14px;height:14px"></i> Buscar
+        </button>
+      </div>
+      <div id="manual-location-results" style="margin-top:8px"></div>
+    </div>
+
   </div>
 </div>
 
@@ -39,11 +61,11 @@ $cats = array_map(fn($c) => [
     'label' => $c['label'],
     'icon'  => $c['icon'],
     'color' => $c['color'],
+    'tags'  => $c['tags'],
 ], $categories);
 ?>
 <script>
 const CATEGORIES = <?= json_encode($cats, JSON_UNESCAPED_UNICODE) ?>;
-const NEARBY_URL  = '<?= site_url('/services/nearby') ?>';
 
 const COLOR_MAP = {
   accent:  { bg: 'rgba(37,99,235,0.08)',  text: 'var(--primary)',  star: '#2563EB' },
@@ -78,17 +100,89 @@ function resetBtn() {
 function onGeo(pos) {
   userLat = pos.coords.latitude;
   userLng = pos.coords.longitude;
-  document.getElementById('location-label').textContent =
-    userLat.toFixed(4) + ', ' + userLng.toFixed(4);
-
   resetBtn();
+  setLocationLabel(userLat, userLng);
+  launchSearch();
+}
+
+async function setLocationLabel(lat, lng) {
+  const el = document.getElementById('location-label');
+  el.textContent = 'Obteniendo dirección…';
+  try {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`,
+      { headers: { 'Accept-Language': 'es' } }
+    );
+    const d = await r.json();
+    const a = d.address || {};
+    const parts = [
+      a.road || a.pedestrian || a.footway || null,
+      a.house_number || null,
+      a.suburb || a.neighbourhood || a.village || a.town || a.city || null,
+    ].filter(Boolean);
+    el.textContent = parts.length ? parts.join(', ') : (d.display_name?.split(',').slice(0,2).join(',') || `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+  } catch {
+    el.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
+}
+
+async function launchSearch() {
   hideState();
-  document.getElementById('services-container').innerHTML = '';
+  const container = document.getElementById('services-container');
+  container.innerHTML = '';
+
+  const sections = {};
+  CATEGORIES.forEach(cat => {
+    const s = buildSkeleton(cat);
+    container.appendChild(s);
+    sections[cat.key] = s;
+  });
+
+  // Una sola query con todos los tags exactos (sin regex → rápido)
+  const elements = await overpassFetch();
+
+  if (elements === null) {
+    CATEGORIES.forEach(cat =>
+      renderError(sections[cat.key], 'No se pudo contactar OpenStreetMap. Comprueba tu conexión.')
+    );
+    return;
+  }
+
+  // Categorizar en cliente
+  const bycat = {};
+  CATEGORIES.forEach(c => { bycat[c.key] = []; });
+  const seen = {};
+
+  elements.forEach(el => {
+    const t = el.tags || {};
+    if (!el.lat || !el.lon) return;
+    const catKey = resolveCategory(t);
+    if (!catKey) return;
+
+    const name  = t.name || null;
+    const phone = t.phone || t['contact:phone'] || t.mobile || null;
+    const web   = t.website || t['contact:website'] || null;
+    const st    = t['addr:street'] || null;
+    if (!name && !phone && !web && !st) return;
+
+    const dk = (name||'') + Math.round(el.lat*1000) + Math.round(el.lon*1000);
+    if (seen[dk]) return;
+    seen[dk] = true;
+
+    const dm = haversine(userLat, userLng, el.lat, el.lon);
+    bycat[catKey].push({
+      name:    name || (st ? 'Servicio en '+st : 'Proveedor local'),
+      address: [st, t['addr:housenumber'], t['addr:city']].filter(Boolean).join(', '),
+      phone, website: web,
+      hours:   t.opening_hours || null,
+      distance_m: dm, distance: fmtDist(dm),
+      osm_type: el.type, osm_id: el.id,
+    });
+  });
 
   CATEGORIES.forEach(cat => {
-    const section = buildSkeleton(cat);
-    document.getElementById('services-container').appendChild(section);
-    fetchCategory(cat, section);
+    const res = bycat[cat.key].sort((a,b) => a.distance_m - b.distance_m).slice(0, 10);
+    renderResults(sections[cat.key], cat, res);
   });
 }
 
@@ -111,13 +205,94 @@ function onGeoError(err) {
   showState('error', titulo, detalle);
 }
 
-/* ── Fetch por categoría ────────────────────────────────────── */
-function fetchCategory(cat, section) {
-  const url = NEARBY_URL + '?lat=' + userLat + '&lng=' + userLng + '&type=' + encodeURIComponent(cat.key);
-  fetch(url)
-    .then(r => r.json())
-    .then(data => data.error ? renderError(section, data.error) : renderResults(section, cat, data.results || []))
-    .catch(() => renderError(section, 'Error de red'));
+/* ── Utilidades ─────────────────────────────────────────────── */
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (lat2-lat1)*r, dLng = (lng2-lng1)*r;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function fmtDist(m) { return m < 1000 ? Math.round(m)+' m' : (m/1000).toFixed(1)+' km'; }
+
+/* Mapa tag=valor → clave de categoría */
+const CAT_MAP = {
+  craft:  { locksmith:'locksmith', plumber:'plumber', hvac:'plumber',
+            electrician:'electrician', electronics_repair:'electrician',
+            painter:'painter', cleaning:'cleaning', transport:'moving' },
+  trade:  { locksmith:'locksmith', plumber:'plumber', electrician:'electrician',
+            painter:'painter', cleaning:'cleaning' },
+  shop:   { locksmith:'locksmith', plumbing:'plumber', electrical:'electrician',
+            dry_cleaning:'cleaning', laundry:'cleaning', cleaning:'cleaning',
+            paint:'painter', relocation:'moving', storage_rental:'moving' },
+  amenity:{ laundry:'cleaning', storage_rental:'moving' },
+  office: { moving_company:'moving' },
+};
+function resolveCategory(tags) {
+  for (const [k, m] of Object.entries(CAT_MAP)) {
+    if (tags[k] && m[tags[k]]) return m[tags[k]];
+  }
+  return null;
+}
+
+/* ── Una query única con todos los tags exactos (sin regex) ─── */
+function buildCombinedQuery() {
+  const a = `(around:5000,${userLat},${userLng})`;
+  const lines = [
+    // cerrajería
+    `node["craft"="locksmith"]${a};`,
+    `node["trade"="locksmith"]${a};`,
+    `node["shop"="locksmith"]${a};`,
+    // fontanería
+    `node["craft"="plumber"]${a};`,
+    `node["trade"="plumber"]${a};`,
+    `node["craft"="hvac"]${a};`,
+    `node["shop"="plumbing"]${a};`,
+    // electricidad
+    `node["craft"="electrician"]${a};`,
+    `node["trade"="electrician"]${a};`,
+    `node["shop"="electrical"]${a};`,
+    `node["craft"="electronics_repair"]${a};`,
+    // pintura
+    `node["craft"="painter"]${a};`,
+    `node["trade"="painter"]${a};`,
+    `node["shop"="paint"]${a};`,
+    // limpieza
+    `node["craft"="cleaning"]${a};`,
+    `node["shop"="dry_cleaning"]${a};`,
+    `node["shop"="laundry"]${a};`,
+    `node["amenity"="laundry"]${a};`,
+    // mudanzas
+    `node["shop"="relocation"]${a};`,
+    `node["office"="moving_company"]${a};`,
+    `node["amenity"="storage_rental"]${a};`,
+  ].join('');
+  return `[out:json][timeout:20];(${lines});out 120;`;
+}
+
+/* Lanza la query contra 3 mirrors en paralelo, usa el primero que responda */
+async function overpassFetch() {
+  const q = buildCombinedQuery();
+  const mirrors = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
+  ];
+  const tries = mirrors.map(async url => {
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 22000);
+    try {
+      const r = await fetch(`${url}?data=${encodeURIComponent(q)}`, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      const d = await r.json();
+      return d.elements || [];
+    } catch(e) { clearTimeout(timer); throw e; }
+  });
+  try {
+    return await Promise.any(tries); // usa el mirror más rápido
+  } catch {
+    return null;
+  }
 }
 
 /* ── Skeleton mientras carga ────────────────────────────────── */
@@ -226,7 +401,56 @@ function renderError(section, msg) {
     `<p style="color:var(--danger);font-size:0.85rem;padding:4px 0;grid-column:1/-1">${escHtml(msg)}</p>`;
 }
 
-/* ── Filtro ─────────────────────────────────────────────────── */
+/* ── Cambio manual de ubicación (Nominatim) ─────────────────── */
+function toggleManual() {
+  const panel = document.getElementById('manual-location-panel');
+  panel.style.display = panel.style.display === 'none' ? '' : 'none';
+  if (panel.style.display !== 'none') {
+    document.getElementById('manual-location-input').focus();
+  }
+}
+
+function searchManualLocation() {
+  const q = document.getElementById('manual-location-input').value.trim();
+  if (!q) return;
+  const resultsEl = document.getElementById('manual-location-results');
+  resultsEl.innerHTML = '<span style="font-size:0.8rem;color:var(--muted)">Buscando…</span>';
+
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&q=' + encodeURIComponent(q), {
+    headers: { 'Accept-Language': 'es', 'User-Agent': 'FlatSync/1.0' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.length) {
+      resultsEl.innerHTML = '<span style="font-size:0.8rem;color:var(--muted)">Sin resultados. Prueba con otra ciudad o dirección.</span>';
+      return;
+    }
+    resultsEl.innerHTML = '';
+    data.forEach(place => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.style.cssText = 'display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:4px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;color:var(--text);cursor:pointer;font-family:inherit';
+      btn.textContent = place.display_name;
+      btn.onmouseover = () => btn.style.background = 'var(--surface)';
+      btn.onmouseout  = () => btn.style.background = 'var(--surface2)';
+      btn.onclick = () => {
+        userLat = parseFloat(place.lat);
+        userLng = parseFloat(place.lon);
+        const label = place.display_name.split(',').slice(0, 2).join(',');
+        document.getElementById('location-label').textContent = label;
+        document.getElementById('manual-location-panel').style.display = 'none';
+        document.getElementById('manual-location-results').innerHTML = '';
+        launchSearch();
+      };
+      resultsEl.appendChild(btn);
+    });
+  })
+  .catch(() => {
+    resultsEl.innerHTML = '<span style="font-size:0.8rem;color:var(--danger)">Error al buscar. Comprueba tu conexión.</span>';
+  });
+}
+
+/* ── Filtro de categorías ────────────────────────────────────── */
 function filterCategories(q) {
   q = q.trim().toLowerCase();
   document.querySelectorAll('.service-category').forEach(el => {

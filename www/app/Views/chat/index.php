@@ -38,15 +38,14 @@
         </div>
       <?php else: ?>
         <?php foreach ($notes as $note): ?>
-        <div class="note-item">
+        <div class="note-item" data-note-id="<?= $note['id'] ?>">
           <div class="note-content"><?= nl2br(esc($note['content'])) ?></div>
           <div class="note-meta">
-            <span><?= esc($note['username']) ?> · <?= date('d/m H:i', strtotime($note['created_at'])) ?></span>
+            <span data-ts="<?= strtotime($note['created_at']) ?>"><?= esc($note['username']) ?> · <?= date('d/m H:i', strtotime($note['created_at'])) ?></span>
             <?php if ($note['user_id'] == session()->get('user_id')): ?>
-            <form method="post" action="<?= site_url('/chat/notes/delete/' . $note['id']) ?>" style="display:inline" onsubmit="return confirm('¿Eliminar esta nota?')">
-              <?= csrf_field() ?>
-              <button class="note-delete-btn" title="Eliminar"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
-            </form>
+            <button class="note-delete-btn" onclick="deleteNote(<?= $note['id'] ?>, this)" title="Eliminar">
+              <i data-lucide="trash-2" style="width:11px;height:11px"></i>
+            </button>
             <?php endif; ?>
           </div>
         </div>
@@ -72,13 +71,19 @@
             <?php if (!$isMe): ?>
               <div class="chat-name"><?= esc($m['username']) ?></div>
             <?php endif; ?>
-            <div class="chat-text"><?= nl2br(esc($m['message'])) ?></div>
-            <div class="chat-time"><?= date('H:i', strtotime($m['created_at'])) ?></div>
+            <div class="chat-text" data-raw="<?= esc($m['message']) ?>"><?= nl2br(esc($m['message'])) ?></div>
+            <?php if (!empty($m['edited'])): ?><span class="chat-edited">(editado)</span><?php endif; ?>
+            <div class="chat-time" data-ts="<?= strtotime($m['created_at']) ?>"></div>
           </div>
           <?php if ($isMe): ?>
-          <button class="msg-delete-btn" onclick="deleteMessage(<?= $m['id'] ?>, this)" title="Eliminar">
-            <i data-lucide="trash-2" style="width:11px;height:11px"></i>
-          </button>
+          <div class="msg-actions">
+            <button class="msg-edit-btn" onclick="editMessage(<?= $m['id'] ?>, this)" title="Editar">
+              <i data-lucide="pencil" style="width:11px;height:11px"></i>
+            </button>
+            <button class="msg-delete-btn" onclick="deleteMessage(<?= $m['id'] ?>, this)" title="Eliminar">
+              <i data-lucide="trash-2" style="width:11px;height:11px"></i>
+            </button>
+          </div>
           <?php endif; ?>
         </div>
       <?php endforeach; ?>
@@ -257,29 +262,45 @@
 .chat-time { font-size: 0.63rem; opacity: .55; margin-top: 4px; text-align: right; }
 .chat-bubble--me .chat-time { color: rgba(255,255,255,.75); opacity: 1; }
 
-/* Delete button on own messages */
-.msg-delete-btn {
+/* Action buttons on own messages */
+.msg-actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px; height: 24px;
-  background: none;
-  border: none;
-  border-radius: 50%;
-  color: var(--muted);
-  opacity: 0;
-  cursor: pointer;
-  flex-shrink: 0;
+  flex-direction: column;
+  gap: 4px;
   align-self: center;
-  transition: color .15s, background .15s, opacity .15s;
-  padding: 0;
+  flex-shrink: 0;
 }
+.msg-edit-btn, .msg-delete-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+  background: none; border: none; border-radius: 50%;
+  color: var(--muted); opacity: 0; cursor: pointer;
+  transition: color .15s, background .15s, opacity .15s; padding: 0;
+}
+.msg-edit-btn:hover  { color: var(--primary); background: rgba(37,99,235,0.1); opacity: 1 !important; }
 .msg-delete-btn:hover { color: var(--danger); background: rgba(239,68,68,0.1); opacity: 1 !important; }
+.chat-msg--me:hover .msg-edit-btn,
 .chat-msg--me:hover .msg-delete-btn { opacity: 0.5; }
-/* Always visible on touch devices */
 @media (hover: none) {
-  .msg-delete-btn { opacity: 0.4; }
+  .msg-edit-btn, .msg-delete-btn { opacity: 0.4; }
 }
+
+/* Inline edit area inside bubble */
+.msg-edit-wrap { margin-top: 6px; }
+.msg-edit-ta {
+  width: 100%; resize: none; border-radius: 8px;
+  padding: 6px 10px; font-size: 0.875rem;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15); color: #fff;
+  font-family: inherit; line-height: 1.5; outline: none;
+  box-sizing: border-box;
+}
+.msg-edit-ta:focus { border-color: rgba(255,255,255,0.8); }
+.chat-bubble--them .msg-edit-ta {
+  border-color: var(--border); background: var(--surface2); color: var(--text);
+}
+.chat-bubble--them .msg-edit-ta:focus { border-color: var(--primary); }
+.chat-edited { font-size: 0.6rem; opacity: 0.6; margin-right: 4px; font-style: italic; }
 
 /* Input */
 .chat-input-wrap {
@@ -356,30 +377,40 @@ function avatarHtml(m) {
   return `<div class="chat-avatar-wrap"><div class="chat-avatar-initials" title="${escHtml(m.username)}">${escHtml(m.username[0].toUpperCase())}</div></div>`;
 }
 
-const DEL_MSG_URL = '<?= site_url('/chat/message/delete/') ?>';
+const DEL_MSG_URL   = '<?= site_url('/chat/message/delete/') ?>';
+const EDIT_MSG_URL  = '<?= site_url('/chat/message/edit/') ?>';
+const NOTE_STORE_URL = '<?= site_url('/chat/notes/store') ?>';
+const NOTE_DEL_URL   = '<?= site_url('/chat/notes/delete/') ?>';
 
 function buildMsg(m) {
   const isMe = m.user_id == ME_ID;
   const cls  = isMe ? 'chat-msg--me' : 'chat-msg--them';
   const bcls = isMe ? 'chat-bubble--me' : 'chat-bubble--them';
-  const time = m.created_at ? new Date(m.created_at.replace(' ', 'T')).toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'}) : '';
+  const time = m.ts ? new Date(m.ts * 1000).toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'}) : '';
   const name = isMe ? '' : `<div class="chat-name">${escHtml(m.username)}</div>`;
-  const delBtn = isMe ? `<button class="msg-delete-btn" onclick="deleteMessage(${m.id}, this)" title="Eliminar">
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-  </button>` : '';
+  const edited = m.edited && m.edited != '0' ? '<span class="chat-edited">(editado)</span>' : '';
+  const svgTrash  = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+  const svgPencil = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  const actBtns = isMe ? `<div class="msg-actions">
+    <button class="msg-edit-btn" onclick="editMessage(${m.id}, this)" title="Editar">${svgPencil}</button>
+    <button class="msg-delete-btn" onclick="deleteMessage(${m.id}, this)" title="Eliminar">${svgTrash}</button>
+  </div>` : '';
   return `<div class="chat-msg ${cls}" data-id="${m.id}">
     ${avatarHtml(m)}
     <div class="chat-bubble ${bcls}">
       ${name}
-      <div class="chat-text">${escHtml(m.message).replace(/\n/g,'<br>')}</div>
+      <div class="chat-text" data-raw="${escHtml(m.message)}">${escHtml(m.message).replace(/\n/g,'<br>')}</div>
+      ${edited}
       <div class="chat-time">${time}</div>
     </div>
-    ${delBtn}
+    ${actBtns}
   </div>`;
 }
 
 function deleteMessage(id, btn) {
-  if (!confirm('¿Eliminar este mensaje?')) return;
+  showConfirm('¿Eliminar este mensaje? Esta acción no se puede deshacer.', () => _doDeleteMessage(id, btn));
+}
+function _doDeleteMessage(id, btn) {
   const fd = new FormData();
   fd.append('<?= csrf_token() ?>', document.querySelector('[name="<?= csrf_token() ?>"]').value);
   fetch(`${DEL_MSG_URL}${id}`, { method: 'POST', body: fd })
@@ -394,6 +425,136 @@ function deleteMessage(id, btn) {
     })
     .catch(() => {});
 }
+
+function editMessage(id, btn) {
+  const bubble  = btn.closest('.chat-msg').querySelector('.chat-bubble');
+  const textEl  = bubble.querySelector('.chat-text');
+  textEl.style.display = 'none';
+
+  let wrap = bubble.querySelector('.msg-edit-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.className = 'msg-edit-wrap';
+    const ta = document.createElement('textarea');
+    ta.className = 'msg-edit-ta';
+    ta.rows = 2;
+    const acts = document.createElement('div');
+    acts.style.cssText = 'display:flex;gap:6px;margin-top:6px';
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn btn-sm btn-primary';
+    saveBtn.textContent = 'Guardar';
+    saveBtn.onclick = () => saveEdit(id, wrap);
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-sm btn-secondary';
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.onclick = () => cancelEdit(wrap);
+    acts.appendChild(saveBtn);
+    acts.appendChild(cancelBtn);
+    wrap.appendChild(ta);
+    wrap.appendChild(acts);
+    textEl.insertAdjacentElement('afterend', wrap);
+  } else {
+    wrap.style.display = '';
+  }
+  const ta = wrap.querySelector('.msg-edit-ta');
+  ta.value = textEl.dataset.raw || '';
+  ta.focus();
+}
+
+function cancelEdit(wrap) {
+  wrap.style.display = 'none';
+  wrap.closest('.chat-bubble').querySelector('.chat-text').style.display = '';
+}
+
+function saveEdit(id, wrap) {
+  const ta   = wrap.querySelector('.msg-edit-ta');
+  const text = ta.value.trim();
+  if (!text) return;
+  const bubble = wrap.closest('.chat-bubble');
+  const textEl = bubble.querySelector('.chat-text');
+  const csrf   = document.querySelector('[name="<?= csrf_token() ?>"]').value;
+  const fd = new FormData();
+  fd.append('<?= csrf_token() ?>', csrf);
+  fd.append('message', text);
+  fetch(`${EDIT_MSG_URL}${id}`, { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        textEl.dataset.raw = text;
+        textEl.innerHTML = escHtml(text).replace(/\n/g, '<br>');
+        textEl.style.display = '';
+        wrap.style.display = 'none';
+        if (!bubble.querySelector('.chat-edited')) {
+          wrap.insertAdjacentHTML('beforebegin', '<span class="chat-edited">(editado)</span>');
+        }
+      }
+    })
+    .catch(() => {});
+}
+
+// ── Notes ──────────────────────────────────────────────
+function buildNote(note) {
+  const d = new Date(note.ts * 1000);
+  const time = d.toLocaleDateString('es', {day:'2-digit', month:'2-digit'}) + ' ' +
+               d.toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'});
+  const svgTrash = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+  const delBtn = note.user_id == ME_ID
+    ? `<button class="note-delete-btn" onclick="deleteNote(${note.id}, this)" title="Eliminar">${svgTrash}</button>`
+    : '';
+  return `<div class="note-item" data-note-id="${note.id}">
+    <div class="note-content">${escHtml(note.content).replace(/\n/g,'<br>')}</div>
+    <div class="note-meta">
+      <span>${escHtml(note.username)} · ${time}</span>
+      ${delBtn}
+    </div>
+  </div>`;
+}
+
+function deleteNote(id, btn) {
+  showConfirm('¿Eliminar esta nota?', () => _doDeleteNote(id, btn));
+}
+function _doDeleteNote(id, btn) {
+  const csrf = document.querySelector('[name="<?= csrf_token() ?>"]').value;
+  const fd = new FormData();
+  fd.append('<?= csrf_token() ?>', csrf);
+  fetch(`${NOTE_DEL_URL}${id}`, { method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'} })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        const item = btn.closest('.note-item');
+        item.style.transition = 'opacity .2s';
+        item.style.opacity = '0';
+        setTimeout(() => {
+          item.remove();
+          const list = document.querySelector('.notes-list');
+          if (!list.querySelector('.note-item')) {
+            list.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:20px 0"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Sin notas aún</div>`;
+          }
+        }, 200);
+      }
+    })
+    .catch(() => {});
+}
+
+document.querySelector('.note-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const ta = this.querySelector('textarea[name="content"]');
+  const text = ta.value.trim();
+  if (!text) return;
+  const fd = new FormData(this);
+  fetch(NOTE_STORE_URL, { method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'} })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        ta.value = '';
+        const list = document.querySelector('.notes-list');
+        const empty = list.querySelector('div[style*="text-align:center"]');
+        if (empty) empty.remove();
+        list.insertAdjacentHTML('afterbegin', buildNote(data.note));
+      }
+    })
+    .catch(() => {});
+});
 
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -414,8 +575,21 @@ function poll() {
         });
         if (wasAtBottom) scrollBottom();
       }
+      if (data.notes) updateNotes(data.notes);
     })
     .catch(() => {});
+}
+
+function updateNotes(notes) {
+  const list = document.querySelector('.notes-list');
+  const currentIds = [...list.querySelectorAll('.note-item')].map(el => el.dataset.noteId).join(',');
+  const serverIds  = notes.map(n => String(n.id)).join(',');
+  if (currentIds === serverIds) return;
+  if (notes.length === 0) {
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:20px 0"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Sin notas aún</div>`;
+  } else {
+    list.innerHTML = notes.map(buildNote).join('');
+  }
 }
 
 document.getElementById('chat-form').addEventListener('submit', function(e) {
@@ -440,6 +614,19 @@ function handleKey(e) {
     if (input.value.trim()) document.getElementById('chat-form').dispatchEvent(new Event('submit'));
   }
 }
+
+// Convertir todos los tiempos PHP a hora local del navegador
+document.querySelectorAll('.chat-time[data-ts]').forEach(el => {
+  const d = new Date(parseInt(el.dataset.ts) * 1000);
+  el.textContent = d.toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'});
+});
+document.querySelectorAll('.note-meta span[data-ts]').forEach(el => {
+  const d = new Date(parseInt(el.dataset.ts) * 1000);
+  const username = el.textContent.split(' · ')[0];
+  const time = d.toLocaleDateString('es', {day:'2-digit', month:'2-digit'}) + ' ' +
+               d.toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'});
+  el.textContent = username + ' · ' + time;
+});
 
 scrollBottom();
 setInterval(poll, 3000);

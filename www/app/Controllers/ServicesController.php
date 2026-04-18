@@ -112,16 +112,19 @@ class ServicesController extends BaseController
         $raw    = $this->overpassFetch($query);
 
         if ($raw === false) {
-            return $this->response->setJSON(['error' => 'No se pudo conectar con Overpass API'])->setStatusCode(502);
+            return $this->response->setJSON(['error' => 'No se pudo conectar con Overpass API. Inténtalo de nuevo.'])->setStatusCode(502);
         }
 
-        $data    = json_decode($raw, true);
-        $results = $this->parseElements($data['elements'] ?? [], $lat, $lng);
+        $data = json_decode($raw, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !isset($data['elements'])) {
+            return $this->response->setJSON(['error' => 'Respuesta inesperada de la API'])->setStatusCode(502);
+        }
 
-        // Ordenar por distancia
+        $results = $this->parseElements($data['elements'], $lat, $lng);
+
         usort($results, fn($a, $b) => $a['distance_m'] <=> $b['distance_m']);
 
-        return $this->response->setJSON(['results' => array_slice($results, 0, 10)]);
+        return $this->response->setJSON(['results' => array_slice($results, 0, 15)]);
     }
 
     // ── Construcción de la query Overpass QL ─────────────────────────────
@@ -132,28 +135,36 @@ class ServicesController extends BaseController
         foreach ($tags as $tag) {
             foreach ($tag as $k => $v) {
                 $filter = '["' . $k . '"="' . $v . '"](around:' . $radius . ',' . $lat . ',' . $lng . ');';
-                $lines .= "node$filter\n  way$filter\n  ";
+                $lines .= "node$filter\n  way$filter\n  relation$filter\n  ";
             }
         }
-        return '[out:json][timeout:15];(' . $lines . ');out center 20;';
+        return '[out:json][timeout:30];(' . $lines . ');out center 50;';
     }
 
     private function overpassFetch(string $query): string|false
     {
-        $url = 'https://overpass-api.de/api/interpreter';
-        $ch  = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 15,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => 'data=' . urlencode($query),
-            CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
-            CURLOPT_USERAGENT      => 'FlatSync/1.0',
-        ]);
-        $result = curl_exec($ch);
-        $error  = curl_error($ch);
-        curl_close($ch);
-        return $error ? false : $result;
+        // Intentar con servidor principal y mirror como fallback
+        $endpoints = [
+            'https://overpass-api.de/api/interpreter',
+            'https://overpass.kumi.systems/api/interpreter',
+        ];
+        foreach ($endpoints as $url) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 30,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => 'data=' . urlencode($query),
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
+                CURLOPT_USERAGENT      => 'FlatSync/1.0 (student project)',
+            ]);
+            $result = curl_exec($ch);
+            $error  = curl_error($ch);
+            $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if (!$error && $code === 200) return $result;
+        }
+        return false;
     }
 
     // ── Parseo de resultados ──────────────────────────────────────────────
@@ -165,13 +176,20 @@ class ServicesController extends BaseController
 
         foreach ($elements as $el) {
             $tags = $el['tags'] ?? [];
-            $name = $tags['name'] ?? null;
-            if (!$name) continue;
 
-            // Coordenadas (node directo o centroide de way)
+            // Coordenadas (node directo o centroide de way/relation)
             $elLat = $el['lat'] ?? $el['center']['lat'] ?? null;
             $elLng = $el['lon'] ?? $el['center']['lon'] ?? null;
             if (!$elLat || !$elLng) continue;
+
+            // Necesita al menos nombre, teléfono, web o dirección para ser útil
+            $name    = $tags['name'] ?? null;
+            $phone   = $tags['phone'] ?? $tags['contact:phone'] ?? $tags['mobile'] ?? null;
+            $website = $tags['website'] ?? $tags['contact:website'] ?? null;
+            $street  = $tags['addr:street'] ?? null;
+            if (!$name && !$phone && !$website && !$street) continue;
+
+            $name = $name ?? ($street ? 'Servicio en ' . $street : 'Proveedor local');
 
             // Evitar duplicados por nombre+posición
             $dedup = $name . round($elLat, 3) . round($elLng, 3);
@@ -183,8 +201,8 @@ class ServicesController extends BaseController
             $results[] = [
                 'name'       => $name,
                 'address'    => $this->buildAddress($tags),
-                'phone'      => $tags['phone'] ?? $tags['contact:phone'] ?? null,
-                'website'    => $tags['website'] ?? $tags['contact:website'] ?? null,
+                'phone'      => $phone,
+                'website'    => $website,
                 'hours'      => $tags['opening_hours'] ?? null,
                 'distance_m' => (int) $distM,
                 'distance'   => $this->formatDistance($distM),

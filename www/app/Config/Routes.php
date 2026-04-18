@@ -41,7 +41,8 @@ $routes->get('/dashboard', 'HomeController::index');
 // Chores
 $routes->get('/chores',                          'ChoresController::index');
 $routes->post('/chores/store',                   'ChoresController::store');
-$routes->post('/chores/mark-done/(:num)',         'ChoresController::markDone/$1');
+$routes->post('/chores/mark-done/(:num)',          'ChoresController::markDone/$1');
+$routes->post('/chores/toggle/(:num)',             'ChoresController::toggleDone/$1');
 $routes->post('/chores/update/(:num)',            'ChoresController::update/$1');
 $routes->post('/chores/delete/(:num)',            'ChoresController::delete/$1');
 $routes->get('/chores/swap-requests',            'ChoresController::swapRequests');
@@ -57,12 +58,15 @@ $routes->post('/expenses/update/(:num)','ExpensesController::update/$1');
 $routes->post('/expenses/delete/(:num)','ExpensesController::delete/$1');
 $routes->post('/expenses/settle',      'ExpensesController::settle');
 $routes->get('/expenses/balance',      'ExpensesController::balance');
+$routes->get('/expenses/poll',         'ExpensesController::poll');
 $routes->get('/expenses/summary',      'ExpensesController::summary');
 $routes->get('/expenses/export',       'ExpensesController::export');
 
 // Services
 $routes->get('/services',        'ServicesController::index');
 $routes->get('/services/nearby', 'ServicesController::nearby');
+
+$routes->get('/chores/poll', 'ChoresController::poll');
 
 // Members
 $routes->get('/members', 'MembersController::index');
@@ -79,6 +83,7 @@ $routes->get('/chat/poll',      'ChatController::poll');
 $routes->post('/chat/notes/store',           'ChatController::noteStore');
 $routes->post('/chat/notes/delete/(:num)',   'ChatController::noteDelete/$1');
 $routes->post('/chat/message/delete/(:num)', 'ChatController::messageDelete/$1');
+$routes->post('/chat/message/edit/(:num)',   'ChatController::messageEdit/$1');
 
 // Homes (multi-sesión)
 $routes->get('/homes',                'HomesController::select');
