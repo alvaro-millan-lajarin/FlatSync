@@ -10,7 +10,7 @@ class ExpenseModel extends Model
     protected $primaryKey    = 'id';
     protected $allowedFields = [
         'home_id', 'title', 'description', 'amount',
-        'category', 'paid_by', 'date', 'receipt_image',
+        'category', 'paid_by', 'date', 'receipt_image', 'split_with',
     ];
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';

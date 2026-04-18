@@ -98,9 +98,22 @@
             <?php if ($e['description']): ?>
               <div style="font-size:0.75rem;color:var(--muted);margin-top:1px"><?= esc($e['description']) ?></div>
             <?php endif; ?>
+            <?php if (!empty($e['split_with'])): ?>
+              <?php
+                $participantIds = json_decode($e['split_with'], true);
+                $participantNames = array_filter(array_map(
+                    fn($m) => in_array((int)$m['id'], array_map('intval', $participantIds)) ? esc($m['username']) : null,
+                    $members
+                ));
+              ?>
+              <div style="font-size:0.7rem;color:var(--primary);margin-top:2px">
+                <i data-lucide="users" style="width:10px;height:10px;vertical-align:middle"></i>
+                <?= implode(', ', $participantNames) ?>
+              </div>
+            <?php endif; ?>
           </div>
           <!-- Categoría -->
-          <div class="expense-col-category" style="flex:0 0 auto">
+          <div class="expense-col-category" style="flex:0 0 90px">
             <span class="badge badge-accent"><?= $cats[$e['category']] ?? esc($e['category']) ?></span>
           </div>
           <!-- Importe -->
@@ -113,7 +126,13 @@
             <span style="font-size:0.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($e['paid_by_name']) ?></span>
           </div>
           <!-- Acciones -->
-          <div style="flex:0 0 80px;display:flex;gap:6px;justify-content:flex-end">
+          <div style="flex:0 0 100px;display:flex;gap:6px;justify-content:flex-end;align-items:center">
+            <?php if ($e['receipt_image']): ?>
+            <a href="<?= base_url('uploads/' . $e['receipt_image']) ?>" download title="Descargar recibo"
+               class="btn btn-sm btn-secondary btn-icon">
+              <i data-lucide="paperclip" style="width:13px;height:13px"></i>
+            </a>
+            <?php endif; ?>
             <?php if ($e['paid_by'] == session()->get('user_id')): ?>
             <button class="btn btn-sm btn-secondary btn-icon" onclick="openEditModal(this)" data-expense="<?= htmlspecialchars(json_encode($e, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG), ENT_QUOTES) ?>" title="Editar"><i data-lucide="pencil" style="width:13px;height:13px"></i></button>
             <form method="post" action="<?= site_url('/expenses/delete/' . $e['id']) ?>" data-confirm="¿Eliminar «<?= esc(addslashes($e['title'])) ?>»? Esta acción no se puede deshacer.">
@@ -176,6 +195,17 @@
       <div class="form-group">
         <label>Notas</label>
         <textarea name="description" placeholder="Detalles adicionales..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Dividir entre</label>
+        <div class="split-checks">
+          <?php foreach ($members as $m): ?>
+          <label class="split-check-label">
+            <input type="checkbox" name="split_with[]" value="<?= $m['id'] ?>" checked>
+            <span><?= esc($m['username']) ?></span>
+          </label>
+          <?php endforeach; ?>
+        </div>
       </div>
       <div class="form-group">
         <label><i data-lucide="paperclip" style="width:13px;height:13px"></i> Adjuntar ticket / foto <small style="color:var(--muted)">(opcional)</small></label>
@@ -266,6 +296,12 @@ document.querySelector('#modal-add-expense form').addEventListener('submit', fun
 
 <style>
 .expense-rows > div + div { border-top: 1px solid var(--divider); }
+.split-checks { display:flex; flex-wrap:wrap; gap:8px; }
+.split-check-label { display:flex; align-items:center; gap:5px; font-size:0.855rem; cursor:pointer;
+  background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 10px;
+  transition:border-color .15s, background .15s; user-select:none; }
+.split-check-label input { accent-color:var(--primary); }
+.split-check-label:has(input:checked) { border-color:var(--primary); background:rgba(37,99,235,0.07); }
 @media (max-width: 768px) {
   .expense-col-person  { flex: 0 0 auto !important; }
   .expense-col-person span { display: none; }
@@ -318,18 +354,30 @@ const ME_ID         = <?= (int) session()->get('user_id') ?>;
     return dow.charAt(0).toUpperCase() + dow.slice(1) + ' · ' + parts;
   }
 
+  const MEMBERS_MAP = {<?php foreach ($members as $m): ?><?= $m['id'] ?>:'<?= esc($m['username']) ?>',<?php endforeach; ?>};
+
   function buildRow(e) {
     const catLabel = CATS[e.category] || esc(e.category);
     const initial  = (e.paid_by_name || '?').charAt(0).toUpperCase();
     const expAttr  = jsonAttr(e);
     const confirmMsg = esc('¿Eliminar «' + e.title + '»? Esta acción no se puede deshacer.');
+    let splitHtml = '';
+    if (e.split_with) {
+      const ids = typeof e.split_with === 'string' ? JSON.parse(e.split_with) : e.split_with;
+      const names = ids.map(id => MEMBERS_MAP[id] || id).filter(Boolean).join(', ');
+      splitHtml = `<div style="font-size:0.7rem;color:var(--primary);margin-top:2px">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        ${esc(names)}
+      </div>`;
+    }
     return `
       <div style="display:flex;align-items:center;gap:16px;padding:12px 4px">
         <div style="flex:2;min-width:0">
           <div style="font-weight:500;font-size:0.9rem">${esc(e.title)}</div>
           ${e.description ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:1px">${esc(e.description)}</div>` : ''}
+          ${splitHtml}
         </div>
-        <div class="expense-col-category" style="flex:0 0 auto">
+        <div class="expense-col-category" style="flex:0 0 90px">
           <span class="badge badge-accent">${catLabel}</span>
         </div>
         <div class="expense-col-amount" style="flex:0 0 80px;text-align:right;font-size:1rem;font-weight:700;color:var(--primary)">
@@ -339,7 +387,8 @@ const ME_ID         = <?= (int) session()->get('user_id') ?>;
           <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0">${initial}</div>
           <span style="font-size:0.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.paid_by_name)}</span>
         </div>
-        <div style="flex:0 0 80px;display:flex;gap:6px;justify-content:flex-end">
+        <div style="flex:0 0 100px;display:flex;gap:6px;justify-content:flex-end;align-items:center">
+          ${e.receipt_image ? `<a href="${BASE_URL}uploads/${esc(e.receipt_image)}" download title="Descargar recibo" class="btn btn-sm btn-secondary btn-icon"><i data-lucide="paperclip" style="width:13px;height:13px"></i></a>` : ''}
           ${parseInt(e.paid_by) === ME_ID ? `
           <button class="btn btn-sm btn-secondary btn-icon" onclick="openEditModal(this)" data-expense="${expAttr}" title="Editar">
             <i data-lucide="pencil" style="width:13px;height:13px"></i>

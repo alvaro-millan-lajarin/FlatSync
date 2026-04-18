@@ -38,15 +38,21 @@ class ExpensesController extends BaseController
         $expenses = $query->orderBy('expenses.date', 'DESC')->findAll();
 
         $members     = $uhModel->getMembersOfHome($homeId);
-        $memberCount = count($members);
+        $allMemberIds = array_column($members, 'id');
 
         $monthTotal = array_sum(array_column($expenses, 'amount'));
-        $myShare    = $memberCount > 0 ? ($monthTotal / $memberCount) : 0;
 
-        $myPaid    = array_sum(array_map(
-            fn($e) => $e['paid_by'] == $userId ? $e['amount'] : 0,
-            $expenses
-        ));
+        $myShare = 0;
+        $myPaid  = 0;
+        foreach ($expenses as $e) {
+            if ($e['paid_by'] == $userId) $myPaid += $e['amount'];
+            $splitWith    = $e['split_with'] ?? null;
+            $participants = $splitWith ? json_decode($splitWith, true) : $allMemberIds;
+            $count = count($participants);
+            if ($count > 0 && in_array((int)$userId, array_map('intval', $participants))) {
+                $myShare += $e['amount'] / $count;
+            }
+        }
         $myBalance = $myPaid - $myShare;
 
         if ($this->isApi()) {
@@ -133,8 +139,22 @@ class ExpensesController extends BaseController
 
         $homeId       = session()->get('home_id');
         $userId       = session()->get('user_id');
+
+        // Participants: null = all members, otherwise JSON array of user IDs
+        $splitWith = null;
+        $rawSplit  = $this->request->getPost('split_with');
+        if (is_array($rawSplit) && count($rawSplit) > 0) {
+            $allMembers  = (new UserHomesModel())->getMembersOfHome($homeId);
+            $allIds      = array_column($allMembers, 'id');
+            $selected    = array_map('intval', $rawSplit);
+            sort($selected); sort($allIds);
+            if ($selected !== $allIds) {
+                $splitWith = json_encode($selected);
+            }
+        }
+
         $expenseModel = new ExpenseModel();
-        $newId = $expenseModel->insert([
+        $insertData = [
             'home_id'       => $homeId,
             'title'         => $this->request->getPost('title'),
             'description'   => $this->request->getPost('description'),
@@ -143,7 +163,9 @@ class ExpensesController extends BaseController
             'paid_by'       => $this->request->getPost('paid_by'),
             'date'          => $this->request->getPost('date'),
             'receipt_image' => $receiptFile,
-        ]);
+        ];
+        if ($splitWith !== null) $insertData['split_with'] = $splitWith;
+        $newId = $expenseModel->insert($insertData);
 
         if ($this->request->isAJAX()) {
             // Devolver el gasto completo (con nombre) + stats actualizadas, igual que el chat devuelve la nota
@@ -156,15 +178,24 @@ class ExpensesController extends BaseController
             $filterMonth = substr($this->request->getPost('date'), 0, 7) ?: date('Y-m');
             [$year, $month] = explode('-', $filterMonth);
             $all = (new ExpenseModel())
-                ->select('amount, paid_by')
+                ->select('amount, paid_by, split_with')
                 ->where('home_id', $homeId)
                 ->where('YEAR(date)', $year)
                 ->where('MONTH(date)', $month)
                 ->findAll();
-            $memberCount = count((new UserHomesModel())->getMembersOfHome($homeId));
+            $allMembers  = (new UserHomesModel())->getMembersOfHome($homeId);
+            $allMemberIds = array_column($allMembers, 'id');
             $monthTotal  = array_sum(array_column($all, 'amount'));
-            $myShare     = $memberCount > 0 ? $monthTotal / $memberCount : 0;
-            $myPaid      = array_sum(array_map(fn($e) => $e['paid_by'] == $userId ? (float)$e['amount'] : 0, $all));
+            $myShare = 0; $myPaid = 0;
+            foreach ($all as $e) {
+                if ($e['paid_by'] == $userId) $myPaid += $e['amount'];
+                $splitWith    = $e['split_with'] ?? null;
+                $participants = $splitWith ? json_decode($splitWith, true) : $allMemberIds;
+                $count = count($participants);
+                if ($count > 0 && in_array((int)$userId, array_map('intval', $participants))) {
+                    $myShare += $e['amount'] / $count;
+                }
+            }
 
             return $this->response->setJSON([
                 'ok'      => true,
@@ -209,6 +240,7 @@ class ExpensesController extends BaseController
         if ($this->requireHome()) return;
 
         $homeId       = session()->get('home_id');
+        $userId       = session()->get('user_id');
         $expenseModel = new ExpenseModel();
         $expense      = $expenseModel->find($id);
 
@@ -239,45 +271,58 @@ class ExpensesController extends BaseController
         $settleModel  = new SettlementModel();
         $uhModel      = new UserHomesModel();
 
-        $members     = $uhModel->getMembersOfHome($homeId);
-        $memberCount = count($members);
+        $members    = $uhModel->getMembersOfHome($homeId);
+        $allMemberIds = array_column($members, 'id');
 
-        // Total all-time expenses (unsettled)
-        $totalAll = $expenseModel
-            ->selectSum('amount')
+        // Fetch all expenses once
+        $allExpenses = $expenseModel
+            ->select('amount, paid_by, split_with')
             ->where('home_id', $homeId)
-            ->first()['amount'] ?? 0;
+            ->findAll();
 
-        $fairShare = $memberCount > 0 ? $totalAll / $memberCount : 0;
+        // Per-member: how much each person should pay across all expenses
+        $shouldPay = array_fill_keys($allMemberIds, 0.0);
+        $paid      = array_fill_keys($allMemberIds, 0.0);
+
+        foreach ($allExpenses as $e) {
+            $paidBy = (int) $e['paid_by'];
+            if (isset($paid[$paidBy])) $paid[$paidBy] += (float) $e['amount'];
+
+            $splitWith    = $e['split_with'] ?? null;
+            $participants = $splitWith
+                ? array_map('intval', json_decode($splitWith, true))
+                : $allMemberIds;
+            $count = count($participants);
+            if ($count === 0) continue;
+            $share = (float) $e['amount'] / $count;
+            foreach ($participants as $uid) {
+                if (isset($shouldPay[$uid])) $shouldPay[$uid] += $share;
+            }
+        }
 
         // Per-member balance
         $memberBalances = [];
         foreach ($members as $m) {
-            $paid = $expenseModel
-                ->selectSum('amount')
-                ->where('home_id', $homeId)
-                ->where('paid_by', $m['id'])
-                ->first()['amount'] ?? 0;
+            $uid = (int) $m['id'];
 
-            // Subtract what they've already settled (received)
-            $received = $settleModel
+            $received = (float) ($settleModel
                 ->selectSum('amount')
-                ->where('to_user_id', $m['id'])
+                ->where('to_user_id', $uid)
                 ->where('home_id', $homeId)
-                ->first()['amount'] ?? 0;
+                ->first()['amount'] ?? 0);
 
-            $sent = $settleModel
+            $sent = (float) ($settleModel
                 ->selectSum('amount')
-                ->where('from_user_id', $m['id'])
+                ->where('from_user_id', $uid)
                 ->where('home_id', $homeId)
-                ->first()['amount'] ?? 0;
+                ->first()['amount'] ?? 0);
 
             $memberBalances[] = [
-                'id'         => $m['id'],
+                'id'         => $uid,
                 'username'   => $m['username'],
-                'paid'       => $paid,
-                'should_pay' => $fairShare,
-                'balance'    => $paid - $fairShare + $received - $sent,
+                'paid'       => $paid[$uid] ?? 0,
+                'should_pay' => $shouldPay[$uid] ?? 0,
+                'balance'    => ($paid[$uid] ?? 0) - ($shouldPay[$uid] ?? 0) + $received - $sent,
             ];
         }
 
