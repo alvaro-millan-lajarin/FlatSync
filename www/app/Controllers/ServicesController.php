@@ -83,11 +83,16 @@ class ServicesController extends BaseController
 
     public function index()
     {
+        $categories = array_map(function ($cat) {
+            $cat['label'] = lang('App.svc_cat_' . $cat['key']);
+            return $cat;
+        }, $this->categories);
+
         return view('services/index', [
-            'pageTitle'    => 'Servicios cercanos',
-            'pageSubtitle' => 'Profesionales de confianza cerca de tu hogar',
+            'pageTitle'    => lang('App.services_title'),
+            'pageSubtitle' => lang('App.services_subtitle'),
             'activeNav'    => 'services',
-            'categories'   => $this->categories,
+            'categories'   => $categories,
         ]);
     }
 

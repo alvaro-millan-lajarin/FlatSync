@@ -24,13 +24,13 @@
         <h2 style="font-size:1.35rem;font-weight:700;color:var(--text);letter-spacing:-0.02em"><?= esc($user['username']) ?></h2>
         <p style="color:var(--text-secondary);font-size:0.875rem;margin-top:3px"><?= esc($user['email']) ?></p>
         <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">
-          Miembro desde <?= date('d M Y', strtotime($user['created_at'])) ?>
+          <?= lang('App.profile_member_since') ?> <?= date('d M Y', strtotime($user['created_at'])) ?>
         </p>
       </div>
 
       <!-- Edit button -->
       <a href="<?= site_url('/profile/edit') ?>" class="btn btn-secondary" style="flex-shrink:0">
-        <i data-lucide="pencil" style="width:14px;height:14px"></i> Editar perfil
+        <i data-lucide="pencil" style="width:14px;height:14px"></i> <?= lang('App.profile_edit') ?>
       </a>
     </div>
   </div>
@@ -39,11 +39,11 @@
   <div class="profile-stats-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
     <div class="card" style="text-align:center;padding:20px 16px">
       <div style="font-size:1.6rem;font-weight:700;color:var(--primary);letter-spacing:-0.03em"><?= esc($user['username'][0]) ?></div>
-      <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">Inicial</div>
+      <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px"><?= lang('App.profile_initial') ?></div>
     </div>
     <div class="card" style="text-align:center;padding:20px 16px">
       <div style="font-size:1.6rem;font-weight:700;color:var(--text);letter-spacing:-0.03em"><?= date('Y', strtotime($user['created_at'])) ?></div>
-      <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">Año de registro</div>
+      <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px"><?= lang('App.profile_year') ?></div>
     </div>
     <div class="card" style="text-align:center;padding:20px 16px">
       <div style="display:flex;align-items:center;justify-content:center;height:1.6rem">
@@ -53,7 +53,7 @@
           <i data-lucide="circle" style="width:24px;height:24px;color:var(--muted)"></i>
         <?php endif; ?>
       </div>
-      <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">Avatar</div>
+      <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px"><?= lang('App.profile_avatar_lbl') ?></div>
     </div>
   </div>
 

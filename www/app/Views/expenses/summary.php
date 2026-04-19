@@ -2,11 +2,11 @@
 
 <!-- Month selector -->
 <div style="display:flex;gap:10px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
-  <a href="<?= site_url('/expenses/summary?month=' . $prevMonth) ?>" class="btn btn-secondary">‹ Anterior</a>
+  <a href="<?= site_url('/expenses/summary?month=' . $prevMonth) ?>" class="btn btn-secondary"><?= lang('App.previous') ?></a>
   <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700"><?= $monthLabel ?></span>
-  <a href="<?= site_url('/expenses/summary?month=' . $nextMonth) ?>" class="btn btn-secondary">Siguiente ›</a>
+  <a href="<?= site_url('/expenses/summary?month=' . $nextMonth) ?>" class="btn btn-secondary"><?= lang('App.next') ?></a>
   <?php if ($month !== date('Y-m')): ?>
-    <a href="<?= site_url('/expenses/summary') ?>" class="btn btn-secondary">Mes actual</a>
+    <a href="<?= site_url('/expenses/summary') ?>" class="btn btn-secondary"><?= lang('App.current_month') ?></a>
   <?php endif; ?>
 </div>
 
@@ -15,27 +15,27 @@
   <div class="stat-card accent">
     <div class="stat-icon"><i data-lucide="wallet"></i></div>
     <div class="stat-value">€<?= number_format($totalMonth, 2) ?></div>
-    <div class="stat-label">Total gastado</div>
+    <div class="stat-label"><?= lang('App.dashboard_total') ?></div>
     <?php if ($vsLastMonth !== null): ?>
     <div style="font-size:0.78rem;margin-top:6px;color:<?= $vsLastMonth >= 0 ? 'var(--danger)' : 'var(--success)' ?>">
-      <?= $vsLastMonth >= 0 ? '↑' : '↓' ?> <?= abs(round($vsLastMonth)) ?>% vs mes anterior
+      <?= $vsLastMonth >= 0 ? '↑' : '↓' ?> <?= abs(round($vsLastMonth)) ?>% <?= lang('App.dashboard_vs_prev') ?>
     </div>
     <?php endif; ?>
   </div>
   <div class="stat-card warning">
     <div class="stat-icon"><i data-lucide="user"></i></div>
     <div class="stat-value">€<?= number_format($totalMonth / max($memberCount, 1), 2) ?></div>
-    <div class="stat-label">Por persona</div>
+    <div class="stat-label"><?= lang('App.dashboard_per_person') ?></div>
   </div>
   <div class="stat-card success">
     <div class="stat-icon"><i data-lucide="receipt"></i></div>
     <div class="stat-value"><?= $expenseCount ?></div>
-    <div class="stat-label">Nº de gastos</div>
+    <div class="stat-label"><?= lang('App.summary_count') ?></div>
   </div>
   <div class="stat-card accent">
     <div class="stat-icon"><i data-lucide="calendar"></i></div>
     <div class="stat-value">€<?= number_format($totalMonth / max(date('d'), 1), 2) ?></div>
-    <div class="stat-label">Media diaria</div>
+    <div class="stat-label"><?= lang('App.summary_daily_avg') ?></div>
   </div>
 </div>
 
@@ -43,7 +43,7 @@
 
   <!-- By category -->
   <div class="card">
-    <div class="card-header"><span class="card-title"><i data-lucide="folder"></i> Por categoría</span></div>
+    <div class="card-header"><span class="card-title"><i data-lucide="folder"></i> <?= lang('App.dashboard_by_category') ?></span></div>
     <?php
     $catColors = [
       'food'     => ['rgba(245,158,11,0.18)', 'var(--warning)'],
@@ -51,7 +51,7 @@
       'bills'    => ['rgba(239,68,68,0.12)', 'var(--danger)'],
       'other'    => ['rgba(34,197,94,0.12)', 'var(--success)'],
     ];
-    $catLabels = ['food'=>'Comida','cleaning'=>'Limpieza','bills'=>'Facturas','other'=>'Otros'];
+    $catLabels = ['food'=>lang('App.cat_food'),'cleaning'=>lang('App.cat_cleaning'),'bills'=>lang('App.cat_bills'),'other'=>lang('App.cat_other')];
     $maxCat = max(array_column($byCategory, 'total') ?: [1]);
     ?>
     <div class="chart-bar-group">
@@ -80,7 +80,7 @@
 
   <!-- Monthly evolution -->
   <div class="card">
-    <div class="card-header"><span class="card-title"><i data-lucide="trending-up"></i> Evolución de gastos</span></div>
+    <div class="card-header"><span class="card-title"><i data-lucide="trending-up"></i> <?= lang('App.dashboard_evolution') ?></span></div>
     <div class="chart-bar-group">
       <?php
       $maxEvol = max(array_column($monthlyEvolution, 'total') ?: [1]);
@@ -102,7 +102,7 @@
 
 <!-- By member this month -->
 <div class="card" style="margin-bottom:24px">
-  <div class="card-header"><span class="card-title"><i data-lucide="users"></i> Gastos por miembro este mes</span></div>
+  <div class="card-header"><span class="card-title"><i data-lucide="users"></i> <?= lang('App.dashboard_by_member') ?></span></div>
   <div style="display:flex;flex-direction:column;gap:12px">
     <?php foreach ($byMember as $bm): ?>
     <div style="padding:14px 16px;background:var(--surface2);border-radius:10px">
@@ -117,7 +117,7 @@
         <div class="progress-fill" data-width="<?= round($bm['paid'] / max($totalMonth, 1) * 100) ?>"></div>
       </div>
       <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">
-        <?= round($bm['paid'] / max($totalMonth, 1) * 100) ?>% del total
+        <?= round($bm['paid'] / max($totalMonth, 1) * 100) ?>% <?= lang('App.dashboard_of_total') ?>
       </div>
     </div>
     <?php endforeach; ?>
@@ -126,13 +126,13 @@
 
 <!-- Top expenses this month -->
 <div class="card">
-  <div class="card-header"><span class="card-title"><i data-lucide="award"></i> Mayores gastos del mes</span></div>
+  <div class="card-header"><span class="card-title"><i data-lucide="award"></i> <?= lang('App.dashboard_top') ?></span></div>
   <?php if (empty($topExpenses)): ?>
-    <div class="empty-state" style="padding:30px 0"><p>Sin gastos este mes</p></div>
+    <div class="empty-state" style="padding:30px 0"><p><?= lang('App.summary_empty') ?></p></div>
   <?php else: ?>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>#</th><th>Gasto</th><th>Categoría</th><th>Pagado por</th><th>Importe</th></tr></thead>
+      <thead><tr><th><?= lang('App.summary_col_num') ?></th><th><?= lang('App.dashboard_col_expense') ?></th><th><?= lang('App.dashboard_col_cat') ?></th><th><?= lang('App.dashboard_col_paid') ?></th><th><?= lang('App.dashboard_col_amount') ?></th></tr></thead>
       <tbody>
         <?php foreach ($topExpenses as $i => $e): ?>
         <tr>

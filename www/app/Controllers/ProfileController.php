@@ -14,7 +14,7 @@ class ProfileController extends BaseController
         $user = $userModel->find(session()->get('user_id'));
 
         return view('profile/index', [
-            'pageTitle' => 'Mi Perfil',
+            'pageTitle' => lang('App.profile_title'),
             'activeNav' => 'profile',
             'user'      => $user,
         ]);
@@ -28,7 +28,7 @@ class ProfileController extends BaseController
         $user = $userModel->find(session()->get('user_id'));
 
         return view('profile/edit', [
-            'pageTitle' => 'Editar perfil',
+            'pageTitle' => lang('App.profile_edit'),
             'activeNav' => 'profile',
             'user'      => $user,
             'errors'    => [],

@@ -25,7 +25,7 @@ class ChatController extends BaseController
         }
 
         return view('chat/index', [
-            'pageTitle' => 'Chat del hogar',
+            'pageTitle' => lang('App.chat_title'),
             'activeNav' => 'chat',
             'messages'  => $messages,
             'notes'     => $notes,

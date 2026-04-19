@@ -62,7 +62,7 @@ class MembersController extends BaseController
         }
 
         return view('members', [
-            'pageTitle'    => 'Miembros del Hogar',
+            'pageTitle'    => lang('App.members_title'),
             'pageSubtitle' => $home['name'] ?? '',
             'activeNav'    => 'members',
             'memberStats'  => $memberStats,

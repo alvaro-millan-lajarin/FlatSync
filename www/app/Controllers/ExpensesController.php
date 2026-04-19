@@ -67,8 +67,8 @@ class ExpensesController extends BaseController
         }
 
         return view('expenses/index', [
-            'pageTitle'      => 'Gastos Compartidos',
-            'pageSubtitle'   => 'Registro de gastos del hogar',
+            'pageTitle'      => lang('App.expenses_title'),
+            'pageSubtitle'   => lang('App.expenses_subtitle'),
             'activeNav'      => 'expenses',
             'expenses'       => $expenses,
             'members'        => $members,
@@ -208,7 +208,7 @@ class ExpensesController extends BaseController
             ]);
         }
 
-        return redirect()->to('/expenses')->with('success', 'Gasto añadido correctamente.');
+        return redirect()->to('/expenses')->with('success', lang('App.flash_expense_added'));
     }
 
     public function update(int $id)
@@ -220,7 +220,7 @@ class ExpensesController extends BaseController
         $expense      = $expenseModel->find($id);
 
         if (!$expense || $expense['home_id'] != session()->get('home_id') || $expense['paid_by'] != $userId) {
-            return redirect()->back()->with('error', 'No tienes permiso para editar este gasto.');
+            return redirect()->back()->with('error', lang('App.flash_expense_no_perm'));
         }
 
         $expenseModel->update($id, [
@@ -232,7 +232,7 @@ class ExpensesController extends BaseController
 
         if ($this->isApi()) return $this->apiOk();
 
-        return redirect()->to('/expenses')->with('success', 'Gasto actualizado.');
+        return redirect()->to('/expenses')->with('success', lang('App.flash_expense_updated'));
     }
 
     public function delete(int $id)
@@ -245,7 +245,7 @@ class ExpensesController extends BaseController
         $expense      = $expenseModel->find($id);
 
         if (!$expense || $expense['home_id'] != $homeId || $expense['paid_by'] != $userId) {
-            return redirect()->back()->with('error', 'No tienes permiso para eliminar este gasto.');
+            return redirect()->back()->with('error', lang('App.flash_expense_no_del'));
         }
 
 
@@ -259,7 +259,7 @@ class ExpensesController extends BaseController
 
         if ($this->isApi()) return $this->apiOk();
 
-        return redirect()->to('/expenses')->with('success', 'Gasto eliminado.');
+        return redirect()->to('/expenses')->with('success', lang('App.flash_expense_deleted'));
     }
 
     public function balance()
@@ -348,8 +348,8 @@ class ExpensesController extends BaseController
         }
 
         return view('expenses/balance', [
-            'pageTitle'      => 'Balance de Gastos',
-            'pageSubtitle'   => 'Quién debe qué a quién',
+            'pageTitle'      => lang('App.balance_title'),
+            'pageSubtitle'   => lang('App.balance_subtitle'),
             'activeNav'      => 'balance',
             'memberBalances' => $memberBalances,
             'settlements'    => $settlements,
@@ -367,7 +367,7 @@ class ExpensesController extends BaseController
         $amount    = (float) $this->request->getPost('amount');
 
         if (!$toUserId || $amount <= 0) {
-            return redirect()->back()->with('error', 'Datos inválidos.');
+            return redirect()->back()->with('error', lang('App.flash_expense_invalid'));
         }
 
         $settleModel = new SettlementModel();
@@ -381,7 +381,7 @@ class ExpensesController extends BaseController
 
         if ($this->isApi()) return $this->apiOk();
 
-        return redirect()->to('/expenses/balance')->with('success', 'Pago registrado correctamente.');
+        return redirect()->to('/expenses/balance')->with('success', lang('App.flash_payment_ok'));
     }
 
     public function summary()
@@ -477,8 +477,8 @@ class ExpensesController extends BaseController
         $nextMonth = date('Y-m', strtotime('+1 month', mktime(0, 0, 0, $mon, 1, $year)));
 
         return view('expenses/summary', [
-            'pageTitle'        => 'Resumen Mensual',
-            'pageSubtitle'     => 'Análisis y estadísticas de gastos',
+            'pageTitle'        => lang('App.summary_title'),
+            'pageSubtitle'     => lang('App.summary_subtitle'),
             'activeNav'        => 'summary',
             'month'            => $month,
             'monthLabel'       => date('F Y', mktime(0, 0, 0, $mon, 1, $year)),

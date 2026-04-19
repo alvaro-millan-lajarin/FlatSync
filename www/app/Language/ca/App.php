@@ -37,6 +37,7 @@ return [
     'all_f'       => 'Totes',
     'optional'    => 'opcional',
     'are_you_sure'=> 'Estàs segur?',
+    'confirm_title'  => 'Estàs segur?',
     'confirm_delete' => 'Eliminar',
     'previous'    => '‹ Anterior',
     'next'        => 'Següent ›',
@@ -61,6 +62,8 @@ return [
     'homes_code'        => 'Codi',
     'homes_admin'       => 'Admin',
     'homes_leave'       => 'Abandonar',
+    'homes_leave_confirm' => 'Abandonar «{name}»? Deixaràs de ser membre de la llar.',
+    'homes_delete_confirm'=> 'Eliminar la llar «{name}»? S\'esborraran TOTES les dades permanentment.',
     'homes_delete'      => 'Eliminar llar',
     'homes_empty'       => 'Encara no pertanys a cap llar. Crea\'n una o uneix-te amb un codi.',
     'homes_create'      => 'Crear llar',
@@ -201,6 +204,10 @@ return [
     'swaps_offered'       => 'Has ofert',
     'swaps_cancel'        => 'Cancel·lar sol·licitud',
 
+    // Members / Profile page titles
+    'members_title'       => 'Membres de la Llar',
+    'profile_title'       => 'El meu Perfil',
+
     // Chat
     'chat_title'          => 'Xat de la llar',
     'chat_tab'            => 'Xat',
@@ -226,6 +233,32 @@ return [
 
     // Services
     'services_title'      => 'Serveis Propers',
+    'services_subtitle'   => 'Professionals de confiança prop de casa teva',
+    'svc_cat_cleaning'    => 'Neteja',
+    'svc_cat_plumber'     => 'Fontaneria',
+    'svc_cat_locksmith'   => 'Serrallers',
+    'svc_cat_electrician' => 'Electricitat',
+    'svc_cat_painter'     => 'Pintura',
+    'svc_cat_moving'      => 'Mudances',
+    'svc_website'         => 'Lloc web',
+    'svc_osm'             => 'Veure a OpenStreetMap',
+    'svc_gps_btn'         => 'Cercar llocs propers',
+    'svc_gps_searching'   => 'Cercant…',
+    'svc_geo_loading'     => 'Sol·licitant permís d\'ubicació…',
+    'svc_geo_loading_body'=> 'Accepta el permís que apareix al teu dispositiu.',
+    'svc_geo_unavail'     => 'Geolocalització no disponible',
+    'svc_geo_no_support'  => 'El teu navegador no suporta geolocalització.',
+    'svc_geo_denied'      => 'Permís d\'ubicació denegat',
+    'svc_geo_denied_http' => 'Estàs en HTTP: els navegadors mòbils bloquegen la ubicació en connexions no segures. Accedeix per HTTPS perquè funcioni.',
+    'svc_geo_denied_reset'=> 'El navegador recorda que vas denegar el permís. Per restablir-lo: Configuració del mòbil → Safari/Chrome → Ubicació → Permetre per a aquest lloc.',
+    'svc_geo_no_pos'      => 'No s\'ha pogut obtenir la posició. Comprova que el GPS/Localització està activat.',
+    'svc_geo_timeout'     => 'Temps d\'espera esgotat. Assegura\'t de tenir senyal i torna-ho a intentar.',
+    'svc_osm_error'       => 'No s\'ha pogut contactar OpenStreetMap. Comprova la teva connexió.',
+    'svc_manual_searching'=> 'Cercant…',
+    'svc_manual_no_results'=> 'Sense resultats. Prova amb una altra ciutat o adreça.',
+    'svc_manual_error'    => 'Error en cercar. Comprova la teva connexió.',
+    'svc_local_provider'  => 'Proveïdor local',
+    'svc_service_in'      => 'Servei a ',
     'services_search_ph'  => 'Cercar categoria…',
     'services_my_location'=> 'La meva ubicació',
     'services_change'     => 'Canviar',
@@ -245,6 +278,47 @@ return [
 
     // Language
     'lang_switch'         => 'Idioma',
+
+    // Summary page
+    'summary_title'       => 'Resum Mensual',
+    'summary_subtitle'    => 'Anàlisi i estadístiques de despeses',
+
+    // Flash messages — expenses
+    'flash_expense_added'   => 'Despesa afegida correctament.',
+    'flash_expense_updated' => 'Despesa actualitzada.',
+    'flash_expense_deleted' => 'Despesa eliminada.',
+    'flash_expense_no_perm' => 'No tens permís per editar aquesta despesa.',
+    'flash_expense_no_del'  => 'No tens permís per eliminar aquesta despesa.',
+    'flash_expense_invalid' => 'Dades invàlides.',
+    'flash_payment_ok'      => 'Pagament registrat correctament.',
+
+    // Flash messages — chores
+    'flash_chore_created'   => 'Tasca creada correctament.',
+    'flash_chore_done'      => 'Tasca completada!',
+    'flash_chore_updated'   => 'Tasca actualitzada.',
+    'flash_chore_deleted'   => 'Tasca eliminada.',
+    'flash_chore_no_perm'   => 'No tens permís per fer això.',
+    'flash_chore_not_found' => 'Tasca no trobada.',
+
+    // Flash messages — swaps
+    'flash_swap_sent'       => 'Sol·licitud d\'intercanvi enviada.',
+    'flash_swap_accepted'   => 'Intercanvi acceptat. La tasca és teva ara.',
+    'flash_swap_declined'   => 'Sol·licitud rebutjada.',
+    'flash_swap_cancelled'  => 'Sol·licitud cancel·lada.',
+    'flash_swap_invalid'    => 'Dades de sol·licitud invàlides.',
+    'flash_swap_no_perm'    => 'No tens permís.',
+
+    // Summary
+    'summary_count'       => 'Nre. de despeses',
+    'summary_daily_avg'   => 'Mitjana diària',
+    'summary_empty'       => 'Sense despeses aquest mes',
+    'summary_col_num'     => '#',
+
+    // Profile index
+    'profile_member_since'=> 'Membre des de',
+    'profile_initial'     => 'Inicial',
+    'profile_avatar_lbl'  => 'Avatar',
+    'greeting'            => 'Hola, {username}!',
 
     // Landing
     'landing_title'       => 'FlatSync — Gestiona el teu pis compartit',

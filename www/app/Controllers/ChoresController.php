@@ -102,7 +102,7 @@ class ChoresController extends BaseController
         }
 
         return view('chores/index', [
-            'pageTitle'      => 'Calendario de Tareas',
+            'pageTitle'      => lang('App.chores_title'),
             'pageSubtitle'   => $calendarTitle,
             'activeNav'      => 'chores',
             'view'          => $view,
@@ -229,7 +229,7 @@ class ChoresController extends BaseController
             ]);
         }
 
-        return redirect()->to('/chores')->with('success', 'Tarea creada correctamente.');
+        return redirect()->to('/chores')->with('success', lang('App.flash_chore_created'));
     }
 
     public function markDone(int $id)
@@ -240,14 +240,14 @@ class ChoresController extends BaseController
         $chore      = $choreModel->find($id);
 
         if (!$chore || $chore['assigned_user_id'] != session()->get('user_id')) {
-            return redirect()->back()->with('error', 'No tienes permiso para esto.');
+            return redirect()->back()->with('error', lang('App.flash_chore_no_perm'));
         }
 
         $choreModel->update($id, ['status' => 'done', 'completed_at' => date('Y-m-d H:i:s')]);
 
         if ($this->isApi()) return $this->apiOk();
 
-        return redirect()->back()->with('success', '¡Tarea completada!');
+        return redirect()->back()->with('success', lang('App.flash_chore_done'));
     }
 
     public function toggleDone(int $id)
@@ -280,7 +280,7 @@ class ChoresController extends BaseController
         $chore      = $choreModel->find($id);
 
         if (!$chore || $chore['home_id'] != session()->get('home_id')) {
-            return redirect()->back()->with('error', 'Tarea no encontrada.');
+            return redirect()->back()->with('error', lang('App.flash_chore_not_found'));
         }
 
         $choreModel->update($id, [
@@ -292,7 +292,7 @@ class ChoresController extends BaseController
 
         if ($this->isApi()) return $this->apiOk();
 
-        return redirect()->back()->with('success', 'Tarea actualizada.');
+        return redirect()->back()->with('success', lang('App.flash_chore_updated'));
     }
 
     public function delete(int $id)
@@ -303,14 +303,14 @@ class ChoresController extends BaseController
         $chore      = $choreModel->find($id);
 
         if (!$chore || $chore['home_id'] != session()->get('home_id')) {
-            return redirect()->back()->with('error', 'Tarea no encontrada.');
+            return redirect()->back()->with('error', lang('App.flash_chore_not_found'));
         }
 
         $choreModel->delete($id);
 
         if ($this->isApi()) return $this->apiOk();
 
-        return redirect()->back()->with('success', 'Tarea eliminada.');
+        return redirect()->back()->with('success', lang('App.flash_chore_deleted'));
     }
 
     public function swapRequests()
@@ -337,8 +337,8 @@ class ChoresController extends BaseController
             ->findAll();
 
         return view('chores/swaps', [
-            'pageTitle'    => 'Intercambios de Tareas',
-            'pageSubtitle' => 'Gestiona las solicitudes de cambio',
+            'pageTitle'    => lang('App.swaps_title'),
+            'pageSubtitle' => lang('App.swaps_subtitle'),
             'activeNav'    => 'swaps',
             'incoming'     => $incoming,
             'outgoing'     => $outgoing,
@@ -357,7 +357,7 @@ class ChoresController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->with('error', 'Datos de solicitud inválidos.');
+            return redirect()->back()->with('error', lang('App.flash_swap_invalid'));
         }
 
         $swapModel = new SwapModel();
@@ -370,7 +370,7 @@ class ChoresController extends BaseController
             'status'             => 'pending',
         ]);
 
-        return redirect()->to('/chores/swap-requests')->with('success', 'Solicitud de intercambio enviada.');
+        return redirect()->to('/chores/swap-requests')->with('success', lang('App.flash_swap_sent'));
     }
 
     public function swapAccept(int $id)
@@ -382,7 +382,7 @@ class ChoresController extends BaseController
         $swap      = $swapModel->find($id);
 
         if (!$swap || $swap['target_user_id'] != $userId) {
-            return redirect()->back()->with('error', 'No tienes permiso.');
+            return redirect()->back()->with('error', lang('App.flash_swap_no_perm'));
         }
 
         // Reassign the chore
@@ -406,7 +406,7 @@ class ChoresController extends BaseController
             ]);
         }
 
-        return redirect()->back()->with('success', 'Intercambio aceptado. La tarea es tuya ahora.');
+        return redirect()->back()->with('success', lang('App.flash_swap_accepted'));
     }
 
     public function swapDecline(int $id)
@@ -418,11 +418,11 @@ class ChoresController extends BaseController
         $swap      = $swapModel->find($id);
 
         if (!$swap || $swap['target_user_id'] != $userId) {
-            return redirect()->back()->with('error', 'No tienes permiso.');
+            return redirect()->back()->with('error', lang('App.flash_swap_no_perm'));
         }
 
         $swapModel->update($id, ['status' => 'declined']);
-        return redirect()->back()->with('success', 'Solicitud rechazada.');
+        return redirect()->back()->with('success', lang('App.flash_swap_declined'));
     }
 
     public function swapCancel(int $id)
@@ -434,11 +434,11 @@ class ChoresController extends BaseController
         $swap      = $swapModel->find($id);
 
         if (!$swap || $swap['requester_user_id'] != $userId) {
-            return redirect()->back()->with('error', 'No tienes permiso.');
+            return redirect()->back()->with('error', lang('App.flash_swap_no_perm'));
         }
 
         $swapModel->delete($id);
-        return redirect()->back()->with('success', 'Solicitud cancelada.');
+        return redirect()->back()->with('success', lang('App.flash_swap_cancelled'));
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────

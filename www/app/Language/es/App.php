@@ -37,6 +37,7 @@ return [
     'all_f'       => 'Todas',
     'optional'    => 'opcional',
     'are_you_sure'=> '¿Estás seguro?',
+    'confirm_title'  => '¿Estás seguro?',
     'confirm_delete' => 'Eliminar',
     'previous'    => '‹ Anterior',
     'next'        => 'Siguiente ›',
@@ -61,6 +62,8 @@ return [
     'homes_code'        => 'Código',
     'homes_admin'       => 'Admin',
     'homes_leave'       => 'Abandonar',
+    'homes_leave_confirm' => '¿Abandonar «{name}»? Dejarás de ser miembro del hogar.',
+    'homes_delete_confirm'=> '¿Eliminar el hogar «{name}»? Se borrarán TODOS los datos permanentemente.',
     'homes_delete'      => 'Eliminar hogar',
     'homes_empty'       => 'Aún no perteneces a ningún hogar. Crea uno o únete con un código.',
     'homes_create'      => 'Crear hogar',
@@ -201,6 +204,10 @@ return [
     'swaps_offered'       => 'Ofreciste',
     'swaps_cancel'        => 'Cancelar solicitud',
 
+    // Members / Profile page titles
+    'members_title'       => 'Miembros del Hogar',
+    'profile_title'       => 'Mi Perfil',
+
     // Chat
     'chat_title'          => 'Chat del hogar',
     'chat_tab'            => 'Chat',
@@ -226,6 +233,32 @@ return [
 
     // Services
     'services_title'      => 'Servicios Cercanos',
+    'services_subtitle'   => 'Profesionales de confianza cerca de tu hogar',
+    'svc_cat_cleaning'    => 'Limpieza',
+    'svc_cat_plumber'     => 'Fontanería',
+    'svc_cat_locksmith'   => 'Cerrajería',
+    'svc_cat_electrician' => 'Electricidad',
+    'svc_cat_painter'     => 'Pintura',
+    'svc_cat_moving'      => 'Mudanzas',
+    'svc_website'         => 'Sitio web',
+    'svc_osm'             => 'Ver en OpenStreetMap',
+    'svc_gps_btn'         => 'Buscar lugares cercanos',
+    'svc_gps_searching'   => 'Buscando…',
+    'svc_geo_loading'     => 'Solicitando permiso de ubicación…',
+    'svc_geo_loading_body'=> 'Acepta el permiso que aparece en tu dispositivo.',
+    'svc_geo_unavail'     => 'Geolocalización no disponible',
+    'svc_geo_no_support'  => 'Tu navegador no soporta geolocalización.',
+    'svc_geo_denied'      => 'Permiso de ubicación denegado',
+    'svc_geo_denied_http' => 'Estás en HTTP: los navegadores móviles bloquean la ubicación en conexiones no seguras. Accede por HTTPS para que funcione.',
+    'svc_geo_denied_reset'=> 'El navegador recuerda que denegaste el permiso. Para restablecerlo: Ajustes del móvil → Safari/Chrome → Ubicación → Permitir para este sitio.',
+    'svc_geo_no_pos'      => 'No se pudo obtener la posición. Comprueba que el GPS/Localización está activado.',
+    'svc_geo_timeout'     => 'Tiempo de espera agotado. Asegúrate de tener señal y vuelve a intentarlo.',
+    'svc_osm_error'       => 'No se pudo contactar OpenStreetMap. Comprueba tu conexión.',
+    'svc_manual_searching'=> 'Buscando…',
+    'svc_manual_no_results'=> 'Sin resultados. Prueba con otra ciudad o dirección.',
+    'svc_manual_error'    => 'Error al buscar. Comprueba tu conexión.',
+    'svc_local_provider'  => 'Proveedor local',
+    'svc_service_in'      => 'Servicio en ',
     'services_search_ph'  => 'Buscar categoría…',
     'services_my_location'=> 'Mi ubicación',
     'services_change'     => 'Cambiar',
@@ -245,6 +278,47 @@ return [
 
     // Language
     'lang_switch'         => 'Idioma',
+
+    // Summary page
+    'summary_title'       => 'Resumen Mensual',
+    'summary_subtitle'    => 'Análisis y estadísticas de gastos',
+
+    // Flash messages — expenses
+    'flash_expense_added'   => 'Gasto añadido correctamente.',
+    'flash_expense_updated' => 'Gasto actualizado.',
+    'flash_expense_deleted' => 'Gasto eliminado.',
+    'flash_expense_no_perm' => 'No tienes permiso para editar este gasto.',
+    'flash_expense_no_del'  => 'No tienes permiso para eliminar este gasto.',
+    'flash_expense_invalid' => 'Datos inválidos.',
+    'flash_payment_ok'      => 'Pago registrado correctamente.',
+
+    // Flash messages — chores
+    'flash_chore_created'   => 'Tarea creada correctamente.',
+    'flash_chore_done'      => '¡Tarea completada!',
+    'flash_chore_updated'   => 'Tarea actualizada.',
+    'flash_chore_deleted'   => 'Tarea eliminada.',
+    'flash_chore_no_perm'   => 'No tienes permiso para esto.',
+    'flash_chore_not_found' => 'Tarea no encontrada.',
+
+    // Flash messages — swaps
+    'flash_swap_sent'       => 'Solicitud de intercambio enviada.',
+    'flash_swap_accepted'   => 'Intercambio aceptado. La tarea es tuya ahora.',
+    'flash_swap_declined'   => 'Solicitud rechazada.',
+    'flash_swap_cancelled'  => 'Solicitud cancelada.',
+    'flash_swap_invalid'    => 'Datos de solicitud inválidos.',
+    'flash_swap_no_perm'    => 'No tienes permiso.',
+
+    // Summary
+    'summary_count'       => 'Nº de gastos',
+    'summary_daily_avg'   => 'Media diaria',
+    'summary_empty'       => 'Sin gastos este mes',
+    'summary_col_num'     => '#',
+
+    // Profile index
+    'profile_member_since'=> 'Miembro desde',
+    'profile_initial'     => 'Inicial',
+    'profile_avatar_lbl'  => 'Avatar',
+    'greeting'            => '¡Hola, {username}!',
 
     // Landing
     'landing_title'       => 'FlatSync — Gestiona tu piso compartido',

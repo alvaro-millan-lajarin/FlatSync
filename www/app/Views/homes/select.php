@@ -66,7 +66,7 @@ $_locale = session()->get('lang');
       <!-- Abandon / Delete actions -->
       <div style="display:flex;gap:8px;padding:0 4px 2px">
         <form method="post" action="<?= site_url('/homes/' . $h['id'] . '/leave-home') ?>"
-              data-confirm="¿Abandonar «<?= esc(addslashes($h['name'])) ?>»? Dejarás de ser miembro del hogar.">
+              data-confirm="<?= esc(str_replace('{name}', $h['name'], lang('App.homes_leave_confirm'))) ?>">
           <?= csrf_field() ?>
           <button type="submit" class="btn btn-sm btn-secondary" style="color:var(--danger);border-color:rgba(239,68,68,0.3)">
             <i data-lucide="log-out" style="width:12px;height:12px"></i> <?= lang('App.homes_leave') ?>
@@ -74,7 +74,7 @@ $_locale = session()->get('lang');
         </form>
         <?php if ($h['is_admin']): ?>
         <form method="post" action="<?= site_url('/homes/' . $h['id'] . '/delete') ?>"
-              data-confirm="¿Eliminar el hogar «<?= esc(addslashes($h['name'])) ?>»? Se borrarán TODOS los datos permanentemente.">
+              data-confirm="<?= esc(str_replace('{name}', $h['name'], lang('App.homes_delete_confirm'))) ?>">
           <?= csrf_field() ?>
           <button type="submit" class="btn btn-sm btn-danger">
             <i data-lucide="trash-2" style="width:12px;height:12px"></i> <?= lang('App.homes_delete') ?>

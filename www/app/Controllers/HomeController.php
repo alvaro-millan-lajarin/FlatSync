@@ -173,8 +173,8 @@ class HomeController extends BaseController
         $monthLabel = date('F Y', mktime(0, 0, 0, $mon, 1, $year));
 
         return view('dashboard', [
-            'pageTitle'         => 'Dashboard',
-            'pageSubtitle'      => '¡Hola, ' . session()->get('username') . '!',
+            'pageTitle'         => lang('App.nav_dashboard'),
+            'pageSubtitle'      => str_replace('{username}', session()->get('username'), lang('App.greeting')),
             'activeNav'         => 'dashboard',
             'todayChores'       => $todayChores,
             'pendingChores'     => $pendingChores,

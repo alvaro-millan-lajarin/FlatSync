@@ -37,6 +37,7 @@ return [
     'all_f'       => 'All',
     'optional'    => 'optional',
     'are_you_sure'=> 'Are you sure?',
+    'confirm_title'  => 'Are you sure?',
     'confirm_delete' => 'Delete',
     'previous'    => '‹ Previous',
     'next'        => 'Next ›',
@@ -61,6 +62,8 @@ return [
     'homes_code'        => 'Code',
     'homes_admin'       => 'Admin',
     'homes_leave'       => 'Leave',
+    'homes_leave_confirm' => 'Leave «{name}»? You will no longer be a member of this home.',
+    'homes_delete_confirm'=> 'Delete home «{name}»? ALL data will be permanently erased.',
     'homes_delete'      => 'Delete home',
     'homes_empty'       => 'You don\'t belong to any home yet. Create one or join with a code.',
     'homes_create'      => 'Create home',
@@ -201,6 +204,10 @@ return [
     'swaps_offered'       => 'You offered',
     'swaps_cancel'        => 'Cancel request',
 
+    // Members / Profile page titles
+    'members_title'       => 'Home Members',
+    'profile_title'       => 'My Profile',
+
     // Chat
     'chat_title'          => 'Home chat',
     'chat_tab'            => 'Chat',
@@ -226,6 +233,32 @@ return [
 
     // Services
     'services_title'      => 'Nearby Services',
+    'services_subtitle'   => 'Trusted professionals near your home',
+    'svc_cat_cleaning'    => 'Cleaning',
+    'svc_cat_plumber'     => 'Plumbing',
+    'svc_cat_locksmith'   => 'Locksmith',
+    'svc_cat_electrician' => 'Electricity',
+    'svc_cat_painter'     => 'Painting',
+    'svc_cat_moving'      => 'Moving',
+    'svc_website'         => 'Website',
+    'svc_osm'             => 'View on OpenStreetMap',
+    'svc_gps_btn'         => 'Find nearby places',
+    'svc_gps_searching'   => 'Searching…',
+    'svc_geo_loading'     => 'Requesting location permission…',
+    'svc_geo_loading_body'=> 'Accept the permission prompt on your device.',
+    'svc_geo_unavail'     => 'Geolocation not available',
+    'svc_geo_no_support'  => 'Your browser does not support geolocation.',
+    'svc_geo_denied'      => 'Location permission denied',
+    'svc_geo_denied_http' => 'You are on HTTP: mobile browsers block location on insecure connections. Use HTTPS for this to work.',
+    'svc_geo_denied_reset'=> 'The browser remembers you denied permission. To reset: Device settings → Safari/Chrome → Location → Allow for this site.',
+    'svc_geo_no_pos'      => 'Could not get your position. Check that GPS/Location is enabled.',
+    'svc_geo_timeout'     => 'Request timed out. Make sure you have signal and try again.',
+    'svc_osm_error'       => 'Could not contact OpenStreetMap. Check your connection.',
+    'svc_manual_searching'=> 'Searching…',
+    'svc_manual_no_results'=> 'No results. Try a different city or address.',
+    'svc_manual_error'    => 'Search error. Check your connection.',
+    'svc_local_provider'  => 'Local provider',
+    'svc_service_in'      => 'Service at ',
     'services_search_ph'  => 'Search category…',
     'services_my_location'=> 'My location',
     'services_change'     => 'Change',
@@ -245,6 +278,47 @@ return [
 
     // Language
     'lang_switch'         => 'Language',
+
+    // Summary page
+    'summary_title'       => 'Monthly Summary',
+    'summary_subtitle'    => 'Expense analysis and statistics',
+
+    // Flash messages — expenses
+    'flash_expense_added'   => 'Expense added successfully.',
+    'flash_expense_updated' => 'Expense updated.',
+    'flash_expense_deleted' => 'Expense deleted.',
+    'flash_expense_no_perm' => 'You don\'t have permission to edit this expense.',
+    'flash_expense_no_del'  => 'You don\'t have permission to delete this expense.',
+    'flash_expense_invalid' => 'Invalid data.',
+    'flash_payment_ok'      => 'Payment recorded successfully.',
+
+    // Flash messages — chores
+    'flash_chore_created'   => 'Chore created successfully.',
+    'flash_chore_done'      => 'Chore completed!',
+    'flash_chore_updated'   => 'Chore updated.',
+    'flash_chore_deleted'   => 'Chore deleted.',
+    'flash_chore_no_perm'   => 'You don\'t have permission to do this.',
+    'flash_chore_not_found' => 'Chore not found.',
+
+    // Flash messages — swaps
+    'flash_swap_sent'       => 'Swap request sent.',
+    'flash_swap_accepted'   => 'Swap accepted. The chore is yours now.',
+    'flash_swap_declined'   => 'Request declined.',
+    'flash_swap_cancelled'  => 'Request cancelled.',
+    'flash_swap_invalid'    => 'Invalid request data.',
+    'flash_swap_no_perm'    => 'You don\'t have permission.',
+
+    // Summary
+    'summary_count'       => 'No. of expenses',
+    'summary_daily_avg'   => 'Daily average',
+    'summary_empty'       => 'No expenses this month',
+    'summary_col_num'     => '#',
+
+    // Profile index
+    'profile_member_since'=> 'Member since',
+    'profile_initial'     => 'Initial',
+    'profile_avatar_lbl'  => 'Avatar',
+    'greeting'            => 'Hello, {username}!',
 
     // Landing
     'landing_title'       => 'FlatSync — Manage your shared flat',

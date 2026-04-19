@@ -11,7 +11,16 @@
       "Bash(grep *)",
       "Bash(php spark *)",
       "Bash(docker exec flatSync-local-environment_app *)",
-      "Bash(docker exec flatSync-local-environment_mysql *)"
+      "Bash(docker exec flatSync-local-environment_mysql *)",
+      "Bash(php -l \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync/www/app/Language/es/App.php\")",
+      "Bash(php -l \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync/www/app/Language/en/App.php\")",
+      "Bash(php -l \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync/www/app/Language/ca/App.php\")",
+      "Bash(xargs php *)",
+      "Bash(php -l app/Views/expenses/index.php)",
+      "Bash(php -l app/Views/chores/index.php)",
+      "Bash(php -l app/Views/layouts/footer.php)",
+      "Bash(php -l app/Views/landing.php)",
+      "Bash(php -r ' *)"
     ]
   }
 }

@@ -22,7 +22,8 @@ if (window.lucide) lucide.createIcons();
 /* ── Modal de confirmación global ── */
 let _confirmCallback = null;
 
-function showConfirm(msg, onOk, { title = '¿Estás seguro?', okText = 'Eliminar', okClass = 'btn-danger' } = {}) {
+const _confirmDefaults = { title: <?= json_encode(lang('App.confirm_title')) ?>, okText: <?= json_encode(lang('App.confirm_delete')) ?> };
+function showConfirm(msg, onOk, { title = _confirmDefaults.title, okText = _confirmDefaults.okText, okClass = 'btn-danger' } = {}) {
   document.getElementById('confirm-title').textContent = title;
   document.getElementById('confirm-msg').textContent   = msg;
   const btn = document.getElementById('confirm-ok-btn');

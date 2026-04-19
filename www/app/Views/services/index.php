@@ -67,12 +67,31 @@ $cats = array_map(fn($c) => [
 <script>
 const CATEGORIES = <?= json_encode($cats, JSON_UNESCAPED_UNICODE) ?>;
 const SVC_L = {
-  found:       '<?= lang('App.services_found') ?>',
-  noResults:   '<?= addslashes(lang('App.services_no_results')) ?>',
-  noResultsSub:'<?= addslashes(lang('App.services_no_results_sub')) ?>',
-  searching:   '<?= addslashes(lang('App.services_searching') ?: 'Buscando…') ?>',
-  noLocation:  '<?= addslashes(lang('App.services_no_location') ?: 'Sin ubicación') ?>',
-  gettingAddr: '<?= addslashes(lang('App.services_getting_addr') ?: 'Obteniendo dirección…') ?>',
+  found:           <?= json_encode(lang('App.services_found')) ?>,
+  noResults:       <?= json_encode(lang('App.services_no_results')) ?>,
+  noResultsSub:    <?= json_encode(lang('App.services_no_results_sub')) ?>,
+  searching:       <?= json_encode(lang('App.services_searching') ?: 'Buscando…') ?>,
+  noLocation:      <?= json_encode(lang('App.services_no_location') ?: 'Sin ubicación') ?>,
+  gettingAddr:     <?= json_encode(lang('App.services_getting_addr') ?: 'Obteniendo dirección…') ?>,
+  website:         <?= json_encode(lang('App.svc_website')) ?>,
+  osm:             <?= json_encode(lang('App.svc_osm')) ?>,
+  gpsBtn:          <?= json_encode(lang('App.svc_gps_btn')) ?>,
+  gpsSearching:    <?= json_encode(lang('App.svc_gps_searching')) ?>,
+  geoLoading:      <?= json_encode(lang('App.svc_geo_loading')) ?>,
+  geoLoadingBody:  <?= json_encode(lang('App.svc_geo_loading_body')) ?>,
+  geoUnavail:      <?= json_encode(lang('App.svc_geo_unavail')) ?>,
+  geoNoSupport:    <?= json_encode(lang('App.svc_geo_no_support')) ?>,
+  geoDenied:       <?= json_encode(lang('App.svc_geo_denied')) ?>,
+  geoDeniedHttp:   <?= json_encode(lang('App.svc_geo_denied_http')) ?>,
+  geoDeniedReset:  <?= json_encode(lang('App.svc_geo_denied_reset')) ?>,
+  geoNoPos:        <?= json_encode(lang('App.svc_geo_no_pos')) ?>,
+  geoTimeout:      <?= json_encode(lang('App.svc_geo_timeout')) ?>,
+  osmError:        <?= json_encode(lang('App.svc_osm_error')) ?>,
+  manualSearching: <?= json_encode(lang('App.svc_manual_searching')) ?>,
+  manualNoResults: <?= json_encode(lang('App.svc_manual_no_results')) ?>,
+  manualError:     <?= json_encode(lang('App.svc_manual_error')) ?>,
+  localProvider:   <?= json_encode(lang('App.svc_local_provider')) ?>,
+  serviceIn:       <?= json_encode(lang('App.svc_service_in')) ?>,
 };
 
 const COLOR_MAP = {
@@ -87,22 +106,22 @@ let userLat = null, userLng = null;
 /* ── Arranque ───────────────────────────────────────────────── */
 function loadAll() {
   if (!navigator.geolocation) {
-    showState('error', 'Geolocalización no disponible', 'Tu navegador no soporta geolocalización.');
+    showState('error', SVC_L.geoUnavail, SVC_L.geoNoSupport);
     return;
   }
   const btn = document.getElementById('btn-locate');
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" style="width:14px;height:14px"></i> Buscando…';
+    btn.innerHTML = `<i data-lucide="loader-2" style="width:14px;height:14px"></i> ${SVC_L.gpsSearching}`;
     if (window.lucide) lucide.createIcons(btn);
   }
-  showState('loader', 'Solicitando permiso de ubicación…', 'Acepta el permiso que aparece en tu dispositivo.');
+  showState('loader', SVC_L.geoLoading, SVC_L.geoLoadingBody);
   navigator.geolocation.getCurrentPosition(onGeo, onGeoError, { timeout: 15000, enableHighAccuracy: false });
 }
 
 function resetBtn() {
   const btn = document.getElementById('btn-locate');
-  if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="locate" style="width:14px;height:14px"></i> Buscar lugares cercanos'; if (window.lucide) lucide.createIcons(btn); }
+  if (btn) { btn.disabled = false; btn.innerHTML = `<i data-lucide="locate" style="width:14px;height:14px"></i> ${SVC_L.gpsBtn}`; if (window.lucide) lucide.createIcons(btn); }
 }
 
 function onGeo(pos) {
@@ -119,7 +138,7 @@ async function setLocationLabel(lat, lng) {
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`,
-      { headers: { 'Accept-Language': 'es' } }
+      { headers: { 'Accept-Language': <?= json_encode(session()->get('lang') ?? 'es') ?> } }
     );
     const d = await r.json();
     const a = d.address || {};
@@ -151,7 +170,7 @@ async function launchSearch() {
 
   if (elements === null) {
     CATEGORIES.forEach(cat =>
-      renderError(sections[cat.key], 'No se pudo contactar OpenStreetMap. Comprueba tu conexión.')
+      renderError(sections[cat.key], SVC_L.osmError)
     );
     return;
   }
@@ -179,7 +198,7 @@ async function launchSearch() {
 
     const dm = haversine(userLat, userLng, el.lat, el.lon);
     bycat[catKey].push({
-      name:    name || (st ? 'Servicio en '+st : 'Proveedor local'),
+      name:    name || (st ? SVC_L.serviceIn + st : SVC_L.localProvider),
       address: [st, t['addr:housenumber'], t['addr:city']].filter(Boolean).join(', '),
       phone, website: web,
       hours:   t.opening_hours || null,
@@ -196,19 +215,19 @@ async function launchSearch() {
 
 function onGeoError(err) {
   resetBtn();
-  let titulo = 'Sin ubicación';
+  let titulo = SVC_L.noLocation;
   let detalle = '';
   if (err.code === 1) {
-    titulo = 'Permiso de ubicación denegado';
+    titulo = SVC_L.geoDenied;
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-      detalle = 'Estás en HTTP: los navegadores móviles bloquean la ubicación en conexiones no seguras. Accede por HTTPS para que funcione.';
+      detalle = SVC_L.geoDeniedHttp;
     } else {
-      detalle = 'El navegador recuerda que denegaste el permiso. Para restablecerlo: Ajustes del móvil → Safari/Chrome → Ubicación → Permitir para este sitio.';
+      detalle = SVC_L.geoDeniedReset;
     }
   } else if (err.code === 2) {
-    detalle = 'No se pudo obtener la posición. Comprueba que el GPS/Localización está activado.';
+    detalle = SVC_L.geoNoPos;
   } else {
-    detalle = 'Tiempo de espera agotado. Asegúrate de tener señal y vuelve a intentarlo.';
+    detalle = SVC_L.geoTimeout;
   }
   showState('error', titulo, detalle);
 }
@@ -387,13 +406,13 @@ function renderResults(section, cat, results) {
         <a href="${escHtml(p.website)}" target="_blank" rel="noopener"
            style="display:flex;align-items:center;justify-content:center;gap:7px;padding:7px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.82rem;font-weight:500;text-decoration:none"
            onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
-          <i data-lucide="globe" style="width:13px;height:13px"></i>Sitio web
+          <i data-lucide="globe" style="width:13px;height:13px"></i>${SVC_L.website}
         </a>` : ''}
 
         <a href="https://www.openstreetmap.org/${escHtml(p.osm_type)}/${escHtml(String(p.osm_id))}" target="_blank" rel="noopener"
            style="display:flex;align-items:center;justify-content:center;gap:7px;padding:7px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.78rem;text-decoration:none"
            onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
-          <i data-lucide="map" style="width:12px;height:12px"></i>Ver en OpenStreetMap
+          <i data-lucide="map" style="width:12px;height:12px"></i>${SVC_L.osm}
         </a>
       </div>
     </div>`).join('');
@@ -420,15 +439,15 @@ function searchManualLocation() {
   const q = document.getElementById('manual-location-input').value.trim();
   if (!q) return;
   const resultsEl = document.getElementById('manual-location-results');
-  resultsEl.innerHTML = '<span style="font-size:0.8rem;color:var(--muted)">Buscando…</span>';
+  resultsEl.innerHTML = `<span style="font-size:0.8rem;color:var(--muted)">${SVC_L.manualSearching}</span>`;
 
   fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&q=' + encodeURIComponent(q), {
-    headers: { 'Accept-Language': 'es', 'User-Agent': 'FlatSync/1.0' }
+    headers: { 'Accept-Language': <?= json_encode(session()->get('lang') ?? 'es') ?>, 'User-Agent': 'FlatSync/1.0' }
   })
   .then(r => r.json())
   .then(data => {
     if (!data.length) {
-      resultsEl.innerHTML = '<span style="font-size:0.8rem;color:var(--muted)">Sin resultados. Prueba con otra ciudad o dirección.</span>';
+      resultsEl.innerHTML = `<span style="font-size:0.8rem;color:var(--muted)">${SVC_L.manualNoResults}</span>`;
       return;
     }
     resultsEl.innerHTML = '';
@@ -452,7 +471,7 @@ function searchManualLocation() {
     });
   })
   .catch(() => {
-    resultsEl.innerHTML = '<span style="font-size:0.8rem;color:var(--danger)">Error al buscar. Comprueba tu conexión.</span>';
+    resultsEl.innerHTML = `<span style="font-size:0.8rem;color:var(--danger)">${SVC_L.manualError}</span>`;
   });
 }
 
