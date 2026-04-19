@@ -13,7 +13,6 @@ if (!session()->has('lang')) {
 }
 $_locale = session()->get('lang');
 \Config\Services::language()->setLocale($_locale);
-
 $_typewriter = lang('App.landing_typewriter');
 ?>
 <!DOCTYPE html>
@@ -50,11 +49,19 @@ $_typewriter = lang('App.landing_typewriter');
       justify-content: space-between;
       padding: 0 6%;
       height: 66px;
-      background: #fff;
-      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
       position: sticky;
       top: 0;
       z-index: 100;
+      transition: border-color .3s, box-shadow .3s, background .3s;
+    }
+    nav.scrolled {
+      border-color: var(--border);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.97);
     }
     .nav-logo {
       font-size: 1.35rem;
@@ -62,7 +69,9 @@ $_typewriter = lang('App.landing_typewriter');
       letter-spacing: -0.04em;
       color: var(--dark);
       text-decoration: none;
+      transition: transform .2s;
     }
+    .nav-logo:hover { transform: scale(1.04); }
     .nav-logo span { color: var(--primary); }
     .nav-links { display: flex; align-items: center; gap: 12px; }
     .btn-nav-login {
@@ -85,9 +94,9 @@ $_typewriter = lang('App.landing_typewriter');
       font-size: 0.9rem;
       font-weight: 600;
       text-decoration: none;
-      transition: background .15s;
+      transition: background .15s, transform .15s;
     }
-    .btn-nav-register:hover { background: var(--primary-d); }
+    .btn-nav-register:hover { background: var(--primary-d); transform: translateY(-1px); }
 
     /* ── HERO ── */
     .hero {
@@ -98,7 +107,10 @@ $_typewriter = lang('App.landing_typewriter');
       padding: 80px 6% 90px;
       max-width: 1200px;
       margin: 0 auto;
+      position: relative;
+      overflow: hidden;
     }
+    .hero-text, .hero-illustration { position: relative; z-index: 1; }
     .hero-badge {
       display: inline-flex;
       align-items: center;
@@ -111,6 +123,8 @@ $_typewriter = lang('App.landing_typewriter');
       border-radius: 20px;
       margin-bottom: 20px;
       letter-spacing: .03em;
+      opacity: 0;
+      animation: fadeInUp .6s ease forwards .1s;
     }
     .hero h1 {
       font-size: clamp(2rem, 4vw, 3rem);
@@ -119,19 +133,27 @@ $_typewriter = lang('App.landing_typewriter');
       letter-spacing: -0.04em;
       color: var(--dark);
       margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeInUp .6s ease forwards .25s;
     }
-    .hero h1 em {
-      font-style: normal;
-      color: var(--primary);
-    }
-    .hero p {
+    .hero h1 em { font-style: normal; color: var(--primary); }
+    .hero > .hero-text > p {
       font-size: 1.05rem;
       color: var(--muted);
       line-height: 1.7;
       max-width: 460px;
       margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeInUp .6s ease forwards .4s;
     }
-    .hero-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeInUp .6s ease forwards .55s;
+    }
     .btn-hero {
       padding: 14px 32px;
       border-radius: 10px;
@@ -140,12 +162,13 @@ $_typewriter = lang('App.landing_typewriter');
       font-size: 1rem;
       font-weight: 700;
       text-decoration: none;
-      transition: background .15s, transform .1s;
+      transition: background .15s, transform .15s, box-shadow .15s;
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.35);
     }
-    .btn-hero:hover { background: var(--primary-d); transform: translateY(-1px); }
+    .btn-hero:hover { background: var(--primary-d); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.45); }
     .btn-hero-ghost {
       padding: 14px 24px;
       border-radius: 10px;
@@ -154,13 +177,15 @@ $_typewriter = lang('App.landing_typewriter');
       font-size: 1rem;
       font-weight: 600;
       text-decoration: none;
-      transition: border-color .15s;
+      transition: border-color .15s, color .15s, transform .15s;
     }
-    .btn-hero-ghost:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-hero-ghost:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
     .hero-note {
       margin-top: 16px;
       font-size: 0.8rem;
       color: var(--muted);
+      opacity: 0;
+      animation: fadeInUp .6s ease forwards .65s;
     }
 
     /* ── HERO ILLUSTRATION ── */
@@ -168,6 +193,9 @@ $_typewriter = lang('App.landing_typewriter');
       display: flex;
       align-items: center;
       justify-content: center;
+      opacity: 0;
+      animation: fadeInRight .7s ease forwards .3s, float 5s ease-in-out 1s infinite;
+      animation-fill-mode: forwards;
     }
     .flat-card {
       background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
@@ -175,9 +203,11 @@ $_typewriter = lang('App.landing_typewriter');
       padding: 36px;
       width: 100%;
       max-width: 420px;
-      box-shadow: 0 20px 60px rgba(37,99,235,0.12);
+      box-shadow: 0 20px 60px rgba(37,99,235,0.15);
       position: relative;
       overflow: hidden;
+      transform-style: preserve-3d;
+      will-change: transform;
     }
     .flat-card::before {
       content: '';
@@ -204,7 +234,10 @@ $_typewriter = lang('App.landing_typewriter');
       border-radius: 10px;
       padding: 10px 14px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      animation: highlight 3.5s ease infinite;
     }
+    .flat-member:nth-child(2) { animation-delay: 1.2s; }
+    .flat-member:nth-child(3) { animation-delay: 2.4s; }
     .flat-member-left { display: flex; align-items: center; gap: 10px; }
     .avatar {
       width: 32px; height: 32px; border-radius: 50%;
@@ -227,11 +260,44 @@ $_typewriter = lang('App.landing_typewriter');
     .flat-total-label { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.75); }
     .flat-total-value { font-size: 1.1rem; font-weight: 800; color: #fff; }
 
+    /* ── STATS BAR ── */
+    .stats-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 36px 6%;
+      overflow: hidden;
+    }
+    .stats-bar-inner {
+      max-width: 900px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-around;
+      gap: 24px; flex-wrap: wrap;
+    }
+    .stat-item { text-align: center; }
+    .stat-item .num {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--dark);
+      display: block;
+      line-height: 1.1;
+    }
+    .stat-item .num span { color: var(--primary); }
+    .stat-item .lbl {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 4px;
+      display: block;
+    }
+    .stat-divider { width: 1px; height: 40px; background: var(--border); }
+    @media (max-width: 600px) { .stat-divider { display: none; } }
+
     /* ── FEATURES ── */
     .features {
       background: var(--surface);
       padding: 80px 6%;
       border-top: 1px solid var(--border);
+      overflow: hidden;
     }
     .features-inner { max-width: 1100px; margin: 0 auto; }
     .features-label {
@@ -261,15 +327,28 @@ $_typewriter = lang('App.landing_typewriter');
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 28px 24px;
-      transition: box-shadow .2s, transform .2s;
+      transition: box-shadow .3s, transform .3s, border-color .3s;
+      position: relative;
+      overflow: hidden;
     }
-    .feature-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.08); transform: translateY(-2px); }
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(37,99,235,0.04) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .feature-card:hover { box-shadow: 0 12px 36px rgba(0,0,0,0.1); transform: translateY(-4px); border-color: rgba(37,99,235,0.2); }
+    .feature-card:hover::after { opacity: 1; }
     .feature-icon {
       width: 44px; height: 44px;
       border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
       margin-bottom: 16px;
+      transition: transform .3s;
     }
+    .feature-card:hover .feature-icon { transform: scale(1.1) rotate(-4deg); }
     .feature-card h3 { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
     .feature-card p  { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
 
@@ -278,7 +357,17 @@ $_typewriter = lang('App.landing_typewriter');
       background: var(--dark);
       padding: 80px 6%;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(37,99,235,0.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-section > * { position: relative; z-index: 1; }
     .cta-section h2 {
       font-size: clamp(1.6rem, 3vw, 2.4rem);
       font-weight: 800;
@@ -296,9 +385,10 @@ $_typewriter = lang('App.landing_typewriter');
       font-weight: 700;
       border-radius: 10px;
       text-decoration: none;
-      transition: background .15s, transform .1s;
+      transition: background .15s, transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 20px rgba(37,99,235,0.5);
     }
-    .btn-cta:hover { background: var(--primary-d); transform: translateY(-1px); }
+    .btn-cta:hover { background: var(--primary-d); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,99,235,0.6); }
 
     /* ── FOOTER ── */
     footer {
@@ -320,41 +410,18 @@ $_typewriter = lang('App.landing_typewriter');
       to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes fadeInRight {
-      from { opacity: 0; transform: translateX(36px); }
+      from { opacity: 0; transform: translateX(40px); }
       to   { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
     }
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
-      50%       { transform: translateY(-10px); }
+      50%       { transform: translateY(-12px); }
     }
-    .hero-illustration { animation: float 5s ease-in-out infinite; }
-
-    .hero-badge  { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .1s; }
-    .hero h1     { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .25s; }
-    .hero > .hero-text > p { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .4s; }
-    .hero-actions { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .55s; }
-    .hero-note   { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .65s; }
-    .hero-illustration { opacity: 0; animation: fadeInRight .7s ease forwards, float 5s ease-in-out 0.7s infinite; animation-fill-mode: forwards; }
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity .55s ease, transform .55s ease;
+    @keyframes highlight {
+      0%   { background: #fff; }
+      40%  { background: #EFF6FF; }
+      100% { background: #fff; }
     }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .feature-card:nth-child(1) { transition-delay: .0s; }
-    .feature-card:nth-child(2) { transition-delay: .1s; }
-    .feature-card:nth-child(3) { transition-delay: .2s; }
-    .feature-card:nth-child(4) { transition-delay: .3s; }
-
     @keyframes pulse-dot {
       0%, 100% { transform: scale(1); opacity: 1; }
       50%       { transform: scale(1.5); opacity: .6; }
@@ -366,15 +433,6 @@ $_typewriter = lang('App.landing_typewriter');
       flex-shrink: 0;
     }
 
-    @keyframes highlight {
-      0%   { background: #fff; }
-      40%  { background: #EFF6FF; }
-      100% { background: #fff; }
-    }
-    .flat-member { animation: highlight 3.5s ease infinite; }
-    .flat-member:nth-child(2) { animation-delay: 1.2s; }
-    .flat-member:nth-child(3) { animation-delay: 2.4s; }
-
     /* ── SCROLL PROGRESS BAR ── */
     #scroll-progress {
       position: fixed; top: 0; left: 0; height: 3px;
@@ -384,8 +442,6 @@ $_typewriter = lang('App.landing_typewriter');
     }
 
     /* ── HERO BLOBS ── */
-    .hero { position: relative; overflow: hidden; }
-    .hero-text, .hero-illustration { position: relative; z-index: 1; }
     .blob {
       position: absolute;
       border-radius: 50%;
@@ -393,6 +449,7 @@ $_typewriter = lang('App.landing_typewriter');
       opacity: .45;
       pointer-events: none;
       z-index: 0;
+      will-change: transform;
     }
     @keyframes blobMove1 {
       0%,100% { transform: translate(0,0) scale(1); }
@@ -404,72 +461,53 @@ $_typewriter = lang('App.landing_typewriter');
       33%      { transform: translate(-50px,25px) scale(1.05); }
       66%      { transform: translate(30px,-20px) scale(.97); }
     }
-    .blob-1 {
-      width: 380px; height: 380px;
-      background: #BFDBFE;
-      top: -80px; left: -60px;
-      animation: blobMove1 9s ease-in-out infinite;
+    .blob-1 { width: 380px; height: 380px; background: #BFDBFE; top: -80px; left: -60px; animation: blobMove1 9s ease-in-out infinite; }
+    .blob-2 { width: 300px; height: 300px; background: #DDD6FE; bottom: -60px; right: 10%; animation: blobMove2 11s ease-in-out infinite; }
+    .blob-3 { width: 200px; height: 200px; background: #BAE6FD; top: 40%; left: 45%; animation: blobMove1 13s ease-in-out infinite reverse; }
+
+    /* ── REVEAL ANIMATIONS ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
     }
-    .blob-2 {
-      width: 300px; height: 300px;
-      background: #DDD6FE;
-      bottom: -60px; right: 10%;
-      animation: blobMove2 11s ease-in-out infinite;
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* Feature cards — slide from sides */
+    .feature-card.reveal { transform: translateY(40px) scale(0.97); }
+    .feature-card.reveal.visible { transform: translateY(0) scale(1); }
+    .feature-card:nth-child(1) { transition-delay: .05s; }
+    .feature-card:nth-child(2) { transition-delay: .15s; }
+    .feature-card:nth-child(3) { transition-delay: .25s; }
+    .feature-card:nth-child(4) { transition-delay: .35s; }
+
+    /* Stat items pop in */
+    .stat-item.reveal { transform: translateY(20px) scale(0.95); }
+    .stat-item.reveal.visible { transform: translateY(0) scale(1); }
+
+    /* ── CTA FLOATING PARTICLES ── */
+    .cta-particle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      pointer-events: none;
+      animation: particleFloat linear infinite;
     }
-    .blob-3 {
-      width: 200px; height: 200px;
-      background: #BAE6FD;
-      top: 40%; left: 45%;
-      animation: blobMove1 13s ease-in-out infinite reverse;
+    @keyframes particleFloat {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-300px) rotate(360deg); opacity: 0; }
     }
 
-    /* ── STATS SECTION ── */
-    .stats-bar {
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      padding: 36px 6%;
-    }
-    .stats-bar-inner {
-      max-width: 900px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-around;
-      gap: 24px; flex-wrap: wrap;
-    }
-    .stat-item { text-align: center; }
-    .stat-item .num {
-      font-size: clamp(1.8rem, 3vw, 2.4rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      color: var(--dark);
-      display: block;
-      line-height: 1.1;
-    }
-    .stat-item .num span { color: var(--primary); }
-    .stat-item .lbl {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-top: 4px;
-      display: block;
-    }
-    .stat-divider {
-      width: 1px; height: 40px;
-      background: var(--border);
-    }
-    @media (max-width: 600px) { .stat-divider { display: none; } }
-
-    /* ── TILT CARD ── */
-    .flat-card {
-      transform-style: preserve-3d;
-      will-change: transform;
-    }
-
-    /* ── LANG FLAGS IN NAV ── */
+    /* ── LANG FLAGS NAV ── */
     .nav-flags { display: flex; align-items: center; gap: 6px; margin-right: 4px; }
     .nav-flag {
       display: block; width: 28px; height: 19px;
       border-radius: 3px; overflow: hidden; text-decoration: none;
-      transition: opacity .15s, box-shadow .15s;
+      transition: opacity .15s, box-shadow .15s, transform .15s;
     }
+    .nav-flag:hover { transform: scale(1.1); }
     .nav-flag svg { width: 100%; height: 100%; display: block; }
 
     /* ── RESPONSIVE ── */
@@ -491,7 +529,7 @@ $_typewriter = lang('App.landing_typewriter');
 <div id="scroll-progress"></div>
 
 <!-- ── NAV ── -->
-<nav>
+<nav id="main-nav">
   <a href="<?= site_url('/') ?>" class="nav-logo">flat<span>sync</span></a>
   <div class="nav-links">
     <?php
@@ -517,10 +555,10 @@ $_typewriter = lang('App.landing_typewriter');
 </nav>
 
 <!-- ── HERO ── -->
-<section class="hero">
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
+<section class="hero" id="hero">
+  <div class="blob blob-1" id="blob1"></div>
+  <div class="blob blob-2" id="blob2"></div>
+  <div class="blob blob-3" id="blob3"></div>
   <div class="hero-text">
     <div class="hero-badge"><span class="badge-dot"></span> <?= lang('App.landing_badge') ?></div>
     <h1><?= lang('App.landing_h1_line1') ?><br><em id="typewriter-text"></em></h1>
@@ -534,8 +572,8 @@ $_typewriter = lang('App.landing_typewriter');
     <p class="hero-note"><?= lang('App.landing_note') ?></p>
   </div>
 
-  <div class="hero-illustration">
-    <div class="flat-card">
+  <div class="hero-illustration" id="hero-illus">
+    <div class="flat-card" id="flat-card">
       <div class="flat-card-header">
         <span class="flat-card-title"><?= lang('App.landing_card_title') ?></span>
         <span class="flat-card-badge">Abril 2026</span>
@@ -588,17 +626,17 @@ $_typewriter = lang('App.landing_typewriter');
       <span class="lbl"><?= lang('App.landing_stat_flats') ?></span>
     </div>
     <div class="stat-divider"></div>
-    <div class="stat-item reveal" style="transition-delay:.1s">
+    <div class="stat-item reveal" style="transition-delay:.12s">
       <span class="num" data-target="10000">0<span>+</span></span>
       <span class="lbl"><?= lang('App.landing_stat_expenses') ?></span>
     </div>
     <div class="stat-divider"></div>
-    <div class="stat-item reveal" style="transition-delay:.2s">
+    <div class="stat-item reveal" style="transition-delay:.24s">
       <span class="num" data-target="98">0<span>%</span></span>
       <span class="lbl"><?= lang('App.landing_stat_satisfaction') ?></span>
     </div>
     <div class="stat-divider"></div>
-    <div class="stat-item reveal" style="transition-delay:.3s">
+    <div class="stat-item reveal" style="transition-delay:.36s">
       <span class="num" data-target="2">0<span> min</span></span>
       <span class="lbl"><?= lang('App.landing_stat_start') ?></span>
     </div>
@@ -636,10 +674,10 @@ $_typewriter = lang('App.landing_typewriter');
 </section>
 
 <!-- ── CTA ── -->
-<section class="cta-section">
-  <h2 class="reveal" style="color:#fff"><?= lang('App.landing_cta_h2') ?></h2>
+<section class="cta-section" id="cta-section">
+  <h2 class="reveal"><?= lang('App.landing_cta_h2') ?></h2>
   <p class="reveal"><?= lang('App.landing_cta_p') ?></p>
-  <a href="<?= site_url('/register') ?>" class="btn-cta"><?= lang('App.landing_cta_btn') ?> <i data-lucide="arrow-right" style="width:16px;height:16px"></i></a>
+  <a href="<?= site_url('/register') ?>" class="btn-cta reveal"><?= lang('App.landing_cta_btn') ?> <i data-lucide="arrow-right" style="width:16px;height:16px"></i></a>
 </section>
 
 <!-- ── FOOTER ── -->
@@ -656,46 +694,64 @@ const _typewriterText = <?= json_encode($_typewriter) ?>;
 
 // ── 1. Scroll progress bar ──
 const progressBar = document.getElementById('scroll-progress');
+
+// ── 2. Nav scrolled state ──
+const mainNav = document.getElementById('main-nav');
+
 window.addEventListener('scroll', () => {
+  const sy = window.scrollY;
   const max = document.documentElement.scrollHeight - window.innerHeight;
-  progressBar.style.width = (window.scrollY / max * 100) + '%';
+  progressBar.style.width = (sy / max * 100) + '%';
+  mainNav.classList.toggle('scrolled', sy > 20);
+
+  // Parallax blobs on scroll
+  const pct = Math.min(sy / 600, 1);
+  const b1 = document.getElementById('blob1');
+  const b2 = document.getElementById('blob2');
+  const b3 = document.getElementById('blob3');
+  if (b1) b1.style.transform = `translateY(${sy * 0.18}px)`;
+  if (b2) b2.style.transform = `translateY(${-sy * 0.12}px)`;
+  if (b3) b3.style.transform = `translateY(${sy * 0.08}px)`;
+
+  // Hero text parallax
+  const heroText = document.querySelector('.hero-text');
+  if (heroText) heroText.style.transform = `translateY(${sy * 0.1}px)`;
 }, { passive: true });
 
-// ── 2. Scroll-reveal ──
-const revealObserver = new IntersectionObserver((entries) => {
+// ── 3. IntersectionObserver reveal (enhanced) ──
+const io = new IntersectionObserver((entries) => {
   entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
   });
-}, { threshold: 0.15 });
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// ── 3. Typewriter ──
+// ── 4. Typewriter ──
 function typewriter(el, text, speed = 55) {
   let i = 0;
   el.textContent = '';
+  const cursor = document.createElement('span');
+  cursor.style.cssText = 'display:inline-block;width:2px;height:1em;background:currentColor;margin-left:2px;vertical-align:middle;animation:blink .7s step-end infinite';
+  el.parentNode.appendChild(cursor);
+  const style = document.createElement('style');
+  style.textContent = '@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}';
+  document.head.appendChild(style);
   const type = () => {
-    if (i < text.length) { el.textContent += text[i++]; setTimeout(type, speed); }
+    if (i < text.length) {
+      el.textContent += text[i++];
+      setTimeout(type, speed);
+    } else {
+      setTimeout(() => cursor.remove(), 1200);
+    }
   };
   setTimeout(type, 900);
 }
 typewriter(document.getElementById('typewriter-text'), _typewriterText);
 
-// ── 4. Counter helper ──
-function animateCount(el, target, duration, suffix) {
-  const start = performance.now();
-  const isFloat = String(target).includes('.');
-  const update = (now) => {
-    const p = Math.min((now - start) / duration, 1);
-    const ease = 1 - Math.pow(1 - p, 3);
-    const val = target * ease;
-    el.childNodes[0].textContent = isFloat ? val.toFixed(2) : Math.round(val).toLocaleString('es');
-    if (p < 1) requestAnimationFrame(update);
-    else el.childNodes[0].textContent = isFloat ? target.toFixed(2) : target.toLocaleString('es');
-  };
-  requestAnimationFrame(update);
-}
-
-// ── 5. Hero card counter (€487.50) ──
+// ── 5. Hero card counter ──
 const heroCounter = document.getElementById('counter');
 new IntersectionObserver((entries) => {
   if (entries[0].isIntersecting) {
@@ -711,42 +767,95 @@ new IntersectionObserver((entries) => {
   }
 }, { threshold: 0.5 }).observe(heroCounter);
 
-// ── 6. Stats bar counters ──
+// ── 6. Stats bar counters with easing ──
+const countedNums = new Set();
 document.querySelectorAll('.stat-item .num').forEach(el => {
   const target = parseInt(el.dataset.target);
   new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      const duration = 1400;
+    if (entries[0].isIntersecting && !countedNums.has(el)) {
+      countedNums.add(el);
+      const duration = 1600;
       const start = performance.now();
       const run = (now) => {
         const p = Math.min((now - start) / duration, 1);
-        const ease = 1 - Math.pow(1 - p, 3);
+        const ease = 1 - Math.pow(1 - p, 4);
         const val = Math.round(target * ease);
-        el.childNodes[0].textContent = val.toLocaleString('es');
+        el.childNodes[0].textContent = val.toLocaleString();
         if (p < 1) requestAnimationFrame(run);
-        else el.childNodes[0].textContent = target.toLocaleString('es');
+        else el.childNodes[0].textContent = target.toLocaleString();
       };
       requestAnimationFrame(run);
     }
   }, { threshold: 0.8 }).observe(el);
 });
 
-// ── 7. 3D tilt on hero card ──
-const card = document.querySelector('.flat-card');
-const illustration = document.querySelector('.hero-illustration');
-card.addEventListener('mousemove', (e) => {
-  const rect = card.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width  - 0.5;
-  const y = (e.clientY - rect.top)  / rect.height - 0.5;
-  illustration.style.animationPlayState = 'paused';
-  card.style.transform = `perspective(800px) rotateY(${x * 18}deg) rotateX(${-y * 14}deg) scale(1.03)`;
-  card.style.transition = 'transform .1s ease';
+// ── 7. 3D tilt on hero card (mouse) ──
+const card = document.getElementById('flat-card');
+const illus = document.getElementById('hero-illus');
+if (card && illus) {
+  card.addEventListener('mousemove', (e) => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width  - 0.5;
+    const y = (e.clientY - r.top)  / r.height - 0.5;
+    illus.style.animationPlayState = 'paused';
+    card.style.transform = `perspective(900px) rotateY(${x * 16}deg) rotateX(${-y * 12}deg) scale(1.04)`;
+    card.style.transition = 'transform .08s ease';
+    // Dynamic shadow based on tilt
+    card.style.boxShadow = `${-x * 20}px ${y * 20 + 20}px 60px rgba(37,99,235,${0.12 + Math.abs(x) * 0.08})`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(900px) rotateY(0deg) rotateX(0deg) scale(1)';
+    card.style.transition = 'transform .6s ease, box-shadow .6s ease';
+    card.style.boxShadow = '0 20px 60px rgba(37,99,235,0.15)';
+    setTimeout(() => { illus.style.animationPlayState = 'running'; }, 600);
+  });
+}
+
+// ── 8. CTA floating particles ──
+const cta = document.getElementById('cta-section');
+if (cta) {
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'cta-particle';
+    const size = Math.random() * 40 + 10;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random() * 100}%;
+      bottom:${Math.random() * -40}px;
+      animation-duration:${Math.random() * 8 + 6}s;
+      animation-delay:${Math.random() * 6}s;
+    `;
+    cta.appendChild(p);
+  }
+}
+
+// ── 9. Feature cards — magnetic hover micro-effect ──
+document.querySelectorAll('.feature-card').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left - r.width  / 2) / (r.width  / 2);
+    const y = (e.clientY - r.top  - r.height / 2) / (r.height / 2);
+    card.style.transform = `translateY(-4px) rotateX(${-y * 3}deg) rotateY(${x * 3}deg)`;
+    card.style.transition = 'transform .1s ease';
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'translateY(0) rotateX(0deg) rotateY(0deg)';
+    card.style.transition = 'transform .4s ease, box-shadow .3s, border-color .3s';
+  });
+  card.style.transformStyle = 'preserve-3d';
 });
-card.addEventListener('mouseleave', () => {
-  card.style.transform = 'perspective(800px) rotateY(0deg) rotateX(0deg) scale(1)';
-  card.style.transition = 'transform .6s ease';
-  setTimeout(() => { illustration.style.animationPlayState = 'running'; }, 600);
-});
+
+// ── 10. Scroll-triggered section bg color shift on stats bar ──
+const statSection = document.querySelector('.stats-bar');
+if (statSection) {
+  new IntersectionObserver((entries) => {
+    entries[0].target.style.transition = 'background .6s ease';
+    if (entries[0].isIntersecting) {
+      entries[0].target.style.background = '#EFF6FF';
+      setTimeout(() => { entries[0].target.style.background = 'var(--surface)'; }, 1200);
+    }
+  }, { threshold: 0.5 }).observe(statSection);
+}
 </script>
 </body>
 </html>
