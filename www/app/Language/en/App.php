@@ -354,4 +354,18 @@ return [
     'landing_cta_p'       => 'Join in under 2 minutes. It\'s completely free.',
     'landing_cta_btn'     => 'Create my home',
     'landing_footer'      => 'Made for flatmates',
+
+    // Landing — How it works
+    'landing_how_label'    => 'How it works',
+    'landing_how_h2'       => 'From zero to organized, in minutes',
+    'landing_how_s1_title' => 'Create your home',
+    'landing_how_s1_desc'  => 'Sign up, name your flat and share the invite code with your flatmates in seconds.',
+    'landing_how_s2_title' => 'Log expenses instantly',
+    'landing_how_s2_desc'  => 'Add any expense with a tap. FlatSync splits it for everyone and shows who owes what right away.',
+    'landing_how_s3_title' => 'Stay in sync, always',
+    'landing_how_s3_desc'  => 'Rotating chores, real-time chat and nearby services — all in one place, no extra apps needed.',
+
+    // Landing — Marquee
+    'landing_mq_free'      => 'Always free',
+    'landing_mq_quick'     => 'Ready in 2 min',
 ];

@@ -21,7 +21,8 @@
       "Bash(php -l app/Views/layouts/footer.php)",
       "Bash(php -l app/Views/landing.php)",
       "Bash(php -r ' *)",
-      "Bash(php -l app/Controllers/ChoresController.php app/Controllers/ExpensesController.php app/Controllers/ServicesController.php app/Controllers/ChatController.php)"
+      "Bash(php -l app/Controllers/ChoresController.php app/Controllers/ExpensesController.php app/Controllers/ServicesController.php app/Controllers/ChatController.php)",
+      "Bash(php -l \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync/www/app/Views/landing.php\")"
     ]
   }
 }

@@ -354,4 +354,18 @@ return [
     'landing_cta_p'       => 'Únete en menos de 2 minutos. Es completamente gratis.',
     'landing_cta_btn'     => 'Crear mi hogar',
     'landing_footer'      => 'Hecho para compañeros de piso',
+
+    // Landing — How it works
+    'landing_how_label'    => 'Así funciona',
+    'landing_how_h2'       => 'De cero a organizado, en minutos',
+    'landing_how_s1_title' => 'Crea tu hogar',
+    'landing_how_s1_desc'  => 'Regístrate, pon un nombre a tu piso y comparte el código de invitación con tus compañeros de piso.',
+    'landing_how_s2_title' => 'Registra gastos al momento',
+    'landing_how_s2_desc'  => 'Añade cualquier gasto con un toque. FlatSync lo divide entre todos y muestra quién debe qué al instante.',
+    'landing_how_s3_title' => 'Vivid siempre sincronizados',
+    'landing_how_s3_desc'  => 'Tareas rotativas, chat en tiempo real y servicios cercanos, todo en un mismo lugar sin apps extra.',
+
+    // Landing — Marquee
+    'landing_mq_free'      => 'Siempre gratis',
+    'landing_mq_quick'     => 'Listo en 2 min',
 ];

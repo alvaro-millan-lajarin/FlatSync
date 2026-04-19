@@ -510,6 +510,140 @@ $_typewriter = lang('App.landing_typewriter');
     .nav-flag:hover { transform: scale(1.1); }
     .nav-flag svg { width: 100%; height: 100%; display: block; }
 
+    /* ── MARQUEE STRIP ── */
+    .marquee-wrap {
+      overflow: hidden;
+      padding: 13px 0;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .marquee-wrap::before,
+    .marquee-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 80px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .marquee-wrap::before { left: 0;  background: linear-gradient(to right, #fff, transparent); }
+    .marquee-wrap::after  { right: 0; background: linear-gradient(to left,  #fff, transparent); }
+    .marquee-inner {
+      display: flex;
+      animation: marqueeScroll 30s linear infinite;
+      white-space: nowrap;
+      will-change: transform;
+    }
+    .marquee-wrap:hover .marquee-inner { animation-play-state: paused; }
+    .marquee-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 26px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .marquee-item i { width: 14px; height: 14px; color: var(--primary); flex-shrink: 0; }
+    @keyframes marqueeScroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      padding: 90px 6%;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .how-inner { max-width: 1060px; margin: 0 auto; }
+    .how-h2 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: var(--dark);
+      margin-bottom: 72px;
+      text-align: center;
+    }
+    .how-steps { display: flex; flex-direction: column; gap: 68px; }
+    .how-row {
+      display: grid;
+      grid-template-columns: 56px 1fr 1.1fr;
+      align-items: center;
+      gap: 44px;
+    }
+    .how-row-flip { grid-template-columns: 1.1fr 1fr 56px; }
+    .how-row-flip .how-visual { order: -1; }
+    .how-row-flip .how-num    { order: 3; text-align: right; }
+    .how-num {
+      font-size: 3.4rem;
+      font-weight: 900;
+      color: var(--border);
+      letter-spacing: -0.05em;
+      line-height: 1;
+      user-select: none;
+    }
+    .how-text h3 { font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+    .how-text p  { font-size: 0.93rem; color: var(--muted); line-height: 1.75; max-width: 380px; }
+    .how-visual {
+      border-radius: 18px;
+      padding: 24px;
+      min-height: 168px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .how-visual-1 { background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); }
+    .how-visual-2 { background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%); }
+    .how-visual-3 { background: linear-gradient(135deg, #FDF4FF 0%, #EDE9FE 100%); }
+
+    /* visual 1 — home creation */
+    .hv-home-header { display: flex; align-items: center; gap: 10px; }
+    .hv-home-icon { width: 36px; height: 36px; border-radius: 9px; background: #2563EB; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .hv-home-name { font-size: 0.85rem; font-weight: 700; color: var(--dark); }
+    .hv-code-chip { display: inline-block; background: rgba(37,99,235,0.12); color: #2563EB; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; font-family: monospace; letter-spacing: .05em; }
+    .hv-avatars { display: flex; }
+    .hv-avt { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: #fff; border: 2px solid #fff; margin-left: -5px; }
+    .hv-avt:first-child { margin-left: 0; }
+
+    /* visual 2 — expenses */
+    .hv-exp-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.72); border-radius: 9px; padding: 8px 11px; gap: 8px; }
+    .hv-exp-left { display: flex; align-items: center; gap: 7px; font-size: 0.8rem; font-weight: 600; color: var(--dark); }
+    .hv-exp-right { font-size: 0.8rem; font-weight: 700; color: #16A34A; }
+    .hv-exp-split { font-size: 0.68rem; color: var(--muted); margin-left: 3px; }
+
+    /* visual 3 — sync */
+    .hv-sync-row { display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,0.72); border-radius: 9px; padding: 9px 12px; }
+    .hv-sync-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .hv-sync-text { font-size: 0.8rem; font-weight: 600; color: var(--dark); }
+
+    /* ── SIDE REVEAL ── */
+    [data-reveal="left"]  { opacity: 0; transform: translateX(-52px); transition: opacity .75s cubic-bezier(.16,1,.3,1), transform .75s cubic-bezier(.16,1,.3,1); }
+    [data-reveal="right"] { opacity: 0; transform: translateX(52px);  transition: opacity .75s cubic-bezier(.16,1,.3,1), transform .75s cubic-bezier(.16,1,.3,1); }
+    [data-reveal].reveal-in { opacity: 1; transform: translateX(0); }
+
+    /* ── SPLIT WORD ── */
+    .sw-outer { display: inline-block; overflow: hidden; vertical-align: bottom; }
+    .sw-inner { display: inline-block; transform: translateY(115%); transition: transform .65s cubic-bezier(.16,1,.3,1); }
+    .sw-inner.sw-up { transform: translateY(0); }
+
+    /* ── HOW SECTION RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .how-row, .how-row-flip {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .how-num { display: none; }
+      .how-row-flip .how-visual { order: 0; }
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .hero { grid-template-columns: 1fr; gap: 40px; padding: 48px 5% 56px; }
@@ -618,6 +752,28 @@ $_typewriter = lang('App.landing_typewriter');
   </div>
 </section>
 
+<!-- ── MARQUEE ── -->
+<?php
+$_mqItems = [
+  ['wallet',         lang('App.landing_f1_title')],
+  ['calendar-check', lang('App.landing_f2_title')],
+  ['message-circle', lang('App.landing_f3_title')],
+  ['wrench',         lang('App.landing_f4_title')],
+  ['shield-check',   lang('App.landing_mq_free')],
+  ['zap',            lang('App.landing_mq_quick')],
+];
+?>
+<div class="marquee-wrap" aria-hidden="true">
+  <div class="marquee-inner">
+    <?php for ($__r = 0; $__r < 2; $__r++): foreach ($_mqItems as $_mq): ?>
+    <span class="marquee-item">
+      <i data-lucide="<?= $_mq[0] ?>"></i>
+      <?= esc($_mq[1]) ?>
+    </span>
+    <?php endforeach; endfor; ?>
+  </div>
+</div>
+
 <!-- ── STATS BAR ── -->
 <div class="stats-bar">
   <div class="stats-bar-inner">
@@ -669,6 +825,88 @@ $_typewriter = lang('App.landing_typewriter');
         <h3><?= lang('App.landing_f4_title') ?></h3>
         <p><?= lang('App.landing_f4_desc') ?></p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section">
+  <div class="how-inner">
+    <p class="features-label reveal" style="text-align:center;margin-bottom:12px"><?= lang('App.landing_how_label') ?></p>
+    <h2 class="how-h2" data-split-words><?= lang('App.landing_how_h2') ?></h2>
+    <div class="how-steps">
+
+      <!-- Step 1 -->
+      <div class="how-row" data-reveal="left">
+        <div class="how-num">01</div>
+        <div class="how-text">
+          <h3><?= lang('App.landing_how_s1_title') ?></h3>
+          <p><?= lang('App.landing_how_s1_desc') ?></p>
+        </div>
+        <div class="how-visual how-visual-1">
+          <div class="hv-home-header">
+            <div class="hv-home-icon"><i data-lucide="home" style="width:18px;height:18px;color:#fff"></i></div>
+            <div class="hv-home-name">Mi Piso · Barcelona</div>
+          </div>
+          <div><span class="hv-code-chip">&#128273;&nbsp;FLAT-XK9</span></div>
+          <div class="hv-avatars">
+            <div class="hv-avt" style="background:#2563EB">A</div>
+            <div class="hv-avt" style="background:#7C3AED">M</div>
+            <div class="hv-avt" style="background:#0891B2">J</div>
+            <div class="hv-avt" style="background:#E2E8F0;color:#94A3B8">+</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="how-row how-row-flip" data-reveal="right">
+        <div class="how-num">02</div>
+        <div class="how-text">
+          <h3><?= lang('App.landing_how_s2_title') ?></h3>
+          <p><?= lang('App.landing_how_s2_desc') ?></p>
+        </div>
+        <div class="how-visual how-visual-2">
+          <div class="hv-exp-row">
+            <div class="hv-exp-left"><i data-lucide="shopping-cart" style="width:13px;height:13px;color:#16A34A"></i> Mercadona</div>
+            <div class="hv-exp-right">€48.50 <span class="hv-exp-split">÷3</span></div>
+          </div>
+          <div class="hv-exp-row">
+            <div class="hv-exp-left"><i data-lucide="zap" style="width:13px;height:13px;color:#EA580C"></i> Electricidad</div>
+            <div class="hv-exp-right">€32.00 <span class="hv-exp-split">÷3</span></div>
+          </div>
+          <div class="hv-exp-row" style="background:rgba(22,163,74,0.14);margin-top:4px">
+            <div class="hv-exp-left" style="color:var(--muted);font-size:.75rem">Balance total</div>
+            <div class="hv-exp-right" style="font-size:.9rem">€80.50</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="how-row" data-reveal="left">
+        <div class="how-num">03</div>
+        <div class="how-text">
+          <h3><?= lang('App.landing_how_s3_title') ?></h3>
+          <p><?= lang('App.landing_how_s3_desc') ?></p>
+        </div>
+        <div class="how-visual how-visual-3">
+          <div class="hv-sync-row">
+            <div class="hv-sync-dot" style="background:#16A34A"></div>
+            <i data-lucide="calendar-check" style="width:13px;height:13px;color:#9333EA"></i>
+            <div class="hv-sync-text"><?= lang('App.landing_f2_title') ?> ✓</div>
+          </div>
+          <div class="hv-sync-row">
+            <div class="hv-sync-dot" style="background:#2563EB"></div>
+            <i data-lucide="message-circle" style="width:13px;height:13px;color:#9333EA"></i>
+            <div class="hv-sync-text">«¿Traes la compra?»</div>
+          </div>
+          <div class="hv-sync-row">
+            <div class="hv-sync-dot" style="background:#EA580C"></div>
+            <i data-lucide="map-pin" style="width:13px;height:13px;color:#9333EA"></i>
+            <div class="hv-sync-text"><?= lang('App.landing_f4_title') ?></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -845,7 +1083,31 @@ document.querySelectorAll('.feature-card').forEach(card => {
   card.style.transformStyle = 'preserve-3d';
 });
 
-// ── 10. Scroll-triggered section bg color shift on stats bar ──
+// ── 10. Split word animation for [data-split-words] headings ──
+document.querySelectorAll('[data-split-words]').forEach(el => {
+  const words = el.innerText.trim().split(' ');
+  el.innerHTML = words.map(w => `<span class="sw-outer"><span class="sw-inner">${w}&nbsp;</span></span>`).join('');
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) {
+      el.querySelectorAll('.sw-inner').forEach((s, i) => {
+        setTimeout(() => s.classList.add('sw-up'), i * 85);
+      });
+    }
+  }, { threshold: 0.4 }).observe(el);
+});
+
+// ── 11. Side reveal for how-section rows ──
+const sideIo = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('reveal-in');
+      sideIo.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('[data-reveal]').forEach(el => sideIo.observe(el));
+
+// ── 13. Scroll-triggered section bg color shift on stats bar ──
 const statSection = document.querySelector('.stats-bar');
 if (statSection) {
   new IntersectionObserver((entries) => {

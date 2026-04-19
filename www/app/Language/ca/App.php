@@ -354,4 +354,18 @@ return [
     'landing_cta_p'       => 'Uneix-te en menys de 2 minuts. És completament gratis.',
     'landing_cta_btn'     => 'Crear la meva llar',
     'landing_footer'      => 'Fet per a companys de pis',
+
+    // Landing — Com funciona
+    'landing_how_label'    => 'Com funciona',
+    'landing_how_h2'       => 'De zero a organitzat, en minuts',
+    'landing_how_s1_title' => 'Crea el teu habitatge',
+    'landing_how_s1_desc'  => 'Registra\'t, posa un nom al teu pis i comparteix el codi d\'invitació amb els teus companys en segons.',
+    'landing_how_s2_title' => 'Registra despeses a l\'instant',
+    'landing_how_s2_desc'  => 'Afegeix qualsevol despesa amb un toc. FlatSync la divideix entre tots i mostra qui deu què de seguida.',
+    'landing_how_s3_title' => 'Viviu sempre sincronitzats',
+    'landing_how_s3_desc'  => 'Tasques rotatives, xat en temps real i serveis propers, tot en un sol lloc sense apps extra.',
+
+    // Landing — Marquee
+    'landing_mq_free'      => 'Sempre gratis',
+    'landing_mq_quick'     => 'Llest en 2 min',
 ];
