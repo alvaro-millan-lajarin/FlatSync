@@ -7,7 +7,7 @@
     <!-- Búsqueda de categoría -->
     <div style="position:relative">
       <i data-lucide="search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted)"></i>
-      <input type="text" id="service-search" placeholder="Buscar categoría…"
+      <input type="text" id="service-search" placeholder="<?= lang('App.services_search_ph') ?>"
              style="width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:8px;font-size:0.875rem;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;box-sizing:border-box"
              oninput="filterCategories(this.value)">
     </div>
@@ -16,25 +16,25 @@
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--muted);min-width:0;flex:1">
         <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--primary);flex-shrink:0"></i>
-        <span id="location-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Sin ubicación</span>
+        <span id="location-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= lang('App.services_no_location') ?></span>
       </div>
       <button id="btn-locate" onclick="loadAll()" class="btn btn-sm btn-primary" style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-        <i data-lucide="locate" style="width:13px;height:13px"></i> Mi ubicación
+        <i data-lucide="locate" style="width:13px;height:13px"></i> <?= lang('App.services_my_location') ?>
       </button>
       <button onclick="toggleManual()" class="btn btn-sm btn-secondary" style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-        <i data-lucide="map" style="width:13px;height:13px"></i> Cambiar
+        <i data-lucide="map" style="width:13px;height:13px"></i> <?= lang('App.services_change') ?>
       </button>
     </div>
 
     <!-- Panel cambiar ubicación (oculto por defecto) -->
     <div id="manual-location-panel" style="display:none;border-top:1px solid var(--divider);padding-top:12px">
-      <label style="display:block;font-size:0.78rem;font-weight:500;color:var(--text-secondary);margin-bottom:6px">Buscar ciudad o dirección</label>
+      <label style="display:block;font-size:0.78rem;font-weight:500;color:var(--text-secondary);margin-bottom:6px"><?= lang('App.services_city_ph') ?></label>
       <div style="display:flex;gap:8px">
-        <input type="text" id="manual-location-input" placeholder="Ej: Valencia, Madrid, Calle Gran Vía…"
+        <input type="text" id="manual-location-input" placeholder="<?= lang('App.services_city_ex') ?>"
                style="flex:1;padding:9px 13px;border:1px solid var(--border);border-radius:8px;font-size:0.875rem;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;min-width:0"
                onkeydown="if(event.key==='Enter'){searchManualLocation();event.preventDefault()}">
         <button onclick="searchManualLocation()" class="btn btn-primary" style="flex-shrink:0;display:flex;align-items:center;gap:5px">
-          <i data-lucide="search" style="width:14px;height:14px"></i> Buscar
+          <i data-lucide="search" style="width:14px;height:14px"></i> <?= lang('App.services_search_btn') ?>
         </button>
       </div>
       <div id="manual-location-results" style="margin-top:8px"></div>
@@ -66,6 +66,14 @@ $cats = array_map(fn($c) => [
 ?>
 <script>
 const CATEGORIES = <?= json_encode($cats, JSON_UNESCAPED_UNICODE) ?>;
+const SVC_L = {
+  found:       '<?= lang('App.services_found') ?>',
+  noResults:   '<?= addslashes(lang('App.services_no_results')) ?>',
+  noResultsSub:'<?= addslashes(lang('App.services_no_results_sub')) ?>',
+  searching:   '<?= addslashes(lang('App.services_searching') ?: 'Buscando…') ?>',
+  noLocation:  '<?= addslashes(lang('App.services_no_location') ?: 'Sin ubicación') ?>',
+  gettingAddr: '<?= addslashes(lang('App.services_getting_addr') ?: 'Obteniendo dirección…') ?>',
+};
 
 const COLOR_MAP = {
   accent:  { bg: 'rgba(37,99,235,0.08)',  text: 'var(--primary)',  star: '#2563EB' },
@@ -107,7 +115,7 @@ function onGeo(pos) {
 
 async function setLocationLabel(lat, lng) {
   const el = document.getElementById('location-label');
-  el.textContent = 'Obteniendo dirección…';
+  el.textContent = SVC_L.gettingAddr;
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`,
@@ -310,7 +318,7 @@ function buildSkeleton(cat) {
         </span>
         ${cat.label}
       </span>
-      <span class="cat-count" style="font-size:0.78rem;color:var(--muted)">Buscando…</span>
+      <span class="cat-count" style="font-size:0.78rem;color:var(--muted)">${SVC_L.searching}</span>
     </div>
     <div class="cat-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px">
       ${[1,2,3].map(skeletonCard).join('')}
@@ -331,13 +339,11 @@ function skeletonCard() {
 function renderResults(section, cat, results) {
   const c = COLOR_MAP[cat.color] || COLOR_MAP.accent;
   section.querySelector('.cat-count').textContent =
-    results.length ? results.length + ' encontrados' : 'Sin resultados en tu zona';
+    results.length ? results.length + ' ' + SVC_L.found : SVC_L.noResults;
 
   if (!results.length) {
     section.querySelector('.cat-body').innerHTML =
-      `<p style="color:var(--muted);font-size:0.85rem;padding:4px 0;grid-column:1/-1">
-        No hemos encontrado proveedores de este tipo en un radio de 3 km.
-       </p>`;
+      `<p style="color:var(--muted);font-size:0.85rem;padding:4px 0;grid-column:1/-1">${SVC_L.noResultsSub}</p>`;
     return;
   }
 

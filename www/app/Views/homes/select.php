@@ -1,9 +1,25 @@
+<?php
+if (!session()->has('lang')) {
+    $_supported = ['ca','es','en'];
+    $_header = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'es';
+    $_detected = 'es';
+    foreach (explode(',', $_header) as $_part) {
+        $_tag = strtolower(trim(explode(';', $_part)[0]));
+        $_lang = explode('-', $_tag)[0];
+        if (in_array($_tag, $_supported)) { $_detected = $_tag; break; }
+        if (in_array($_lang, $_supported)) { $_detected = $_lang; break; }
+    }
+    session()->set('lang', $_detected);
+}
+$_locale = session()->get('lang');
+\Config\Services::language()->setLocale($_locale);
+?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?= $_locale ?>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seleccionar hogar — FlatSync</title>
+  <title><?= lang('App.homes_title') ?> — FlatSync</title>
   <link rel="stylesheet" href="<?= base_url('css/app.css') ?>">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
@@ -15,7 +31,7 @@
       <h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.04em;color:var(--text)">
         Flat<span style="color:var(--primary)">Sync</span>
       </h1>
-      <p style="color:var(--muted);margin-top:6px">Elige el hogar en el que quieres entrar</p>
+      <p style="color:var(--muted);margin-top:6px"><?= lang('App.homes_title') ?></p>
     </div>
 
     <?php if (session()->getFlashdata('success')): ?>
@@ -39,8 +55,8 @@
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;font-size:1rem;color:var(--text)"><?= esc($h['name']) ?></div>
             <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">
-              Código: <strong style="letter-spacing:.1em"><?= esc($h['invite_code']) ?></strong>
-              <?php if ($h['is_admin']): ?> · <span style="color:var(--primary)"><i data-lucide="shield-check" style="width:10px;height:10px"></i> Admin</span><?php endif; ?>
+              <?= lang('App.homes_code') ?>: <strong style="letter-spacing:.1em"><?= esc($h['invite_code']) ?></strong>
+              <?php if ($h['is_admin']): ?> · <span style="color:var(--primary)"><i data-lucide="shield-check" style="width:10px;height:10px"></i> <?= lang('App.homes_admin') ?></span><?php endif; ?>
             </div>
           </div>
           <i data-lucide="chevron-right" style="width:18px;height:18px;color:var(--muted)"></i>
@@ -53,7 +69,7 @@
               data-confirm="¿Abandonar «<?= esc(addslashes($h['name'])) ?>»? Dejarás de ser miembro del hogar.">
           <?= csrf_field() ?>
           <button type="submit" class="btn btn-sm btn-secondary" style="color:var(--danger);border-color:rgba(239,68,68,0.3)">
-            <i data-lucide="log-out" style="width:12px;height:12px"></i> Abandonar
+            <i data-lucide="log-out" style="width:12px;height:12px"></i> <?= lang('App.homes_leave') ?>
           </button>
         </form>
         <?php if ($h['is_admin']): ?>
@@ -61,7 +77,7 @@
               data-confirm="¿Eliminar el hogar «<?= esc(addslashes($h['name'])) ?>»? Se borrarán TODOS los datos permanentemente.">
           <?= csrf_field() ?>
           <button type="submit" class="btn btn-sm btn-danger">
-            <i data-lucide="trash-2" style="width:12px;height:12px"></i> Eliminar hogar
+            <i data-lucide="trash-2" style="width:12px;height:12px"></i> <?= lang('App.homes_delete') ?>
           </button>
         </form>
         <?php endif; ?>
@@ -71,22 +87,23 @@
     <?php else: ?>
     <div style="text-align:center;padding:32px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:28px;color:var(--muted)">
       <i data-lucide="home" style="width:40px;height:40px;color:var(--muted);margin-bottom:10px"></i>
-      <p>Aún no perteneces a ningún hogar.<br>Crea uno o únete con un código.</p>
+      <p><?= lang('App.homes_empty') ?></p>
     </div>
     <?php endif; ?>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <a href="<?= site_url('/homes/create') ?>" class="btn btn-primary" style="justify-content:center;padding:12px">
-        <i data-lucide="plus" style="width:16px;height:16px"></i> Crear hogar
+        <i data-lucide="plus" style="width:16px;height:16px"></i> <?= lang('App.homes_create') ?>
       </a>
       <a href="<?= site_url('/homes/join') ?>" class="btn btn-secondary" style="justify-content:center;padding:12px">
-        <i data-lucide="key-round" style="width:16px;height:16px"></i> Unirme con código
+        <i data-lucide="key-round" style="width:16px;height:16px"></i> <?= lang('App.homes_join') ?>
       </a>
     </div>
 
     <div style="text-align:center;margin-top:20px;font-size:0.82rem;color:var(--muted)">
-      <a href="<?= site_url('/logout') ?>" style="color:var(--muted)">Cerrar sesión</a>
+      <a href="<?= site_url('/logout') ?>" style="color:var(--muted)"><?= lang('App.nav_logout') ?></a>
     </div>
+    <?= view('layouts/_lang_flags', ['_lang' => $_locale]) ?>
   </div>
 </div>
 <script src="<?= base_url('js/app.js') ?>"></script>

@@ -5,17 +5,17 @@
   <div class="stat-card accent">
     <div class="stat-icon"><i data-lucide="wallet"></i></div>
     <div id="stat-month-total" class="stat-value">€<?= number_format($monthTotal, 2) ?></div>
-    <div class="stat-label"><?= $filterMonth ? 'Total gastado este mes' : 'Total gastado' ?></div>
+    <div class="stat-label"><?= $filterMonth ? lang('App.expenses_total') : lang('App.expenses_total_all') ?></div>
   </div>
   <div class="stat-card warning">
     <div class="stat-icon"><i data-lucide="user"></i></div>
     <div id="stat-my-paid" class="stat-value">€<?= number_format($myPaid, 2) ?></div>
-    <div class="stat-label">Lo que has pagado tú</div>
+    <div class="stat-label"><?= lang('App.expenses_my_paid') ?></div>
   </div>
   <div id="stat-card-balance" class="stat-card <?= $myBalance > 0 ? 'success' : ($myBalance < 0 ? 'danger' : 'accent') ?>">
     <div class="stat-icon"><i id="stat-icon-balance" data-lucide="<?= $myBalance >= 0 ? 'trending-up' : 'trending-down' ?>"></i></div>
     <div id="stat-balance" class="stat-value"><?= $myBalance >= 0 ? '+' : '-' ?>€<?= number_format(abs($myBalance), 2) ?></div>
-    <div id="stat-label-balance" class="stat-label"><?= $myBalance > 0 ? 'Te deben' : ($myBalance < 0 ? 'Debes' : 'Estás al día') ?></div>
+    <div id="stat-label-balance" class="stat-label"><?= $myBalance > 0 ? lang('App.expenses_owe_you') : ($myBalance < 0 ? lang('App.expenses_you_owe') : lang('App.expenses_settled')) ?></div>
   </div>
 </div>
 
@@ -23,31 +23,31 @@
 <div class="card" style="margin-bottom:20px">
   <form method="get" action="<?= site_url('/expenses') ?>" class="expense-filter-form">
     <div class="form-group expense-filter-field">
-      <label>Mes</label>
+      <label><?= lang('App.expenses_month') ?></label>
       <input type="month" name="month" value="<?= $filterMonth ?>">
     </div>
     <div class="form-group expense-filter-field">
-      <label>Categoría</label>
+      <label><?= lang('App.expenses_category') ?></label>
       <select name="category">
-        <option value="">Todas</option>
-        <option value="food" <?= $filterCategory === 'food' ? 'selected' : '' ?>>Comida</option>
-        <option value="cleaning" <?= $filterCategory === 'cleaning' ? 'selected' : '' ?>>Limpieza</option>
-        <option value="bills" <?= $filterCategory === 'bills' ? 'selected' : '' ?>>Facturas</option>
-        <option value="other" <?= $filterCategory === 'other' ? 'selected' : '' ?>>Otros</option>
+        <option value=""><?= lang('App.all_f') ?></option>
+        <option value="food" <?= $filterCategory === 'food' ? 'selected' : '' ?>><?= lang('App.cat_food') ?></option>
+        <option value="cleaning" <?= $filterCategory === 'cleaning' ? 'selected' : '' ?>><?= lang('App.cat_cleaning') ?></option>
+        <option value="bills" <?= $filterCategory === 'bills' ? 'selected' : '' ?>><?= lang('App.cat_bills') ?></option>
+        <option value="other" <?= $filterCategory === 'other' ? 'selected' : '' ?>><?= lang('App.cat_other') ?></option>
       </select>
     </div>
     <div class="form-group expense-filter-field">
-      <label>Pagado por</label>
+      <label><?= lang('App.expenses_paid_by') ?></label>
       <select name="paid_by">
-        <option value="">Todos</option>
+        <option value=""><?= lang('App.all') ?></option>
         <?php foreach ($members as $m): ?>
           <option value="<?= $m['id'] ?>" <?= $filterPaidBy == $m['id'] ? 'selected' : '' ?>><?= esc($m['username']) ?></option>
         <?php endforeach; ?>
       </select>
     </div>
     <div class="expense-filter-actions">
-      <button type="submit" class="btn btn-secondary">Filtrar</button>
-      <a href="<?= site_url('/expenses') ?>" class="btn btn-secondary"><i data-lucide="x" style="width:13px;height:13px"></i> Limpiar</a>
+      <button type="submit" class="btn btn-secondary"><?= lang('App.filter') ?></button>
+      <a href="<?= site_url('/expenses') ?>" class="btn btn-secondary"><i data-lucide="x" style="width:13px;height:13px"></i> <?= lang('App.clear') ?></a>
     </div>
   </form>
 </div>
@@ -55,18 +55,18 @@
 <!-- Expenses table -->
 <div class="card">
   <div class="card-header expense-card-header">
-    <span class="card-title">Historial de gastos</span>
+    <span class="card-title"><?= lang('App.expenses_history') ?></span>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-primary" onclick="openModal('modal-add-expense')"><i data-lucide="plus" style="width:14px;height:14px"></i> Añadir gasto</button>
-      <a href="<?= site_url('/expenses/export') ?>" class="btn btn-sm btn-secondary"><i data-lucide="download" style="width:13px;height:13px"></i> Exportar</a>
+      <button class="btn btn-primary" onclick="openModal('modal-add-expense')"><i data-lucide="plus" style="width:14px;height:14px"></i> <?= lang('App.expenses_add') ?></button>
+      <a href="<?= site_url('/expenses/export') ?>" class="btn btn-sm btn-secondary"><i data-lucide="download" style="width:13px;height:13px"></i> <?= lang('App.export') ?></a>
     </div>
   </div>
 
   <?php if (empty($expenses)): ?>
-    <div id="expense-empty-state" class="empty-state"><div class="icon"><i data-lucide="receipt" style="width:32px;height:32px;color:var(--muted)"></i></div><h3>Sin gastos registrados</h3><p>Añade el primer gasto compartido del hogar</p></div>
+    <div id="expense-empty-state" class="empty-state"><div class="icon"><i data-lucide="receipt" style="width:32px;height:32px;color:var(--muted)"></i></div><h3><?= lang('App.expenses_empty') ?></h3><p><?= lang('App.expenses_empty_sub') ?></p></div>
   <?php else: ?>
   <?php
-    $cats = ['food'=>'Comida','cleaning'=>'Limpieza','bills'=>'Facturas','other'=>'Otros'];
+    $cats = ['food'=>lang('App.cat_food'),'cleaning'=>lang('App.cat_cleaning'),'bills'=>lang('App.cat_bills'),'other'=>lang('App.cat_other')];
     $grouped = [];
     foreach ($expenses as $e) { $grouped[$e['date']][] = $e; }
     $today     = date('Y-m-d');
@@ -80,9 +80,9 @@
         <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);white-space:nowrap">
           <?php
             $ts = strtotime($date);
-            if ($date === $today)         echo 'Hoy · ' . date('d/m/Y', $ts);
-            elseif ($date === $yesterday) echo 'Ayer · ' . date('d/m/Y', $ts);
-            else                          echo ucfirst(date('l', $ts)) . ' · ' . date('d/m/Y', $ts);
+            if ($date === $today)         echo lang('App.today') . ' · ' . date('d/m/Y', $ts);
+            elseif ($date === $yesterday) echo lang('App.yesterday') . ' · ' . date('d/m/Y', $ts);
+            else                          echo date('d/m/Y', $ts);
           ?>
         </span>
         <div style="flex:1;height:1px;background:var(--divider)"></div>
@@ -154,33 +154,33 @@
 <div class="modal-overlay" id="modal-add-expense">
   <div class="modal">
     <div class="modal-header">
-      <h3 class="modal-title"><i data-lucide="plus-circle" style="width:18px;height:18px;color:var(--primary)"></i> Añadir gasto</h3>
+      <h3 class="modal-title"><i data-lucide="plus-circle" style="width:18px;height:18px;color:var(--primary)"></i> <?= lang('App.expenses_add_title') ?></h3>
       <button class="modal-close" onclick="closeModal('modal-add-expense')">×</button>
     </div>
     <form method="post" action="<?= site_url('/expenses/store') ?>" enctype="multipart/form-data">
       <?= csrf_field() ?>
       <div class="form-group">
-        <label>Descripción</label>
+        <label><?= lang('App.expenses_description') ?></label>
         <input type="text" name="title" required placeholder="Ej: Papel higiénico, Cena compartida...">
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Importe (€)</label>
+          <label><?= lang('App.expenses_amount') ?></label>
           <input type="number" name="amount" required min="0.01" step="0.01" placeholder="0.00">
         </div>
         <div class="form-group">
-          <label>Categoría</label>
+          <label><?= lang('App.expenses_category') ?></label>
           <select name="category">
-            <option value="food">Comida</option>
-            <option value="cleaning">Limpieza</option>
-            <option value="bills">Facturas</option>
-            <option value="other">Otros</option>
+            <option value="food"><?= lang('App.cat_food') ?></option>
+            <option value="cleaning"><?= lang('App.cat_cleaning') ?></option>
+            <option value="bills"><?= lang('App.cat_bills') ?></option>
+            <option value="other"><?= lang('App.cat_other') ?></option>
           </select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Pagado por</label>
+          <label><?= lang('App.expenses_paid_by') ?></label>
           <select name="paid_by" required>
             <?php foreach ($members as $m): ?>
               <option value="<?= $m['id'] ?>" <?= $m['id'] == session()->get('user_id') ? 'selected' : '' ?>><?= esc($m['username']) ?></option>
@@ -188,16 +188,16 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Fecha</label>
+          <label><?= lang('App.expenses_date') ?></label>
           <input type="date" name="date" value="<?= date('Y-m-d') ?>" required>
         </div>
       </div>
       <div class="form-group">
-        <label>Notas</label>
+        <label><?= lang('App.expenses_notes') ?></label>
         <textarea name="description" placeholder="Detalles adicionales..."></textarea>
       </div>
       <div class="form-group">
-        <label>Dividir entre</label>
+        <label><?= lang('App.expenses_split') ?></label>
         <div class="split-checks">
           <?php foreach ($members as $m): ?>
           <label class="split-check-label">
@@ -208,12 +208,12 @@
         </div>
       </div>
       <div class="form-group">
-        <label><i data-lucide="paperclip" style="width:13px;height:13px"></i> Adjuntar ticket / foto <small style="color:var(--muted)">(opcional)</small></label>
+        <label><i data-lucide="paperclip" style="width:13px;height:13px"></i> <?= lang('App.expenses_receipt') ?> <small style="color:var(--muted)">(<?= lang('App.optional') ?>)</small></label>
         <input type="file" name="receipt_image" accept="image/*,.pdf">
       </div>
       <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center">Guardar gasto</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-expense')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center"><?= lang('App.expenses_save') ?></button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-expense')"><?= lang('App.cancel') ?></button>
       </div>
     </form>
   </div>
@@ -223,37 +223,37 @@
 <div class="modal-overlay" id="modal-edit-expense">
   <div class="modal">
     <div class="modal-header">
-      <h3 class="modal-title"><i data-lucide="pencil" style="width:18px;height:18px;color:var(--primary)"></i> Editar gasto</h3>
+      <h3 class="modal-title"><i data-lucide="pencil" style="width:18px;height:18px;color:var(--primary)"></i> <?= lang('App.expenses_edit_title') ?></h3>
       <button class="modal-close" onclick="closeModal('modal-edit-expense')">×</button>
     </div>
     <form method="post" id="form-edit-expense" enctype="multipart/form-data">
       <?= csrf_field() ?>
       <div class="form-group">
-        <label>Descripción</label>
+        <label><?= lang('App.expenses_description') ?></label>
         <input type="text" name="title" id="edit-title" required>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Importe (€)</label>
+          <label><?= lang('App.expenses_amount') ?></label>
           <input type="number" name="amount" id="edit-amount" required step="0.01">
         </div>
         <div class="form-group">
-          <label>Categoría</label>
+          <label><?= lang('App.expenses_category') ?></label>
           <select name="category" id="edit-category">
-            <option value="food">Comida</option>
-            <option value="cleaning">Limpieza</option>
-            <option value="bills">Facturas</option>
-            <option value="other">Otros</option>
+            <option value="food"><?= lang('App.cat_food') ?></option>
+            <option value="cleaning"><?= lang('App.cat_cleaning') ?></option>
+            <option value="bills"><?= lang('App.cat_bills') ?></option>
+            <option value="other"><?= lang('App.cat_other') ?></option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <label>Fecha</label>
+        <label><?= lang('App.expenses_date') ?></label>
         <input type="date" name="date" id="edit-date" required>
       </div>
       <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center">Guardar cambios</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-expense')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center"><?= lang('App.save') ?></button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-expense')"><?= lang('App.cancel') ?></button>
       </div>
     </form>
   </div>
@@ -327,7 +327,7 @@ const ME_ID         = <?= (int) session()->get('user_id') ?>;
   <?php $maxId = !empty($expenses) ? max(array_column($expenses, 'id')) : 0; ?>
   let knownId = <?= $maxId ?>;
 
-  const CATS = {food:'Comida', cleaning:'Limpieza', bills:'Facturas', other:'Otros'};
+  const CATS = {food:'<?= lang('App.cat_food') ?>', cleaning:'<?= lang('App.cat_cleaning') ?>', bills:'<?= lang('App.cat_bills') ?>', other:'<?= lang('App.cat_other') ?>'};
 
   function isModalOpen() {
     return !!document.querySelector('.modal-overlay.open');
@@ -348,10 +348,9 @@ const ME_ID         = <?= (int) session()->get('user_id') ?>;
     const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     const d = new Date(dateStr + 'T00:00:00');
     const parts = d.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'});
-    if (dateStr === todayStr)     return 'Hoy · ' + parts;
-    if (dateStr === yesterdayStr) return 'Ayer · ' + parts;
-    const dow = d.toLocaleDateString('es-ES', {weekday:'long'});
-    return dow.charAt(0).toUpperCase() + dow.slice(1) + ' · ' + parts;
+    if (dateStr === todayStr)     return '<?= lang('App.today') ?> · ' + parts;
+    if (dateStr === yesterdayStr) return '<?= lang('App.yesterday') ?> · ' + parts;
+    return parts;
   }
 
   const MEMBERS_MAP = {<?php foreach ($members as $m): ?><?= $m['id'] ?>:'<?= esc($m['username']) ?>',<?php endforeach; ?>};
@@ -425,7 +424,7 @@ const ME_ID         = <?= (int) session()->get('user_id') ?>;
     }
     if (balLabel) {
       const b = Number(stats.myBalance);
-      balLabel.textContent = b > 0 ? 'Te deben' : b < 0 ? 'Debes' : 'Estás al día';
+      balLabel.textContent = b > 0 ? '<?= lang('App.expenses_owe_you') ?>' : b < 0 ? '<?= lang('App.expenses_you_owe') ?>' : '<?= lang('App.expenses_settled') ?>';
     }
     if (window.lucide) window.lucide.createIcons();
   }

@@ -26,11 +26,11 @@
 
       <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="previewAvatar(this)">
 
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px">Haz clic en el avatar para cambiar la imagen</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px"><?= lang('App.profile_click_avatar') ?></p>
 
       <?php if (!empty($user['avatar_url'])): ?>
       <button type="button" onclick="confirmRemove()" class="btn btn-danger btn-sm">
-        Eliminar foto
+        <?= lang('App.profile_remove_photo') ?>
       </button>
       <?php endif; ?>
     </div>
@@ -48,21 +48,21 @@
       <input type="hidden" name="remove_avatar" id="remove-avatar-field" value="0">
 
       <div class="form-group">
-        <label>Nombre <span style="color:var(--danger)">*</span></label>
+        <label><?= lang('App.profile_name') ?> <span style="color:var(--danger)">*</span></label>
         <input type="text" name="username" value="<?= esc($user['username']) ?>" required placeholder="Tu nombre">
       </div>
 
       <div class="form-group">
-        <label>Email</label>
+        <label><?= lang('App.profile_email') ?></label>
         <input type="email" name="email" value="<?= esc($user['email']) ?>" placeholder="tu@email.com">
-        <p style="font-size:0.75rem;color:var(--muted);margin-top:4px">Usado para iniciar sesión. Déjalo vacío para no cambiar.</p>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:4px"><?= lang('App.profile_email_hint') ?></p>
       </div>
 
       <div style="display:flex;gap:10px;margin-top:8px">
         <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center">
-          Guardar cambios
+          <?= lang('App.profile_save') ?>
         </button>
-        <a href="<?= site_url('/profile') ?>" class="btn btn-secondary" style="flex:1;justify-content:center">Cancelar</a>
+        <a href="<?= site_url('/profile') ?>" class="btn btn-secondary" style="flex:1;justify-content:center"><?= lang('App.cancel') ?></a>
       </div>
     </form>
   </div>

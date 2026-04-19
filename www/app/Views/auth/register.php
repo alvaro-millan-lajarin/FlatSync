@@ -12,7 +12,7 @@
   <div class="auth-card" style="max-width:420px">
     <div class="auth-logo">
       <h1>flat<span>sync</span></h1>
-      <p>Crea tu cuenta para empezar</p>
+      <p><?= lang('App.register_title') ?></p>
     </div>
 
     <?php if (!empty($errors)): ?>
@@ -25,23 +25,23 @@
     <form method="post" action="<?= site_url('/register') ?>">
       <?= csrf_field() ?>
       <div class="form-group">
-        <label>Nombre</label>
+        <label><?= lang('App.register_name') ?></label>
         <input type="text" name="username" value="<?= old('username') ?>" required placeholder="Tu nombre">
       </div>
       <div class="form-group">
-        <label>Email</label>
+        <label><?= lang('App.login_email') ?></label>
         <input type="email" name="email" value="<?= old('email') ?>" required placeholder="tu@email.com">
       </div>
       <div class="form-group">
-        <label>Contraseña</label>
+        <label><?= lang('App.login_password') ?></label>
         <input type="password" name="password" required placeholder="Mínimo 6 caracteres">
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:4px">
-        Crear cuenta
+        <?= lang('App.register_btn') ?>
       </button>
     </form>
 
-    <div class="auth-divider"><span>o</span></div>
+    <div class="auth-divider"><span><?= lang('App.login_or') ?></span></div>
 
     <a href="<?= site_url('/auth/google') ?>" class="btn-google">
       <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -51,12 +51,15 @@
         <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         <path fill="none" d="M0 0h48v48H0z"/>
       </svg>
-      Registrarse con Google
+      <?= lang('App.register_google') ?>
     </a>
 
     <div class="auth-footer" style="margin-top:20px">
-      ¿Ya tienes cuenta? <a href="<?= site_url('/login') ?>">Inicia sesión</a>
+      <?= lang('App.register_have_account') ?> — <a href="<?= site_url('/login') ?>"><?= lang('App.login_btn') ?></a>
     </div>
+
+    <?php $_lang = session()->get('lang') ?? 'es'; ?>
+    <?= view('layouts/_lang_flags', ['_lang' => $_lang]) ?>
   </div>
 </div>
 <script src="<?= base_url('js/app.js') ?>"></script>

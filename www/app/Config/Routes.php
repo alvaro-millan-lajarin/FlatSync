@@ -34,6 +34,9 @@ $routes->post('/api/chat',                   'ChatController::send');
 $routes->get('/api/chat/poll',               'ChatController::poll');
 $routes->get('/api/members',                 'MembersController::index');
 
+// Language
+$routes->get('/lang/(:segment)', 'LanguageController::switch/$1');
+
 // Landing & Dashboard
 $routes->get('/',          'HomeController::landing');
 $routes->get('/dashboard', 'HomeController::index');

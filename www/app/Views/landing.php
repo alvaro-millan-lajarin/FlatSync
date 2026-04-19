@@ -1,9 +1,27 @@
+<?php
+if (!session()->has('lang')) {
+    $_supported = ['ca','es','en'];
+    $_header = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'es';
+    $_detected = 'es';
+    foreach (explode(',', $_header) as $_part) {
+        $_tag = strtolower(trim(explode(';', $_part)[0]));
+        $_lang2 = explode('-', $_tag)[0];
+        if (in_array($_tag, $_supported)) { $_detected = $_tag; break; }
+        if (in_array($_lang2, $_supported)) { $_detected = $_lang2; break; }
+    }
+    session()->set('lang', $_detected);
+}
+$_locale = session()->get('lang');
+\Config\Services::language()->setLocale($_locale);
+
+$_typewriter = lang('App.landing_typewriter');
+?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?= $_locale ?>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlatSync — Gestiona tu piso compartido</title>
+  <title><?= lang('App.landing_title') ?></title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -297,8 +315,6 @@
     footer p { font-size: 0.8rem; color: var(--muted); }
 
     /* ── ANIMATIONS ── */
-
-    /* Entrance keyframes */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(28px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -311,15 +327,12 @@
       from { opacity: 0; }
       to   { opacity: 1; }
     }
-
-    /* Floating card */
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
       50%       { transform: translateY(-10px); }
     }
     .hero-illustration { animation: float 5s ease-in-out infinite; }
 
-    /* Hero text — staggered entrance */
     .hero-badge  { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .1s; }
     .hero h1     { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .25s; }
     .hero > .hero-text > p { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .4s; }
@@ -327,7 +340,6 @@
     .hero-note   { opacity: 0; animation: fadeInUp .6s ease forwards; animation-delay: .65s; }
     .hero-illustration { opacity: 0; animation: fadeInRight .7s ease forwards, float 5s ease-in-out 0.7s infinite; animation-fill-mode: forwards; }
 
-    /* Scroll-reveal base */
     .reveal {
       opacity: 0;
       transform: translateY(24px);
@@ -338,13 +350,11 @@
       transform: translateY(0);
     }
 
-    /* Staggered delay for feature cards */
     .feature-card:nth-child(1) { transition-delay: .0s; }
     .feature-card:nth-child(2) { transition-delay: .1s; }
     .feature-card:nth-child(3) { transition-delay: .2s; }
     .feature-card:nth-child(4) { transition-delay: .3s; }
 
-    /* Pulsing badge dot */
     @keyframes pulse-dot {
       0%, 100% { transform: scale(1); opacity: 1; }
       50%       { transform: scale(1.5); opacity: .6; }
@@ -356,7 +366,6 @@
       flex-shrink: 0;
     }
 
-    /* Member row highlight sweep */
     @keyframes highlight {
       0%   { background: #fff; }
       40%  { background: #EFF6FF; }
@@ -454,6 +463,15 @@
       will-change: transform;
     }
 
+    /* ── LANG FLAGS IN NAV ── */
+    .nav-flags { display: flex; align-items: center; gap: 6px; margin-right: 4px; }
+    .nav-flag {
+      display: block; width: 28px; height: 19px;
+      border-radius: 3px; overflow: hidden; text-decoration: none;
+      transition: opacity .15s, box-shadow .15s;
+    }
+    .nav-flag svg { width: 100%; height: 100%; display: block; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .hero { grid-template-columns: 1fr; gap: 40px; padding: 48px 5% 56px; }
@@ -464,6 +482,7 @@
       .features { padding: 56px 5%; }
       .cta-section { padding: 56px 5%; }
       footer { flex-direction: column; text-align: center; }
+      .nav-flags { display: none; }
     }
   </style>
 </head>
@@ -475,8 +494,25 @@
 <nav>
   <a href="<?= site_url('/') ?>" class="nav-logo">flat<span>sync</span></a>
   <div class="nav-links">
-    <a href="<?= site_url('/login') ?>" class="btn-nav-login">Iniciar sesión</a>
-    <a href="<?= site_url('/register') ?>" class="btn-nav-register">Registrarse</a>
+    <?php
+    $_activeLang = $_locale;
+    $_navFlags = [
+      'es' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><rect width="3" height="2" fill="#AA151B"/><rect y=".5" width="3" height="1" fill="#F1BF00"/></svg>',
+      'en' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 36"><rect width="60" height="36" fill="#012169"/><path d="M0,0 60,36M60,0 0,36" stroke="#fff" stroke-width="7.2"/><path d="M0,0 60,36M60,0 0,36" stroke="#C8102E" stroke-width="3.6"/><rect x="24" y="0" width="12" height="36" fill="#fff"/><rect x="0" y="12" width="60" height="12" fill="#fff"/><rect x="25.5" y="0" width="9" height="36" fill="#C8102E"/><rect x="0" y="13.5" width="60" height="9" fill="#C8102E"/></svg>',
+      'ca' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 6"><rect width="9" height="6" fill="#FCDD09"/><rect y=".667" width="9" height=".667" fill="#C60B1E"/><rect y="2" width="9" height=".667" fill="#C60B1E"/><rect y="3.333" width="9" height=".667" fill="#C60B1E"/><rect y="4.667" width="9" height=".667" fill="#C60B1E"/></svg>',
+    ];
+    $_flagTitles = ['es'=>'Español','en'=>'English','ca'=>'Català'];
+    ?>
+    <div class="nav-flags">
+      <?php foreach ($_navFlags as $code => $svg): ?>
+      <a href="<?= site_url('/lang/'.$code) ?>" class="nav-flag" title="<?= $_flagTitles[$code] ?>"
+         style="opacity:<?= $_activeLang===$code ? '1' : '0.35' ?>;box-shadow:<?= $_activeLang===$code ? '0 0 0 2px #2563EB' : '0 0 0 1px #E2E8F0' ?>">
+        <?= $svg ?>
+      </a>
+      <?php endforeach; ?>
+    </div>
+    <a href="<?= site_url('/login') ?>" class="btn-nav-login"><?= lang('App.landing_nav_login') ?></a>
+    <a href="<?= site_url('/register') ?>" class="btn-nav-register"><?= lang('App.landing_nav_register') ?></a>
   </div>
 </nav>
 
@@ -486,22 +522,22 @@
   <div class="blob blob-2"></div>
   <div class="blob blob-3"></div>
   <div class="hero-text">
-    <div class="hero-badge"><span class="badge-dot"></span> Gestión de piso compartido</div>
-    <h1>Vivir juntos,<br><em id="typewriter-text"></em></h1>
-    <p>Controla gastos, organiza tareas, chatea con tus compañeros y encuentra servicios cercanos, todo desde un mismo sitio.</p>
+    <div class="hero-badge"><span class="badge-dot"></span> <?= lang('App.landing_badge') ?></div>
+    <h1><?= lang('App.landing_h1_line1') ?><br><em id="typewriter-text"></em></h1>
+    <p><?= lang('App.landing_hero_p') ?></p>
     <div class="hero-actions">
       <a href="<?= site_url('/register') ?>" class="btn-hero">
-        Empezar gratis <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
+        <?= lang('App.landing_start') ?> <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
       </a>
-      <a href="<?= site_url('/login') ?>" class="btn-hero-ghost">Iniciar sesión</a>
+      <a href="<?= site_url('/login') ?>" class="btn-hero-ghost"><?= lang('App.landing_login') ?></a>
     </div>
-    <p class="hero-note">Gratis · Sin tarjeta de crédito · Listo en 2 minutos</p>
+    <p class="hero-note"><?= lang('App.landing_note') ?></p>
   </div>
 
   <div class="hero-illustration">
     <div class="flat-card">
       <div class="flat-card-header">
-        <span class="flat-card-title">Piso Barcelona</span>
+        <span class="flat-card-title"><?= lang('App.landing_card_title') ?></span>
         <span class="flat-card-badge">Abril 2026</span>
       </div>
       <div class="flat-members">
@@ -510,7 +546,7 @@
             <div class="avatar" style="background:#2563EB">A</div>
             <div>
               <div class="flat-member-name">Álvaro</div>
-              <div class="flat-member-sub">Pagó alquiler + luz</div>
+              <div class="flat-member-sub"><?= lang('App.landing_paid_rent') ?></div>
             </div>
           </div>
           <span class="flat-member-amount amount-pos">+€124</span>
@@ -520,7 +556,7 @@
             <div class="avatar" style="background:#7C3AED">M</div>
             <div>
               <div class="flat-member-name">María</div>
-              <div class="flat-member-sub">Pagó compra semana</div>
+              <div class="flat-member-sub"><?= lang('App.landing_paid_shop') ?></div>
             </div>
           </div>
           <span class="flat-member-amount amount-pos">+€38</span>
@@ -530,14 +566,14 @@
             <div class="avatar" style="background:#0891B2">J</div>
             <div>
               <div class="flat-member-name">Jorge</div>
-              <div class="flat-member-sub">Debe su parte</div>
+              <div class="flat-member-sub"><?= lang('App.landing_owes') ?></div>
             </div>
           </div>
           <span class="flat-member-amount amount-neg">−€54</span>
         </div>
       </div>
       <div class="flat-total">
-        <span class="flat-total-label">Total este mes</span>
+        <span class="flat-total-label"><?= lang('App.landing_total') ?></span>
         <span class="flat-total-value" id="counter">€0.00</span>
       </div>
     </div>
@@ -549,22 +585,22 @@
   <div class="stats-bar-inner">
     <div class="stat-item reveal">
       <span class="num" data-target="500">0<span>+</span></span>
-      <span class="lbl">Pisos activos</span>
+      <span class="lbl"><?= lang('App.landing_stat_flats') ?></span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item reveal" style="transition-delay:.1s">
       <span class="num" data-target="10000">0<span>+</span></span>
-      <span class="lbl">Gastos registrados</span>
+      <span class="lbl"><?= lang('App.landing_stat_expenses') ?></span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item reveal" style="transition-delay:.2s">
       <span class="num" data-target="98">0<span>%</span></span>
-      <span class="lbl">Satisfacción</span>
+      <span class="lbl"><?= lang('App.landing_stat_satisfaction') ?></span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item reveal" style="transition-delay:.3s">
       <span class="num" data-target="2">0<span> min</span></span>
-      <span class="lbl">Para empezar</span>
+      <span class="lbl"><?= lang('App.landing_stat_start') ?></span>
     </div>
   </div>
 </div>
@@ -572,28 +608,28 @@
 <!-- ── FEATURES ── -->
 <section class="features">
   <div class="features-inner">
-    <p class="features-label reveal">Todo lo que necesitas</p>
-    <h2 class="reveal">Una app para gestionar<br>todo el piso</h2>
+    <p class="features-label reveal"><?= lang('App.landing_features_label') ?></p>
+    <h2 class="reveal"><?= lang('App.landing_features_h2') ?></h2>
     <div class="features-grid">
       <div class="feature-card reveal">
         <div class="feature-icon" style="background:#EFF6FF"><i data-lucide="wallet" style="width:20px;height:20px;color:#2563EB"></i></div>
-        <h3>Gastos compartidos</h3>
-        <p>Registra quién pagó qué, divide automáticamente y salda deudas con un clic.</p>
+        <h3><?= lang('App.landing_f1_title') ?></h3>
+        <p><?= lang('App.landing_f1_desc') ?></p>
       </div>
       <div class="feature-card reveal">
         <div class="feature-icon" style="background:#F0FDF4"><i data-lucide="calendar-check" style="width:20px;height:20px;color:#16A34A"></i></div>
-        <h3>Tareas del hogar</h3>
-        <p>Asigna y rota las tareas entre compañeros. Multas automáticas si alguien falla.</p>
+        <h3><?= lang('App.landing_f2_title') ?></h3>
+        <p><?= lang('App.landing_f2_desc') ?></p>
       </div>
       <div class="feature-card reveal">
         <div class="feature-icon" style="background:#FFF7ED"><i data-lucide="message-circle" style="width:20px;height:20px;color:#EA580C"></i></div>
-        <h3>Chat y notas</h3>
-        <p>Comunícate con todos en tiempo real y deja notas importantes para el piso.</p>
+        <h3><?= lang('App.landing_f3_title') ?></h3>
+        <p><?= lang('App.landing_f3_desc') ?></p>
       </div>
       <div class="feature-card reveal">
         <div class="feature-icon" style="background:#FDF4FF"><i data-lucide="wrench" style="width:20px;height:20px;color:#9333EA"></i></div>
-        <h3>Servicios cercanos</h3>
-        <p>Encuentra fontaneros, electricistas y limpiadores cerca de tu hogar al instante.</p>
+        <h3><?= lang('App.landing_f4_title') ?></h3>
+        <p><?= lang('App.landing_f4_desc') ?></p>
       </div>
     </div>
   </div>
@@ -601,20 +637,22 @@
 
 <!-- ── CTA ── -->
 <section class="cta-section">
-  <h2 class="reveal" style="color:#fff">¿Listo para<br>simplificar tu piso?</h2>
-  <p class="reveal">Únete en menos de 2 minutos. Es completamente gratis.</p>
-  <a href="<?= site_url('/register') ?>" class="btn-cta">Crear mi hogar <i data-lucide="arrow-right" style="width:16px;height:16px"></i></a>
+  <h2 class="reveal" style="color:#fff"><?= lang('App.landing_cta_h2') ?></h2>
+  <p class="reveal"><?= lang('App.landing_cta_p') ?></p>
+  <a href="<?= site_url('/register') ?>" class="btn-cta"><?= lang('App.landing_cta_btn') ?> <i data-lucide="arrow-right" style="width:16px;height:16px"></i></a>
 </section>
 
 <!-- ── FOOTER ── -->
 <footer>
   <span class="logo">flat<span>sync</span></span>
-  <p>Hecho para compañeros de piso</p>
+  <p><?= lang('App.landing_footer') ?></p>
 </footer>
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
 lucide.createIcons();
+
+const _typewriterText = <?= json_encode($_typewriter) ?>;
 
 // ── 1. Scroll progress bar ──
 const progressBar = document.getElementById('scroll-progress');
@@ -638,9 +676,9 @@ function typewriter(el, text, speed = 55) {
   const type = () => {
     if (i < text.length) { el.textContent += text[i++]; setTimeout(type, speed); }
   };
-  setTimeout(type, 900); // start after hero entrance
+  setTimeout(type, 900);
 }
-typewriter(document.getElementById('typewriter-text'), 'sin complicaciones.');
+typewriter(document.getElementById('typewriter-text'), _typewriterText);
 
 // ── 4. Counter helper ──
 function animateCount(el, target, duration, suffix) {
@@ -676,10 +714,8 @@ new IntersectionObserver((entries) => {
 // ── 6. Stats bar counters ──
 document.querySelectorAll('.stat-item .num').forEach(el => {
   const target = parseInt(el.dataset.target);
-  const suffix = el.querySelector('span');
   new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) {
-      let i = 0;
       const duration = 1400;
       const start = performance.now();
       const run = (now) => {
@@ -691,7 +727,6 @@ document.querySelectorAll('.stat-item .num').forEach(el => {
         else el.childNodes[0].textContent = target.toLocaleString('es');
       };
       requestAnimationFrame(run);
-      entries[0].target.closest('.stat-item') && entries[0].target.closest('.stat-item').classList.add('counted');
     }
   }, { threshold: 0.8 }).observe(el);
 });

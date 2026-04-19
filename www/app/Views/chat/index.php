@@ -3,10 +3,10 @@
 <!-- Mobile tab switcher (hidden on desktop) -->
 <div class="chat-tabs">
   <button class="chat-tab active" id="tab-chat" onclick="switchTab('chat')">
-    <i data-lucide="message-circle" style="width:14px;height:14px"></i> Chat
+    <i data-lucide="message-circle" style="width:14px;height:14px"></i> <?= lang('App.chat_tab') ?>
   </button>
   <button class="chat-tab" id="tab-notes" onclick="switchTab('notes')">
-    <i data-lucide="sticky-note" style="width:14px;height:14px"></i> Notas
+    <i data-lucide="sticky-note" style="width:14px;height:14px"></i> <?= lang('App.notes_tab') ?>
   </button>
 </div>
 
@@ -15,15 +15,15 @@
   <!-- ── PANEL IZQUIERDO: NOTAS ── -->
   <div class="notes-panel">
     <div class="notes-header">
-      <span class="card-title"><i data-lucide="sticky-note"></i> Notas del hogar</span>
+      <span class="card-title"><i data-lucide="sticky-note"></i> <?= lang('App.notes_title') ?></span>
     </div>
 
     <!-- Formulario añadir nota -->
     <form method="post" action="<?= site_url('/chat/notes/store') ?>" class="note-form">
       <?= csrf_field() ?>
-      <textarea name="content" placeholder="Escribe una nota..." class="note-textarea" maxlength="500" rows="3"></textarea>
+      <textarea name="content" placeholder="<?= lang('App.notes_placeholder') ?>" class="note-textarea" maxlength="500" rows="3"></textarea>
       <button type="submit" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-top:8px">
-        <i data-lucide="plus" style="width:13px;height:13px"></i> Añadir nota
+        <i data-lucide="plus" style="width:13px;height:13px"></i> <?= lang('App.notes_add') ?>
       </button>
     </form>
 
@@ -34,7 +34,7 @@
       <?php if (empty($notes)): ?>
         <div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:20px 0">
           <i data-lucide="file-text" style="width:28px;height:28px;opacity:.4;display:block;margin:0 auto 8px"></i>
-          Sin notas aún
+          <?= lang('App.notes_empty') ?>
         </div>
       <?php else: ?>
         <?php foreach ($notes as $note): ?>
@@ -90,8 +90,8 @@
       <?php if (empty($messages)): ?>
         <div class="empty-state" style="margin:auto">
           <div class="icon"><i data-lucide="message-circle" style="width:36px;height:36px;color:var(--muted)"></i></div>
-          <h3>Sin mensajes aún</h3>
-          <p>Sé el primero en escribir</p>
+          <h3><?= lang('App.chat_empty') ?></h3>
+          <p><?= lang('App.chat_empty_sub') ?></p>
         </div>
       <?php endif; ?>
     </div>
@@ -99,7 +99,7 @@
     <div class="chat-input-wrap">
       <form id="chat-form" method="post" action="<?= site_url('/chat/send') ?>" style="display:flex;gap:10px;align-items:flex-end">
         <?= csrf_field() ?>
-        <textarea name="message" id="chat-input" rows="1" placeholder="Escribe un mensaje..."
+        <textarea name="message" id="chat-input" rows="1" placeholder="<?= lang('App.chat_placeholder') ?>"
           class="chat-textarea" onkeydown="handleKey(event)"></textarea>
         <button type="submit" class="btn btn-primary" style="height:42px;flex-shrink:0;padding:0 18px">
           <i data-lucide="send" style="width:15px;height:15px"></i>
@@ -364,6 +364,13 @@ const ME_ID    = <?= (int) session()->get('user_id') ?>;
 const POLL_URL = '<?= site_url('/chat/poll') ?>';
 const BASE_URL = '<?= base_url() ?>';
 let lastId     = <?= !empty($messages) ? (int) end($messages)['id'] : 0 ?>;
+const CHAT_L = {
+  deleteMsg:   '<?= addslashes(lang('App.chat_delete_msg') ?: '¿Eliminar este mensaje?') ?>',
+  deleteNote:  '<?= addslashes(lang('App.chat_delete_note') ?: '¿Eliminar esta nota?') ?>',
+  notesEmpty:  '<?= addslashes(lang('App.notes_empty')) ?>',
+  save:        '<?= addslashes(lang('App.save')) ?>',
+  cancel:      '<?= addslashes(lang('App.cancel')) ?>',
+};
 
 function scrollBottom() {
   const el = document.getElementById('chat-messages');
@@ -408,7 +415,7 @@ function buildMsg(m) {
 }
 
 function deleteMessage(id, btn) {
-  showConfirm('¿Eliminar este mensaje? Esta acción no se puede deshacer.', () => _doDeleteMessage(id, btn));
+  showConfirm(CHAT_L.deleteMsg, () => _doDeleteMessage(id, btn));
 }
 function _doDeleteMessage(id, btn) {
   const fd = new FormData();
@@ -442,11 +449,11 @@ function editMessage(id, btn) {
     acts.style.cssText = 'display:flex;gap:6px;margin-top:6px';
     const saveBtn = document.createElement('button');
     saveBtn.className = 'btn btn-sm btn-primary';
-    saveBtn.textContent = 'Guardar';
+    saveBtn.textContent = CHAT_L.save;
     saveBtn.onclick = () => saveEdit(id, wrap);
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'btn btn-sm btn-secondary';
-    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.textContent = CHAT_L.cancel;
     cancelBtn.onclick = () => cancelEdit(wrap);
     acts.appendChild(saveBtn);
     acts.appendChild(cancelBtn);
@@ -511,7 +518,7 @@ function buildNote(note) {
 }
 
 function deleteNote(id, btn) {
-  showConfirm('¿Eliminar esta nota?', () => _doDeleteNote(id, btn));
+  showConfirm(CHAT_L.deleteNote, () => _doDeleteNote(id, btn));
 }
 function _doDeleteNote(id, btn) {
   const csrf = document.querySelector('[name="<?= csrf_token() ?>"]').value;
@@ -528,7 +535,7 @@ function _doDeleteNote(id, btn) {
           item.remove();
           const list = document.querySelector('.notes-list');
           if (!list.querySelector('.note-item')) {
-            list.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:20px 0"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Sin notas aún</div>`;
+            list.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:20px 0"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>${CHAT_L.notesEmpty}</div>`;
           }
         }, 200);
       }
@@ -586,7 +593,7 @@ function updateNotes(notes) {
   const serverIds  = notes.map(n => String(n.id)).join(',');
   if (currentIds === serverIds) return;
   if (notes.length === 0) {
-    list.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:20px 0"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Sin notas aún</div>`;
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:20px 0"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>${CHAT_L.notesEmpty}</div>`;
   } else {
     list.innerHTML = notes.map(buildNote).join('');
   }

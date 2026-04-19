@@ -13,13 +13,13 @@ foreach ($calDays as $day) {
 <!-- View tabs -->
 <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;align-items:center">
   <a href="<?= site_url('/chores?view=week') ?>" class="btn <?= ($view==='week') ? 'btn-primary' : 'btn-secondary' ?>">
-    <i data-lucide="calendar" style="width:14px;height:14px"></i> Semana
+    <i data-lucide="calendar" style="width:14px;height:14px"></i> <?= lang('App.chores_week') ?>
   </a>
   <a href="<?= site_url('/chores?view=month') ?>" class="btn <?= ($view==='month') ? 'btn-primary' : 'btn-secondary' ?>">
-    <i data-lucide="calendar-days" style="width:14px;height:14px"></i> Mes
+    <i data-lucide="calendar-days" style="width:14px;height:14px"></i> <?= lang('App.chores_month') ?>
   </a>
   <button class="btn btn-primary" style="margin-left:auto" onclick="openModal('modal-add-chore')">
-    <i data-lucide="plus" style="width:14px;height:14px"></i> Nueva tarea
+    <i data-lucide="plus" style="width:14px;height:14px"></i> <?= lang('App.chores_new') ?>
   </button>
 </div>
 
@@ -31,11 +31,11 @@ foreach ($calDays as $day) {
       <span class="card-title"><?= $calendarTitle ?></span>
       <a href="<?= site_url('/chores?view=' . $view . '&offset=' . ($offset + 1)) ?>" class="btn btn-sm btn-secondary">›</a>
     </div>
-    <a href="<?= site_url('/chores?view=' . $view . '&offset=0') ?>" class="btn btn-sm btn-secondary">Hoy</a>
+    <a href="<?= site_url('/chores?view=' . $view . '&offset=0') ?>" class="btn btn-sm btn-secondary"><?= lang('App.chores_today_btn') ?></a>
   </div>
 
   <div class="calendar-grid">
-    <?php foreach (['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] as $d): ?>
+    <?php foreach (lang('App.chores_days') as $d): ?>
       <div class="cal-header"><?= $d ?></div>
     <?php endforeach; ?>
 
@@ -78,7 +78,7 @@ foreach ($calDays as $day) {
 <div class="card" style="margin-top:16px;border-color:rgba(239,68,68,0.3)">
   <div class="card-header">
     <span class="card-title" style="color:var(--danger)">
-      <i data-lucide="alert-triangle" style="width:15px;height:15px;color:var(--danger)"></i> Tareas no realizadas
+      <i data-lucide="alert-triangle" style="width:15px;height:15px;color:var(--danger)"></i> <?= lang('App.chores_missed') ?>
     </span>
   </div>
 
@@ -90,9 +90,9 @@ foreach ($calDays as $day) {
         <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);white-space:nowrap">
           <?php
             $ts = strtotime($date);
-            if ($date === $today)         echo 'Hoy · ' . date('d/m/Y', $ts);
-            elseif ($date === $yesterday) echo 'Ayer · ' . date('d/m/Y', $ts);
-            else                          echo ucfirst(date('l', $ts)) . ' · ' . date('d/m/Y', $ts);
+            if ($date === $today)         echo lang('App.today') . ' · ' . date('d/m/Y', $ts);
+            elseif ($date === $yesterday) echo lang('App.yesterday') . ' · ' . date('d/m/Y', $ts);
+            else                          echo date('d/m/Y', $ts);
           ?>
         </span>
         <div style="flex:1;height:1px;background:rgba(239,68,68,0.2)"></div>
@@ -136,18 +136,18 @@ foreach ($calDays as $day) {
 <div class="modal-overlay" id="modal-add-chore">
   <div class="modal">
     <div class="modal-header">
-      <h3 class="modal-title"><i data-lucide="plus-circle" style="width:18px;height:18px;color:var(--primary)"></i> Nueva tarea</h3>
+      <h3 class="modal-title"><i data-lucide="plus-circle" style="width:18px;height:18px;color:var(--primary)"></i> <?= lang('App.chores_add_title') ?></h3>
       <button class="modal-close" onclick="closeModal('modal-add-chore')">×</button>
     </div>
     <form method="post" action="<?= site_url('/chores/store') ?>">
       <?= csrf_field() ?>
       <div class="form-group">
-        <label>Nombre de la tarea</label>
-        <input type="text" name="task_name" required placeholder="Ej: Limpiar baño, Sacar basura...">
+        <label><?= lang('App.chores_task_name') ?></label>
+        <input type="text" name="task_name" required placeholder="<?= lang('App.chores_task_ph') ?>">
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Asignar a</label>
+          <label><?= lang('App.chores_assign') ?></label>
           <select name="assigned_user_id" required>
             <?php foreach ($members as $m): ?>
               <option value="<?= $m['id'] ?>"><?= esc($m['username']) ?></option>
@@ -155,29 +155,29 @@ foreach ($calDays as $day) {
           </select>
         </div>
         <div class="form-group">
-          <label>Fecha límite</label>
+          <label><?= lang('App.chores_due') ?></label>
           <input type="date" name="due_date" id="modal-due-date" value="<?= date('Y-m-d') ?>" required>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Penalización (€)</label>
+          <label><?= lang('App.chores_penalty') ?></label>
           <input type="number" name="penalty_amount" value="<?= esc($defaultPenalty) ?>" min="0" step="0.5">
         </div>
         <div class="form-group">
-          <label>Recurrencia</label>
+          <label><?= lang('App.chores_recurrence') ?></label>
           <select name="recurrence">
-            <option value="none">Sin recurrencia</option>
-            <option value="weekly">Semanal (rotativo)</option>
-            <option value="biweekly">Quincenal</option>
-            <option value="monthly">Mensual</option>
+            <option value="none"><?= lang('App.chores_rec_none') ?></option>
+            <option value="weekly"><?= lang('App.chores_rec_weekly') ?></option>
+            <option value="biweekly"><?= lang('App.chores_rec_biweekly') ?></option>
+            <option value="monthly"><?= lang('App.chores_rec_monthly') ?></option>
           </select>
         </div>
       </div>
       <input type="hidden" name="icon" value="task">
       <div style="display:flex;gap:10px;margin-top:4px">
-        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center">Crear tarea</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-chore')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center"><?= lang('App.chores_create') ?></button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-chore')"><?= lang('App.cancel') ?></button>
       </div>
     </form>
   </div>
@@ -187,19 +187,19 @@ foreach ($calDays as $day) {
 <div class="modal-overlay" id="modal-edit-chore">
   <div class="modal">
     <div class="modal-header">
-      <h3 class="modal-title"><i data-lucide="pencil" style="width:18px;height:18px;color:var(--primary)"></i> Editar tarea</h3>
+      <h3 class="modal-title"><i data-lucide="pencil" style="width:18px;height:18px;color:var(--primary)"></i> <?= lang('App.chores_edit_title') ?></h3>
       <button class="modal-close" onclick="closeModal('modal-edit-chore')">×</button>
     </div>
     <form method="post" id="form-edit-chore" action="">
       <?= csrf_field() ?>
       <input type="hidden" name="chore_id" id="edit-chore-id">
       <div class="form-group">
-        <label>Nombre de la tarea</label>
+        <label><?= lang('App.chores_task_name') ?></label>
         <input type="text" name="task_name" id="edit-task-name" required>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Asignar a</label>
+          <label><?= lang('App.chores_assign') ?></label>
           <select name="assigned_user_id" id="edit-assigned" required>
             <?php foreach ($members as $m): ?>
               <option value="<?= $m['id'] ?>"><?= esc($m['username']) ?></option>
@@ -207,17 +207,17 @@ foreach ($calDays as $day) {
           </select>
         </div>
         <div class="form-group">
-          <label>Fecha límite</label>
+          <label><?= lang('App.chores_due') ?></label>
           <input type="date" name="due_date" id="edit-due-date" required>
         </div>
       </div>
       <div class="form-group">
-        <label>Penalización (€)</label>
+        <label><?= lang('App.chores_penalty') ?></label>
         <input type="number" name="penalty_amount" id="edit-penalty" min="0" step="0.5">
       </div>
       <div style="display:flex;gap:10px;margin-top:4px">
-        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center">Guardar cambios</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-chore')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center"><?= lang('App.save') ?></button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-chore')"><?= lang('App.cancel') ?></button>
       </div>
     </form>
   </div>
@@ -227,18 +227,18 @@ foreach ($calDays as $day) {
 <div class="modal-overlay" id="modal-swap">
   <div class="modal">
     <div class="modal-header">
-      <h3 class="modal-title"><i data-lucide="arrow-left-right" style="width:18px;height:18px;color:var(--primary)"></i> Proponer intercambio</h3>
+      <h3 class="modal-title"><i data-lucide="arrow-left-right" style="width:18px;height:18px;color:var(--primary)"></i> <?= lang('App.chores_swap_title') ?></h3>
       <button class="modal-close" onclick="closeModal('modal-swap')">×</button>
     </div>
     <form method="post" action="<?= site_url('/chores/swap/request') ?>">
       <?= csrf_field() ?>
       <input type="hidden" name="chore_id" id="swap-chore-id">
       <div class="form-group">
-        <label>Tarea a intercambiar</label>
+        <label><?= lang('App.chores_swap_task') ?></label>
         <input type="text" id="swap-chore-name" readonly style="opacity:.7">
       </div>
       <div class="form-group">
-        <label>Intercambiar con</label>
+        <label><?= lang('App.chores_swap_with') ?></label>
         <select name="target_user_id" required>
           <?php foreach ($members as $m): ?>
             <?php if ($m['id'] != session()->get('user_id')): ?>
@@ -248,16 +248,16 @@ foreach ($calDays as $day) {
         </select>
       </div>
       <div class="form-group">
-        <label>Compensación económica (€) <small style="color:var(--muted)">Opcional</small></label>
+        <label><?= lang('App.chores_swap_comp') ?> <small style="color:var(--muted)"><?= lang('App.optional') ?></small></label>
         <input type="number" name="compensation" value="0" min="0" step="0.5" placeholder="0.00">
       </div>
       <div class="form-group">
-        <label>Mensaje</label>
-        <textarea name="message" placeholder="Explica por qué necesitas el cambio..."></textarea>
+        <label><?= lang('App.chores_swap_msg') ?></label>
+        <textarea name="message" placeholder="<?= lang('App.chores_swap_msg_ph') ?>"></textarea>
       </div>
       <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center">Enviar solicitud</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-swap')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center"><?= lang('App.chores_swap_send') ?></button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-swap')"><?= lang('App.cancel') ?></button>
       </div>
     </form>
   </div>
@@ -319,6 +319,14 @@ const TASKS    = <?= json_encode($tasksByDate) ?>;
 const TASKS_BY_ID = {};
 Object.values(TASKS).forEach(arr => arr.forEach(t => { TASKS_BY_ID[t.id] = t; }));
 const ME_ID    = <?= (int) session()->get('user_id') ?>;
+const L = {
+  done:    '<?= lang('App.chores_status_done') ?>',
+  missed:  '<?= lang('App.chores_status_missed') ?>',
+  pending: '<?= lang('App.chores_status_pending') ?>',
+  complete:'<?= lang('App.chores_complete') ?>',
+  undo:    '<?= lang('App.chores_undo') ?>',
+  swap:    '<?= lang('App.chores_swap') ?>',
+};
 const IS_ADMIN = <?= session()->get('is_admin') ? 'true' : 'false' ?>;
 const CSRF     = '<?= csrf_hash() ?>';
 const CSRF_KEY = '<?= csrf_token() ?>';
@@ -354,9 +362,9 @@ function renderPanel(date) {
     const isMe = t.assigned_user_id == ME_ID;
 
     const statusBadge = {
-      done:    `<span class="badge badge-done"   style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Completada</span>`,
-      missed:  `<span class="badge badge-missed" style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No realizada</span>`,
-      pending: `<span class="badge badge-pending" style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente</span>`,
+      done:    `<span class="badge badge-done"   style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${L.done}</span>`,
+      missed:  `<span class="badge badge-missed" style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> ${L.missed}</span>`,
+      pending: `<span class="badge badge-pending" style="gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${L.pending}</span>`,
     }[t.status] || '';
 
     let actions = '';
@@ -364,18 +372,18 @@ function renderPanel(date) {
       actions += `
         <button class="btn btn-sm btn-primary" onclick="toggleDone(${t.id})">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Completar
+          ${L.complete}
         </button>
         <button class="btn btn-sm btn-secondary" onclick="openSwapModal(${t.id},'${escJs(t.task_name)}')">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          Cambiar
+          ${L.swap}
         </button>`;
     }
     if (isMe && t.status === 'done') {
       actions += `
         <button class="btn btn-sm btn-secondary" onclick="toggleDone(${t.id})">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          Deshacer
+          ${L.undo}
         </button>`;
     }
     actions += `

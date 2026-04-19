@@ -20,6 +20,26 @@ abstract class BaseController extends Controller
         LoggerInterface $logger
     ) {
         parent::initController($request, $response, $logger);
+
+        if (!session()->has('lang')) {
+            $locale = $this->detectLocale();
+            session()->set('lang', $locale);
+        }
+        $locale = session()->get('lang');
+        \Config\Services::language()->setLocale($locale);
+    }
+
+    private function detectLocale(): string
+    {
+        $supported = ['ca', 'es', 'en'];
+        $header = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'es';
+        foreach (explode(',', $header) as $part) {
+            $tag = strtolower(trim(explode(';', $part)[0]));
+            $lang = explode('-', $tag)[0];
+            if (in_array($tag, $supported)) return $tag;
+            if (in_array($lang, $supported)) return $lang;
+        }
+        return 'es';
     }
 
     // ── API helpers ───────────────────────────────────────────────────────────

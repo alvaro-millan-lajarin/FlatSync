@@ -9,8 +9,8 @@
     </div>
     <p id="confirm-msg" style="font-size:0.9rem;color:var(--text-secondary);padding:0 24px 20px;margin:0;line-height:1.5"></p>
     <div style="display:flex;gap:10px;padding:0 24px 24px">
-      <button class="btn btn-secondary" style="flex:1;justify-content:center" onclick="closeConfirm(false)">Cancelar</button>
-      <button id="confirm-ok-btn" class="btn btn-danger" style="flex:1;justify-content:center">Eliminar</button>
+      <button class="btn btn-secondary" style="flex:1;justify-content:center" onclick="closeConfirm(false)"><?= lang('App.cancel') ?></button>
+      <button id="confirm-ok-btn" class="btn btn-danger" style="flex:1;justify-content:center"><?= lang('App.confirm_delete') ?></button>
     </div>
   </div>
 </div>

@@ -44,7 +44,7 @@ helper('avatar');
     <p>
       <i data-lucide="home" style="width:11px;height:11px;flex-shrink:0;opacity:.5"></i>
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-        <?= esc(session()->get('home_name') ?? '— Sin sesión —') ?>
+        <?= esc(session()->get('home_name') ?? lang('App.nav_no_home')) ?>
       </span>
       <i data-lucide="chevron-down" style="width:11px;height:11px;flex-shrink:0;opacity:.45"></i>
     </p>
@@ -62,7 +62,7 @@ helper('avatar');
         <i data-lucide="home" style="width:13px;height:13px;flex-shrink:0;opacity:.7"></i>
         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= esc($h['name']) ?></span>
         <?php if ($isActive): ?>
-          <span style="font-size:0.65rem;background:rgba(96,165,250,0.2);color:#93C5FD;padding:1px 6px;border-radius:10px">activo</span>
+          <span style="font-size:0.65rem;background:rgba(96,165,250,0.2);color:#93C5FD;padding:1px 6px;border-radius:10px"><?= lang('App.nav_active') ?></span>
         <?php endif; ?>
       </button>
     </form>
@@ -71,16 +71,16 @@ helper('avatar');
     <div style="margin:6px 0 2px;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;display:flex;flex-direction:column;gap:1px">
       <a href="<?= site_url('/homes/join') ?>" class="home-menu-link"
          onmouseover="this.classList.add('hov')" onmouseout="this.classList.remove('hov')">
-        <i data-lucide="key-round" style="width:14px;height:14px;flex-shrink:0"></i> Unirme con código
+        <i data-lucide="key-round" style="width:14px;height:14px;flex-shrink:0"></i> <?= lang('App.nav_join_code') ?>
       </a>
       <a href="<?= site_url('/homes/create') ?>" class="home-menu-link"
          onmouseover="this.classList.add('hov')" onmouseout="this.classList.remove('hov')">
-        <i data-lucide="plus" style="width:14px;height:14px;flex-shrink:0"></i> Nuevo hogar
+        <i data-lucide="plus" style="width:14px;height:14px;flex-shrink:0"></i> <?= lang('App.nav_new_home') ?>
       </a>
       <?php if ($_activeHomeId): ?>
       <a href="<?= site_url('/homes/leave') ?>" class="home-menu-link" style="color:rgba(255,255,255,0.35)"
          onmouseover="this.classList.add('hov')" onmouseout="this.classList.remove('hov')">
-        <i data-lucide="log-out" style="width:14px;height:14px;flex-shrink:0"></i> Salir de esta sesión
+        <i data-lucide="log-out" style="width:14px;height:14px;flex-shrink:0"></i> <?= lang('App.nav_leave_session') ?>
       </a>
       <?php endif; ?>
     </div>
@@ -88,47 +88,73 @@ helper('avatar');
 
   <!-- Nav sections -->
   <div class="sidebar-section">
-    <div class="sidebar-section-label">General</div>
+    <div class="sidebar-section-label"><?= lang('App.nav_general') ?></div>
     <a href="<?= site_url('/dashboard') ?>" class="nav-item <?= $activeNav === 'dashboard' ? 'active' : '' ?>">
-      <i data-lucide="layout-dashboard" class="nav-icon"></i> Dashboard
+      <i data-lucide="layout-dashboard" class="nav-icon"></i> <?= lang('App.nav_dashboard') ?>
     </a>
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label">Tareas</div>
+    <div class="sidebar-section-label"><?= lang('App.nav_tasks') ?></div>
     <a href="<?= site_url('/chores') ?>" class="nav-item <?= $activeNav === 'chores' ? 'active' : '' ?>">
-      <i data-lucide="calendar-check" class="nav-icon"></i> Calendario
+      <i data-lucide="calendar-check" class="nav-icon"></i> <?= lang('App.nav_calendar') ?>
     </a>
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label">Finanzas</div>
+    <div class="sidebar-section-label"><?= lang('App.nav_finances') ?></div>
     <a href="<?= site_url('/expenses') ?>" class="nav-item <?= $activeNav === 'expenses' ? 'active' : '' ?>">
-      <i data-lucide="wallet" class="nav-icon"></i> Gastos
+      <i data-lucide="wallet" class="nav-icon"></i> <?= lang('App.nav_expenses') ?>
     </a>
     <a href="<?= site_url('/expenses/balance') ?>" class="nav-item <?= $activeNav === 'balance' ? 'active' : '' ?>">
-      <i data-lucide="scale" class="nav-icon"></i> Balance
+      <i data-lucide="scale" class="nav-icon"></i> <?= lang('App.nav_balance') ?>
     </a>
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label">Servicios</div>
+    <div class="sidebar-section-label"><?= lang('App.nav_services') ?></div>
     <a href="<?= site_url('/services') ?>" class="nav-item <?= $activeNav === 'services' ? 'active' : '' ?>">
-      <i data-lucide="wrench" class="nav-icon"></i> Servicios cercanos
+      <i data-lucide="wrench" class="nav-icon"></i> <?= lang('App.nav_nearby') ?>
     </a>
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label">Hogar</div>
+    <div class="sidebar-section-label"><?= lang('App.nav_home') ?></div>
     <a href="<?= site_url('/chat') ?>" class="nav-item <?= $activeNav === 'chat' ? 'active' : '' ?>">
-      <i data-lucide="message-circle" class="nav-icon"></i> Chat
+      <i data-lucide="message-circle" class="nav-icon"></i> <?= lang('App.nav_chat') ?>
     </a>
     <a href="<?= site_url('/members') ?>" class="nav-item <?= $activeNav === 'members' ? 'active' : '' ?>">
-      <i data-lucide="users" class="nav-icon"></i> Miembros
+      <i data-lucide="users" class="nav-icon"></i> <?= lang('App.nav_members') ?>
     </a>
     <a href="<?= site_url('/profile') ?>" class="nav-item <?= $activeNav === 'profile' ? 'active' : '' ?>">
-      <i data-lucide="circle-user" class="nav-icon"></i> Mi perfil
+      <i data-lucide="circle-user" class="nav-icon"></i> <?= lang('App.nav_profile') ?>
     </a>
+  </div>
+
+  <!-- Language switcher -->
+  <?php
+  $_lang = session()->get('lang') ?? 'es';
+  $_flags = [
+    'es' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" style="width:100%;height:100%;display:block"><rect width="3" height="2" fill="#AA151B"/><rect y=".5" width="3" height="1" fill="#F1BF00"/></svg>',
+    'en' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 36" style="width:100%;height:100%;display:block"><rect width="60" height="36" fill="#012169"/><path d="M0,0 60,36M60,0 0,36" stroke="#fff" stroke-width="7.2"/><path d="M0,0 60,36M60,0 0,36" stroke="#C8102E" stroke-width="3.6"/><rect x="24" y="0" width="12" height="36" fill="#fff"/><rect x="0" y="12" width="60" height="12" fill="#fff"/><rect x="25.5" y="0" width="9" height="36" fill="#C8102E"/><rect x="0" y="13.5" width="60" height="9" fill="#C8102E"/></svg>',
+    'ca' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 6" style="width:100%;height:100%;display:block"><rect width="9" height="6" fill="#FCDD09"/><rect y=".667" width="9" height=".667" fill="#C60B1E"/><rect y="2" width="9" height=".667" fill="#C60B1E"/><rect y="3.333" width="9" height=".667" fill="#C60B1E"/><rect y="4.667" width="9" height=".667" fill="#C60B1E"/></svg>',
+  ];
+  $_flagTitles = ['es'=>'Español','en'=>'English','ca'=>'Català'];
+  ?>
+  <div class="sidebar-section" style="padding-bottom:0">
+    <div class="sidebar-section-label"><?= lang('App.lang_switch') ?></div>
+    <div style="display:flex;gap:8px;padding:0 8px 12px">
+      <?php foreach($_flags as $code => $svg): ?>
+      <a href="<?= site_url('/lang/'.$code) ?>" title="<?= $_flagTitles[$code] ?>"
+         style="display:block;width:38px;height:25px;border-radius:4px;overflow:hidden;text-decoration:none;
+                flex-shrink:0;
+                opacity:<?= $_lang===$code ? '1' : '0.35' ?>;
+                box-shadow:<?= $_lang===$code ? '0 0 0 2px #93C5FD' : '0 0 0 1px rgba(255,255,255,0.15)' ?>;
+                transition:opacity .15s,box-shadow .15s">
+        <?= $svg ?>
+      </a>
+      <?php endforeach; ?>
+    </div>
   </div>
 
   <!-- User chip -->
@@ -144,7 +170,7 @@ helper('avatar');
         <?php endif; ?>
         <div class="user-info">
           <strong><?= esc(session()->get('username') ?? 'Usuario') ?></strong>
-          <span><a href="<?= site_url('/logout') ?>" onclick="event.stopPropagation()" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.7rem;display:inline-flex;align-items:center;gap:3px"><i data-lucide="log-out" style="width:10px;height:10px"></i> Cerrar sesión</a></span>
+          <span><a href="<?= site_url('/logout') ?>" onclick="event.stopPropagation()" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.7rem;display:inline-flex;align-items:center;gap:3px"><i data-lucide="log-out" style="width:10px;height:10px"></i> <?= lang('App.nav_logout') ?></a></span>
         </div>
       </div>
     </a>

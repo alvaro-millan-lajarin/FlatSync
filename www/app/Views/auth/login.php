@@ -12,7 +12,7 @@
   <div class="auth-card">
     <div class="auth-logo">
       <h1>flat<span>sync</span></h1>
-      <p>Gestiona tu hogar compartido</p>
+      <p><?= lang('App.login_title') ?></p>
     </div>
 
     <?php if (session()->getFlashdata('error')): ?>
@@ -22,21 +22,21 @@
     <form method="post" action="<?= site_url('/login') ?>">
       <?= csrf_field() ?>
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="email"><?= lang('App.login_email') ?></label>
         <input type="email" id="email" name="email" value="<?= old('email') ?>" required placeholder="tu@email.com">
         <?php if (!empty($errors['email'])): ?><small style="color:var(--danger)"><?= $errors['email'] ?></small><?php endif; ?>
       </div>
       <div class="form-group">
-        <label for="password">Contraseña</label>
+        <label for="password"><?= lang('App.login_password') ?></label>
         <input type="password" id="password" name="password" required placeholder="••••••••">
         <?php if (!empty($errors['password'])): ?><small style="color:var(--danger)"><?= $errors['password'] ?></small><?php endif; ?>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">
-        Entrar
+        <?= lang('App.login_btn') ?>
       </button>
     </form>
 
-    <div class="auth-divider"><span>o</span></div>
+    <div class="auth-divider"><span><?= lang('App.login_or') ?></span></div>
 
     <a href="<?= site_url('/auth/google') ?>" class="btn-google">
       <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -46,12 +46,15 @@
         <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         <path fill="none" d="M0 0h48v48H0z"/>
       </svg>
-      Continuar con Google
+      <?= lang('App.login_google') ?>
     </a>
 
     <div class="auth-footer">
-      ¿No tienes cuenta? <a href="<?= site_url('/register') ?>">Regístrate</a>
+      <?= lang('App.login_no_account') ?> — <a href="<?= site_url('/register') ?>"><?= lang('App.register_btn') ?></a>
     </div>
+
+    <?php $_lang = session()->get('lang') ?? 'es'; ?>
+    <?= view('layouts/_lang_flags', ['_lang' => $_lang]) ?>
   </div>
 </div>
 <script src="<?= base_url('js/app.js') ?>"></script>

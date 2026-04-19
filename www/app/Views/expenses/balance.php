@@ -5,7 +5,7 @@
   <!-- Individual balances -->
   <div class="card">
     <div class="card-header">
-      <span class="card-title">Balance por persona</span>
+      <span class="card-title"><?= lang('App.balance_per_person') ?></span>
     </div>
     <div class="balance-list">
       <?php foreach ($memberBalances as $mb): ?>
@@ -14,7 +14,7 @@
           <div class="user-avatar"><?= strtoupper(substr($mb['username'], 0, 1)) ?></div>
           <div>
             <div style="font-weight:500;font-size:0.9rem"><?= esc($mb['username']) ?></div>
-            <div style="font-size:0.72rem;color:var(--muted)">Ha pagado €<?= number_format($mb['paid'], 2) ?> · Debe pagar €<?= number_format($mb['should_pay'], 2) ?></div>
+            <div style="font-size:0.72rem;color:var(--muted)"><?= lang('App.balance_paid') ?> €<?= number_format($mb['paid'], 2) ?> · <?= lang('App.balance_should') ?> €<?= number_format($mb['should_pay'], 2) ?></div>
           </div>
         </div>
         <div class="balance-amount <?= $mb['balance'] >= 0 ? 'positive' : 'negative' ?>">
@@ -28,13 +28,13 @@
   <!-- Who owes whom -->
   <div class="card">
     <div class="card-header">
-      <span class="card-title"><i data-lucide="arrow-right-left"></i> Liquidaciones sugeridas</span>
+      <span class="card-title"><i data-lucide="arrow-right-left"></i> <?= lang('App.balance_suggestions') ?></span>
     </div>
     <?php if (empty($settlements)): ?>
       <div class="empty-state" style="padding:30px 0">
         <div class="icon"><i data-lucide="circle-check-big" style="width:32px;height:32px;color:var(--success)"></i></div>
-        <h3>¡Todo está saldado!</h3>
-        <p>No hay deudas entre los miembros</p>
+        <h3><?= lang('App.balance_settled_ok') ?></h3>
+        <p><?= lang('App.balance_no_debts') ?></p>
       </div>
     <?php else: ?>
     <div style="display:flex;flex-direction:column;gap:12px">
@@ -55,7 +55,7 @@
           <?= csrf_field() ?>
           <input type="hidden" name="to_user_id" value="<?= $s['to_id'] ?>">
           <input type="hidden" name="amount" value="<?= $s['amount'] ?>">
-          <button class="btn btn-sm btn-primary"><i data-lucide="check" style="width:12px;height:12px"></i> Marcar como pagado</button>
+          <button class="btn btn-sm btn-primary"><i data-lucide="check" style="width:12px;height:12px"></i> <?= lang('App.balance_mark_paid') ?></button>
         </form>
         <?php endif; ?>
       </div>
@@ -69,7 +69,7 @@
 <!-- Contribution chart -->
 <div class="card">
   <div class="card-header">
-    <span class="card-title"><i data-lucide="bar-chart-2"></i> Aportación de cada miembro</span>
+    <span class="card-title"><i data-lucide="bar-chart-2"></i> <?= lang('App.balance_contribution') ?></span>
   </div>
   <div class="chart-bar-group">
     <?php
@@ -94,14 +94,14 @@
 <!-- Payment history -->
 <div class="card" style="margin-top:20px">
   <div class="card-header">
-    <span class="card-title"><i data-lucide="history"></i> Historial de liquidaciones</span>
+    <span class="card-title"><i data-lucide="history"></i> <?= lang('App.balance_history') ?></span>
   </div>
   <?php if (empty($settleHistory)): ?>
-    <div class="empty-state" style="padding:30px 0"><p>Sin liquidaciones previas</p></div>
+    <div class="empty-state" style="padding:30px 0"><p><?= lang('App.balance_no_history') ?></p></div>
   <?php else: ?>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>De</th><th>Para</th><th>Importe</th><th>Fecha</th></tr></thead>
+      <thead><tr><th><?= lang('App.balance_from') ?></th><th><?= lang('App.balance_to') ?></th><th><?= lang('App.balance_amount') ?></th><th><?= lang('App.balance_date') ?></th></tr></thead>
       <tbody>
         <?php foreach ($settleHistory as $h): ?>
         <tr>
