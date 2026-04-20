@@ -8,7 +8,7 @@ class MessageModel extends Model
 {
     protected $table         = 'messages';
     protected $primaryKey    = 'id';
-    protected $allowedFields = ['home_id', 'user_id', 'message', 'edited'];
+    protected $allowedFields = ['home_id', 'user_id', 'message', 'edited', 'created_at'];
     protected $useTimestamps = false;
 
     public function __construct()
