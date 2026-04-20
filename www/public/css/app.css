@@ -427,6 +427,12 @@ input:focus, select:focus, textarea:focus {
 
 textarea { resize: vertical; min-height: 88px; }
 select option { background: var(--surface); }
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  text-align: left;
+}
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
 /* ── TABLE ── */

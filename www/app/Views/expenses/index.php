@@ -297,10 +297,13 @@ document.querySelector('#modal-add-expense form').addEventListener('submit', fun
 <style>
 .expense-rows > div + div { border-top: 1px solid var(--divider); }
 .split-checks { display:flex; flex-wrap:wrap; gap:8px; }
-.split-check-label { display:flex; align-items:center; gap:5px; font-size:0.855rem; cursor:pointer;
-  background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 10px;
-  transition:border-color .15s, background .15s; user-select:none; }
-.split-check-label input { accent-color:var(--primary); }
+.split-check-label {
+  display:flex; align-items:center; gap:5px; font-size:0.855rem; cursor:pointer;
+  background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 12px;
+  transition:border-color .15s, background .15s; user-select:none;
+  white-space:nowrap; flex-shrink:0;
+}
+.split-check-label input { accent-color:var(--primary); flex-shrink:0; }
 .split-check-label:has(input:checked) { border-color:var(--primary); background:rgba(37,99,235,0.07); }
 @media (max-width: 768px) {
   .expense-col-person  { flex: 0 0 auto !important; }
