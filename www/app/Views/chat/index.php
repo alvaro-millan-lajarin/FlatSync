@@ -393,7 +393,7 @@ function buildMsg(m) {
   const isMe = m.user_id == ME_ID;
   const cls  = isMe ? 'chat-msg--me' : 'chat-msg--them';
   const bcls = isMe ? 'chat-bubble--me' : 'chat-bubble--them';
-  const time = m.ts ? new Date(m.ts * 1000).toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'}) : '';
+  const time = m.ts ? fmtHM(new Date(m.ts * 1000)) : '';
   const name = isMe ? '' : `<div class="chat-name">${escHtml(m.username)}</div>`;
   const edited = m.edited && m.edited != '0' ? '<span class="chat-edited">(editado)</span>' : '';
   const svgTrash  = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
@@ -502,8 +502,7 @@ function saveEdit(id, wrap) {
 // ── Notes ──────────────────────────────────────────────
 function buildNote(note) {
   const d = new Date(note.ts * 1000);
-  const time = d.toLocaleDateString('es', {day:'2-digit', month:'2-digit'}) + ' ' +
-               d.toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'});
+  const time = fmtDM(d) + ' ' + fmtHM(d);
   const svgTrash = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
   const delBtn = note.user_id == ME_ID
     ? `<button class="note-delete-btn" onclick="deleteNote(${note.id}, this)" title="Eliminar">${svgTrash}</button>`
@@ -567,6 +566,13 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function fmtHM(d) {
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+function fmtDM(d) {
+  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+}
+
 function poll() {
   fetch(`${POLL_URL}?after=${lastId}`)
     .then(r => r.json())
@@ -625,14 +631,12 @@ function handleKey(e) {
 // Convertir todos los tiempos PHP a hora local del navegador
 document.querySelectorAll('.chat-time[data-ts]').forEach(el => {
   const d = new Date(parseInt(el.dataset.ts) * 1000);
-  el.textContent = d.toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'});
+  el.textContent = fmtHM(d);
 });
 document.querySelectorAll('.note-meta span[data-ts]').forEach(el => {
   const d = new Date(parseInt(el.dataset.ts) * 1000);
   const username = el.textContent.split(' · ')[0];
-  const time = d.toLocaleDateString('es', {day:'2-digit', month:'2-digit'}) + ' ' +
-               d.toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'});
-  el.textContent = username + ' · ' + time;
+  el.textContent = username + ' · ' + fmtDM(d) + ' ' + fmtHM(d);
 });
 
 scrollBottom();
