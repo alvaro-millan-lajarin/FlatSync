@@ -20,6 +20,23 @@ class Email extends BaseConfig
      */
     public string $protocol = 'mail';
 
+    public function __construct()
+    {
+        parent::__construct();
+
+        if (getenv('MAIL_HOST')) {
+            $this->protocol   = getenv('MAIL_PROTOCOL')      ?: 'smtp';
+            $this->SMTPHost   = getenv('MAIL_HOST')          ?: '';
+            $this->SMTPUser   = getenv('MAIL_USERNAME')      ?: '';
+            $this->SMTPPass   = getenv('MAIL_PASSWORD')      ?: '';
+            $this->SMTPPort   = (int)(getenv('MAIL_PORT')    ?: 587);
+            $this->SMTPCrypto = getenv('MAIL_ENCRYPTION')    ?: 'tls';
+            $this->fromEmail  = getenv('MAIL_FROM_ADDRESS')  ?: '';
+            $this->fromName   = getenv('MAIL_FROM_NAME')     ?: 'FlatSync';
+            $this->mailType   = 'html';
+        }
+    }
+
     /**
      * The server path to Sendmail.
      */

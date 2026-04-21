@@ -42,6 +42,12 @@ class AuthController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Email o contraseña incorrectos.');
         }
 
+        if (!($user['email_verified'] ?? 1) && !$this->isApi()) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Debes verificar tu correo antes de iniciar sesión.')
+                ->with('unverified_email', $user['email']);
+        }
+
         // Cargar hogares del usuario
         $uhModel = new UserHomesModel();
         $homes   = $uhModel->getHomesForUser($user['id']);
@@ -99,11 +105,16 @@ class AuthController extends BaseController
             return view('auth/register', ['errors' => $this->validator->getErrors()]);
         }
 
-        $userModel = new UserModel();
+        $userModel    = new UserModel();
+        $verifyToken  = bin2hex(random_bytes(32));
+        $email        = $this->request->getPost('email');
+
         $userId = $userModel->insert([
-            'username' => $this->request->getPost('username'),
-            'email'    => $this->request->getPost('email'),
-            'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+            'username'       => $this->request->getPost('username'),
+            'email'          => $email,
+            'password'       => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+            'email_verified' => 0,
+            'verify_token'   => $verifyToken,
         ]);
 
         if ($this->isApi()) {
@@ -121,7 +132,79 @@ class AuthController extends BaseController
             ]);
         }
 
-        return redirect()->to('/login')->with('success', 'Cuenta creada. ¡Inicia sesión!');
+        $this->sendVerificationEmail($email, $verifyToken);
+
+        return redirect()->to('/login')->with('success', 'Cuenta creada. Revisa tu correo para verificarla.');
+    }
+
+    public function verifyEmail(string $token): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $userModel = new UserModel();
+        $user = $userModel->where('verify_token', $token)->first();
+
+        if (!$user) {
+            return redirect()->to('/login')->with('error', 'Enlace de verificación inválido o ya usado.');
+        }
+
+        $userModel->update($user['id'], [
+            'email_verified' => 1,
+            'verify_token'   => null,
+        ]);
+
+        return redirect()->to('/login')->with('success', '¡Email verificado! Ya puedes iniciar sesión.');
+    }
+
+    public function resendVerification(): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $email = $this->request->getPost('email');
+        if (!$email) {
+            return redirect()->to('/login');
+        }
+
+        $userModel = new UserModel();
+        $user = $userModel->where('email', $email)->where('email_verified', 0)->first();
+
+        if ($user) {
+            $token = bin2hex(random_bytes(32));
+            $userModel->update($user['id'], ['verify_token' => $token]);
+            $this->sendVerificationEmail($email, $token);
+        }
+
+        return redirect()->to('/login')
+            ->with('success', 'Si el correo existe y no está verificado, recibirás un nuevo enlace.');
+    }
+
+    private function sendVerificationEmail(string $toEmail, string $token): void
+    {
+        $link = site_url('/verify-email/' . $token);
+
+        $body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;background:#f4f4f4;margin:0;padding:0">
+<div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+  <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:36px 40px;text-align:center">
+    <span style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px">flat<span style="color:#93c5fd">sync</span></span>
+  </div>
+  <div style="padding:36px 40px">
+    <h2 style="margin:0 0 12px;font-size:20px;color:#111">Confirma tu dirección de correo</h2>
+    <p style="color:#555;line-height:1.6;margin:0 0 28px">Haz clic en el botón de abajo para verificar tu cuenta. El enlace es válido durante 24 horas.</p>
+    <a href="' . $link . '" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:13px 32px;border-radius:8px;font-weight:600;font-size:15px">Verificar mi cuenta</a>
+    <p style="margin:24px 0 0;font-size:12px;color:#999">Si no creaste esta cuenta, ignora este mensaje.<br>O copia este enlace: <a href="' . $link . '" style="color:#2563eb">' . $link . '</a></p>
+  </div>
+</div>
+</body></html>';
+
+        try {
+            $emailSvc = \Config\Services::email();
+            $emailSvc->setFrom(
+                getenv('MAIL_FROM_ADDRESS') ?: 'noreply@flatsync.app',
+                getenv('MAIL_FROM_NAME')    ?: 'FlatSync'
+            );
+            $emailSvc->setTo($toEmail);
+            $emailSvc->setSubject('Verifica tu cuenta en FlatSync');
+            $emailSvc->setMessage($body);
+            $emailSvc->send();
+        } catch (\Throwable $e) {
+            log_message('error', 'Email send failed: ' . $e->getMessage());
+        }
     }
 
     // ── Google OAuth ─────────────────────────────────────────────────────────
@@ -200,11 +283,12 @@ class AuthController extends BaseController
                 // 3) Create new user
                 $username = trim($googleUser['given_name'] ?? explode('@', $googleUser['email'])[0]);
                 $userId = $userModel->insert([
-                    'username'   => $username,
-                    'email'      => $googleUser['email'],
-                    'password'   => null,
-                    'google_id'  => $googleUser['sub'],
-                    'avatar_url' => $googleUser['picture'] ?? null,
+                    'username'       => $username,
+                    'email'          => $googleUser['email'],
+                    'password'       => null,
+                    'google_id'      => $googleUser['sub'],
+                    'avatar_url'     => $googleUser['picture'] ?? null,
+                    'email_verified' => 1,
                 ]);
                 $user = $userModel->find($userId);
             }

@@ -13,6 +13,8 @@ $routes->get('/logout',   'AuthController::logout');
 $routes->post('/logout',  'AuthController::logout');
 $routes->get('/auth/google',          'AuthController::googleRedirect');
 $routes->get('/auth/google/callback', 'AuthController::googleCallback');
+$routes->get('/verify-email/(:any)',  'AuthController::verifyEmail/$1');
+$routes->post('/resend-verification', 'AuthController::resendVerification');
 
 // API — rutas exclusivas para la app móvil
 $routes->post('/api/login',    'AuthController::loginPost');

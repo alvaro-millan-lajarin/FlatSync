@@ -81,11 +81,28 @@ $_locale = session()->get('lang') ?? 'es';
         <p><?= lang('App.login_title') ?></p>
       </div>
 
+      <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success" style="margin-bottom:18px">
+          <i data-lucide="check-circle" style="width:14px;height:14px;flex-shrink:0"></i>
+          <?= esc(session()->getFlashdata('success')) ?>
+        </div>
+      <?php endif; ?>
+
       <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-error" style="margin-bottom:18px">
           <i data-lucide="alert-triangle" style="width:14px;height:14px;flex-shrink:0"></i>
-          <?= session()->getFlashdata('error') ?>
+          <?= esc(session()->getFlashdata('error')) ?>
         </div>
+        <?php if (session()->getFlashdata('unverified_email')): ?>
+          <form method="post" action="<?= site_url('/resend-verification') ?>" style="margin-bottom:18px">
+            <?= csrf_field() ?>
+            <input type="hidden" name="email" value="<?= esc(session()->getFlashdata('unverified_email')) ?>">
+            <button type="submit" class="btn btn-secondary" style="width:100%;justify-content:center;font-size:.88rem;padding:10px">
+              <i data-lucide="mail" style="width:14px;height:14px"></i>
+              Reenviar email de verificación
+            </button>
+          </form>
+        <?php endif; ?>
       <?php endif; ?>
 
       <form method="post" action="<?= site_url('/login') ?>">

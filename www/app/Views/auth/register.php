@@ -81,6 +81,13 @@ $_locale = session()->get('lang') ?? 'es';
         <p><?= lang('App.landing_note') ?></p>
       </div>
 
+      <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success" style="margin-bottom:18px">
+          <i data-lucide="check-circle" style="width:14px;height:14px;flex-shrink:0"></i>
+          <?= esc(session()->getFlashdata('success')) ?>
+        </div>
+      <?php endif; ?>
+
       <?php if (!empty($errors)): ?>
         <div class="alert alert-error" style="margin-bottom:18px">
           <i data-lucide="alert-triangle" style="width:14px;height:14px;flex-shrink:0"></i>
