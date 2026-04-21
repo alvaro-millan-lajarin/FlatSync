@@ -5,7 +5,7 @@ set -e
 cat > /var/www/.env << EOF
 CI_ENVIRONMENT = production
 
-app.baseURL  = ${APP_BASE_URL:-https://${RAILWAY_PUBLIC_DOMAIN}/}
+app.baseURL  = ${APP_BASE_URL}
 app.indexPage =
 
 encryption.key = hex2bin:${APP_ENCRYPTION_KEY}
