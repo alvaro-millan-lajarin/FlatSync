@@ -40,6 +40,7 @@ $routes->get('/api/members',                 'MembersController::index');
 $routes->get('/lang/(:segment)', 'LanguageController::switch/$1');
 
 // Landing & Dashboard
+$routes->get('/debug-url', 'HomeController::debugUrl');
 $routes->get('/',          'HomeController::landing');
 $routes->get('/dashboard', 'HomeController::index');
 

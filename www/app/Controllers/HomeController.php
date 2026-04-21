@@ -11,6 +11,23 @@ use App\Models\UserHomesModel;
 
 class HomeController extends BaseController
 {
+    public function debugUrl()
+    {
+        $proto  = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '(no forwarded proto)';
+        $https  = $_SERVER['HTTPS'] ?? '(no HTTPS var)';
+        $host   = $_SERVER['HTTP_HOST'] ?? '(no host)';
+        $base   = base_url();
+        $css    = base_url('css/app.css');
+        header('Content-Type: text/plain');
+        echo "HTTP_X_FORWARDED_PROTO: $proto\n";
+        echo "HTTPS: $https\n";
+        echo "HTTP_HOST: $host\n";
+        echo "base_url(): $base\n";
+        echo "CSS url: $css\n";
+        echo "APP_BASE_URL env: " . (getenv('APP_BASE_URL') ?: '(not set)') . "\n";
+        exit;
+    }
+
     public function landing()
     {
         // Redirect logged-in users straight to dashboard
