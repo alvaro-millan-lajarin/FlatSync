@@ -2,7 +2,7 @@
 
 Aplicación web para la gestión de pisos compartidos. Permite a los compañeros de piso organizar tareas del hogar, gastos compartidos, miembros y comunicación en un solo lugar.
 
-![Dashboard](docs/images/dashboard.png)
+![Dashboard](docs/images/dashboard1.png)
 
 ---
 
