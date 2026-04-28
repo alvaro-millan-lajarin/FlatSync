@@ -1,83 +1,170 @@
-# Local Environment
-> Using Docker for our local environment
+# FlatSync
 
-## Requirements
+Aplicación web para la gestión de pisos compartidos. Permite a los compañeros de piso organizar tareas del hogar, gastos compartidos, miembros y comunicación en un solo lugar.
 
-1. Having [Docker installed](https://www.docker.com/products/docker-desktop) (you will need to create a Hub account)
-2. Having [Git installed](https://git-scm.com/downloads)
+![Dashboard](docs/images/dashboard.png)
 
-## Installation
+---
 
-1. Clone this repository into your projects folder using the `git clone` command.
+## Características
 
-## Instructions
+- **Hogares** — Crea tu piso o únete a uno con código de invitación. Soporte multi-hogar por usuario.
+- **Tareas** — Gestión de tareas del hogar con calendario semanal/mensual, asignación por miembro e intercambio de turnos.
+- **Gastos** — Control de gastos compartidos, balance por usuario y liquidación de deudas.
+- **Chat** — Mensajería interna entre los miembros del piso.
+- **Servicios** — Seguimiento de servicios y suministros del hogar.
+- **Miembros** — Gestión de compañeros con roles (administrador / miembro).
+- **Perfil** — Edición de datos personales y preferencias.
 
-1. After cloning the project, open your terminal and access the root folder using the `cd /path/to/the/folder` command.
-2. Edit the `.env` file with the desired information for your project. Do not forget to edit the line `12` with the name of the architecture that you are using. The available platform architectures are: `linux/amd64`, `linux/arm/v7`, `linux/arm64`.
-3. Once it has been created, execute the command `docker compose up -d` in your terminal to run your local environment.
+---
 
-**Note:** The first time you run this command it will take some time because it will download all the required images from the Hub.
+## Stack tecnológico
 
-At this point, if you execute the command `docker compose ps` you should see a total of 6 containers running (this table is using the default ports of each service. Those values should be configured in the `.env` file):
+| Capa | Tecnología |
+|---|---|
+| Backend | PHP 8 · CodeIgniter 4 |
+| Base de datos | MySQL 8 |
+| Servidor web | Nginx |
+| Entorno local | Docker / Docker Compose |
+| Despliegue | Railway |
+
+---
+
+## Requisitos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (requiere cuenta en Docker Hub)
+- [Git](https://git-scm.com/downloads)
+
+---
+
+## Instalación y puesta en marcha
+
+```bash
+# 1. Clona el repositorio
+git clone <url-del-repo>
+cd FlatSync
+
+# 2. Configura las variables de entorno
+cp .env.example .env   # edita el archivo con tus valores
+```
+
+En el `.env` ajusta al menos:
+
+| Variable | Descripción |
+|---|---|
+| `PROJECT_PREFIX` / `PROJECT_NAME` | Prefijo de los contenedores Docker |
+| `MYSQL_*` | Credenciales de la base de datos |
+| `NGINX_PORT` | Puerto local para acceder a la app |
+| `PHPMYADMIN_PORT` | Puerto local de phpMyAdmin |
+
+```bash
+# 3. Levanta los contenedores
+docker compose up -d
+```
+
+La primera vez tardará un poco porque descarga las imágenes de Docker Hub.
+
+---
+
+## Contenedores
+
+| Contenedor | Descripción | Puerto por defecto |
+|---|---|---|
+| `app` | PHP-FPM (CodeIgniter 4) | 9000 (interno) |
+| `mysql` | Base de datos MySQL | `MYSQL_PORT`:3306 |
+| `nginx` | Servidor web | `NGINX_PORT`:8080 |
+| `phpmyadmin` | Administrador de BD vía navegador | `PHPMYADMIN_PORT`:8081 |
+
+Accede a la app en: [http://localhost:8080](http://localhost:8080)  
+Accede a phpMyAdmin en: [http://localhost:8081](http://localhost:8081)
+
+---
+
+## Base de datos
+
+El directorio `docker-compose/mysql/` contiene los archivos `.sql` que se importan automáticamente al levantar los contenedores por primera vez:
+
+| Archivo | Contenido |
+|---|---|
+| `002-table.sql` | Tablas base (usuarios, etc.) |
+| `003-user-homes.sql` | Tabla pivot `user_homes` |
+
+Para acceder manualmente a la BD dentro del contenedor:
+
+```bash
+docker exec -it <nombre_contenedor_mysql> bash
+mysql -u root -p
+```
+
+---
+
+## Comandos útiles
+
+```bash
+# Ver estado de los contenedores
+docker compose ps
+
+# Detener los contenedores
+docker compose down
+
+# Gestionar dependencias PHP con Composer
+docker compose exec app composer install
+docker compose exec app composer update
+
+# Ejecutar migraciones de CodeIgniter
+docker compose exec app php spark migrate
+```
+
+---
+
+## Estructura del proyecto
 
 ```
-NAME                                                    COMMAND           SERVICE             STATUS              PORTS
--------------------------------------------------------------------------------------------------------------------------------
-${PROJECT_PREFIX}_${PROJECT_NAME}_app            "docker-php-entrypoi…"   app                 running             9000/tcp
-${PROJECT_PREFIX}_${PROJECT_NAME}_mysql          "docker-entrypoint.s…"   mysql               running             ${MYSQL_PORT}:3306/tcp
-${PROJECT_PREFIX}_${PROJECT_NAME}_nginx          "/docker-entrypoint.…"   nginx               running             ${NGINX_PORT}:8080/tcp
-${PROJECT_PREFIX}_${PROJECT_NAME}_phpmyadmin     "/docker-entrypoint.…"   phpmyadmin          running             ${PHPMYADMIN_PORT}:8081/tcp
+FlatSync/
+├── docker-compose/         # Configuración de Nginx, MySQL, Xdebug y PHP
+├── www/
+│   ├── app/
+│   │   ├── Controllers/    # AuthController, ChoresController, ExpensesController…
+│   │   ├── Models/         # ChoreModel, ExpenseModel, HomeModel…
+│   │   └── Views/          # Vistas por sección (chores, expenses, homes…)
+│   ├── public/             # Punto de entrada (index.php) y assets
+│   └── writable/           # Logs, caché y sesiones
+├── docker-compose.yaml
+├── Dockerfile
+└── .env
 ```
 
-At this point, you should be able to access the application by visiting the following address in your browser [http://localhost:${NGINX_PORT}/](http://localhost:8080/).
+---
 
-### Databases
+## Capturas de pantalla
 
-There are multiple ways to access the databases inside the docker container. In this case we are going to cover two options:
 
-1. Manually accessing the container
-2. Using your browser
+Landing
 
-#### [MySQL] Manually
+![Landing](docs/images/landing.png)
 
-In order to manually access the database, we need the name of the database container. Use `docker-compose ps`. The name should be something like `${PROJECT_PREFIX}_${PROJECT_NAME}_mysql`.
+Sing-in
 
-Now, we are going to ssh into the container using the command `docker exec -it container_id bash`. At this point, you should be able to notice that the terminal prompt has changed because now you are inside of the container.
+![Login](docs/images/login.png)
 
-To access the database, execute the command `mysql -u root -p`. (The username and password are specified in the .env file.)
+Calendar
 
-#### [MySQL] Browser
+![Calendario de tareas](docs/images/calendar.png)
 
-To access to the admin page, visit the URL [http://localhost:${PHPMYADMIN_PORT}/](http://localhost:8081/) in your browser.
+Expenses
 
-### Shared files and directories
+![Gastos](docs/images/expenses.png)
 
-1. In the root of the environment folder, you'll find a `.env` file with some useful information like the DB usernames and passwords used to create the environment by default (It should be initially modified with the information of your project).
-2. All the content of the website should be placed inside a shared directory called `./www`. The public content should be placed in `./www/public`.
-3. Inside the folder `./docker-compose` you'll find some interesting folders:
-   1. The `mysql` folder can be used to load a database when you run the `docker compose up -d` command. If you place a .sql file inside this folder, it'll be imported to the MySQL database automatically.
-   2. The `mysql/config` folder contains the configuration of the MySQL server (It shouldn't be modified unless you know what are you doing).
-   3. The `nginx` folder contains a file with the custom configuration of the Nginx server (It shouldn't be modified unless you know what are you doing).
-   4. The `xdebug` folder contains the configuration for the PHP's debugging system (It shouldn't be modified unless you know what are you doing).
+---
 
-### Composer
+## Extensiones PHP incluidas
 
-If you need to run composer to manage/install/update your project dependencies, open your terminal and execute the command `docker compose exec app composer {command}` where `{command}` is the action that you want to perform (for example install/update/...).
+`pdo_mysql` · `mbstring` · `exif` · `pcntl` · `bcmath` · `gd` · `zip` · `intl` · `mysqli` · `xdebug` · `wkhtmltopdf`
 
-### PHP Extensions
+Para añadir más, edita el `Dockerfile` en la raíz del proyecto.
 
-Those PHP extensions are included in the environment:
+---
 
-   - pdo_mysql
-   - mbstring
-   - exif
-   - pcntl
-   - bcmath
-   - gd
-   - zip
-   - intl
-   - mysqli
-   - xdebug
-   - wkhtmltopdf
+## Despliegue en Railway
 
-If you need to include more extensions you can add them in the `Dockerfile` that you must find in the root of the environment folder.
+El proyecto incluye `railway.json` y `Dockerfile.production` listos para desplegar en [Railway](https://railway.app). Configura las variables de entorno equivalentes a las del `.env` local desde el panel de Railway.
