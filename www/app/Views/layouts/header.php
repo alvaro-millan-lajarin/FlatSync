@@ -170,7 +170,7 @@ helper('avatar');
         <?php endif; ?>
         <div class="user-info">
           <strong><?= esc(session()->get('username') ?? 'Usuario') ?></strong>
-          <span><a href="<?= site_url('/logout') ?>" onclick="event.stopPropagation()" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.7rem;display:inline-flex;align-items:center;gap:3px"><i data-lucide="log-out" style="width:10px;height:10px"></i> <?= lang('App.nav_logout') ?></a></span>
+          <span><a href="<?= site_url('/logout') ?>" onclick="event.stopPropagation()" style="color:rgba(255,255,255,0.45);text-decoration:none;font-size:0.7rem;display:inline-flex;align-items:center;gap:3px"><i data-lucide="log-out" style="width:10px;height:10px"></i> <?= lang('App.nav_logout') ?></a></span>
         </div>
       </div>
     </a>

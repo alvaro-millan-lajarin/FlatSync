@@ -377,7 +377,12 @@ function renderPanel(date) {
   const label = d.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
   title.textContent = label.charAt(0).toUpperCase() + label.slice(1);
 
-  if (tasks.length === 0) { closePanel(); return; }
+  if (tasks.length === 0) {
+    body.innerHTML = '<div style="text-align:center;padding:28px 0;color:var(--muted);font-size:0.88rem">No hay tareas para este día.</div>';
+    panel.style.display = 'block';
+    setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    return;
+  }
 
   let html = '';
   tasks.forEach(t => {

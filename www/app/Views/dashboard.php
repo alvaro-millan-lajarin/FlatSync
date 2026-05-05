@@ -1,21 +1,43 @@
 <?= view('layouts/header') ?>
 
+<style>
+/* ── Dashboard: month nav & chart overrides ── */
+.mw-month-nav { display:flex; gap:10px; align-items:center; margin-bottom:28px; flex-wrap:wrap; }
+.mw-month-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 18px; border-radius: 50px;
+  font-size: 0.82rem; font-weight: 700;
+  text-decoration: none; transition: all .18s;
+  background: #fff; color: #8D6868;
+  border: 2px solid #F5DEDE; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.mw-month-btn:hover { background: #EBF3FF; border-color: #7AAEFF; color: #4F80FF; }
+.mw-month-label { font-size: 1.15rem; font-weight: 900; color: #3D2020; letter-spacing: -0.01em; }
+
+/* Chart bars — coral for categories, mint for evolution */
+.chart-bar { border-radius: 6px; font-weight: 700; }
+#cat-chart   .chart-bar { background: linear-gradient(90deg,#4F80FF,#7AAEFF) !important; color:#1A3A8F !important; }
+#evol-chart  .chart-bar { background: linear-gradient(90deg,#6366F1,#818CF8) !important; color:#312E81 !important; }
+</style>
+
+<div>
+
 <!-- Selector de mes -->
-<div style="display:flex;gap:10px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
-  <a href="<?= site_url('/dashboard?month=' . $prevMonth) ?>" class="btn btn-secondary"><?= lang('App.previous') ?></a>
-  <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700"><?= $monthLabel ?></span>
-  <a href="<?= site_url('/dashboard?month=' . $nextMonth) ?>" class="btn btn-secondary"><?= lang('App.next') ?></a>
+<div class="mw-month-nav">
+  <a href="<?= site_url('/dashboard?month=' . $prevMonth) ?>" class="mw-month-btn">‹ <?= lang('App.previous') ?></a>
+  <span class="mw-month-label"><?= $monthLabel ?></span>
+  <a href="<?= site_url('/dashboard?month=' . $nextMonth) ?>" class="mw-month-btn"><?= lang('App.next') ?> ›</a>
   <?php if ($filterMonth !== date('Y-m')): ?>
-    <a href="<?= site_url('/dashboard') ?>" class="btn btn-secondary"><?= lang('App.current_month') ?></a>
+    <a href="<?= site_url('/dashboard') ?>" class="mw-month-btn"><?= lang('App.current_month') ?></a>
   <?php endif; ?>
 </div>
 
 <?php
 $catColors = [
-  'food'     => ['rgba(245,158,11,0.18)', 'var(--warning)'],
-  'cleaning' => ['rgba(37,99,235,0.12)',  'var(--primary)'],
-  'bills'    => ['rgba(239,68,68,0.12)',  'var(--danger)'],
-  'other'    => ['rgba(34,197,94,0.12)',  'var(--success)'],
+  'food'     => ['rgba(245,158,11,0.15)',  '#B45309'],
+  'cleaning' => ['rgba(79,128,255,0.15)',  '#1A3A8F'],
+  'bills'    => ['rgba(99,102,241,0.15)',  '#3730A3'],
+  'other'    => ['rgba(78,205,196,0.18)',  '#1A8C86'],
 ];
 $catLabels = ['food'=>lang('App.cat_food'),'cleaning'=>lang('App.cat_cleaning'),'bills'=>lang('App.cat_bills'),'other'=>lang('App.cat_other')];
 ?>
@@ -47,7 +69,7 @@ $catLabels = ['food'=>lang('App.cat_food'),'cleaning'=>lang('App.cat_cleaning'),
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
 
   <!-- Por categoría -->
-  <div class="card">
+  <div class="card" id="cat-chart">
     <div class="card-header"><span class="card-title"><i data-lucide="folder"></i> <?= lang('App.dashboard_by_category') ?></span></div>
     <?php $maxCat = max(array_column($byCategory, 'total') ?: [1]); ?>
     <div class="chart-bar-group">
@@ -74,7 +96,7 @@ $catLabels = ['food'=>lang('App.cat_food'),'cleaning'=>lang('App.cat_cleaning'),
   </div>
 
   <!-- Evolución mensual -->
-  <div class="card">
+  <div class="card" id="evol-chart">
     <div class="card-header"><span class="card-title"><i data-lucide="trending-up"></i> <?= lang('App.dashboard_evolution') ?></span></div>
     <?php $maxEvol = max(1, max(array_column($monthlyEvolution, 'total') ?: [0])); ?>
     <div class="chart-bar-group">
@@ -99,7 +121,7 @@ $catLabels = ['food'=>lang('App.cat_food'),'cleaning'=>lang('App.cat_cleaning'),
   <div class="card-header"><span class="card-title"><i data-lucide="users"></i> <?= lang('App.dashboard_by_member') ?></span></div>
   <div style="display:flex;flex-direction:column;gap:12px">
     <?php foreach ($byMember as $bm): ?>
-    <div style="padding:14px 16px;background:var(--surface2);border-radius:10px">
+    <div class="mw-member-card" style="padding:14px 16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px">
           <div class="user-avatar" style="width:28px;height:28px;font-size:0.72rem"><?= strtoupper(substr($bm['username'], 0, 1)) ?></div>
@@ -141,5 +163,7 @@ $catLabels = ['food'=>lang('App.cat_food'),'cleaning'=>lang('App.cat_cleaning'),
   </div>
 </div>
 <?php endif; ?>
+
+</div>
 
 <?= view('layouts/footer') ?>
