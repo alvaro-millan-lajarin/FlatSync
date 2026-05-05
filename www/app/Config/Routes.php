@@ -51,11 +51,7 @@ $routes->post('/chores/mark-done/(:num)',          'ChoresController::markDone/$
 $routes->post('/chores/toggle/(:num)',             'ChoresController::toggleDone/$1');
 $routes->post('/chores/update/(:num)',            'ChoresController::update/$1');
 $routes->post('/chores/delete/(:num)',            'ChoresController::delete/$1');
-$routes->get('/chores/swap-requests',            'ChoresController::swapRequests');
 $routes->post('/chores/swap/request',            'ChoresController::swapRequest');
-$routes->post('/chores/swap/(:num)/accept',      'ChoresController::swapAccept/$1');
-$routes->post('/chores/swap/(:num)/decline',     'ChoresController::swapDecline/$1');
-$routes->post('/chores/swap/(:num)/cancel',      'ChoresController::swapCancel/$1');
 
 // Expenses
 $routes->get('/expenses',              'ExpensesController::index');

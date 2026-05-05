@@ -158,6 +158,7 @@ return [
     'chores_new'          => 'Nova tasca',
     'chores_today_btn'    => 'Avui',
     'chores_missed'       => 'Tasques no realitzades',
+    'chores_history'      => 'Historial',
     'chores_status_done'  => 'Completada',
     'chores_status_missed'=> 'No realitzada',
     'chores_status_pending'=> 'Pendent',

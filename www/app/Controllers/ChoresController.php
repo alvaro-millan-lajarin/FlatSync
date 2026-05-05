@@ -85,6 +85,18 @@ class ChoresController extends BaseController
             ->limit(10)
             ->findAll();
 
+        // Recent swaps
+        $swapModel   = new SwapModel();
+        $recentSwaps = $swapModel
+            ->select('swap_requests.*, chores.task_name, chores.due_date, u1.username AS requester_name, u2.username AS target_name')
+            ->join('chores', 'chores.id = swap_requests.chore_id')
+            ->join('users AS u1', 'u1.id = swap_requests.requester_user_id')
+            ->join('users AS u2', 'u2.id = swap_requests.target_user_id')
+            ->where('chores.home_id', $homeId)
+            ->orderBy('swap_requests.created_at', 'DESC')
+            ->limit(10)
+            ->findAll();
+
         // List view: all chores
         $allChores = $choreModel
             ->select('chores.*, users.username AS assigned_name')
@@ -111,12 +123,13 @@ class ChoresController extends BaseController
             'calendarTitle' => $calendarTitle,
             'chores'        => $allChores,
             'missedChores'  => $missedChores,
+            'recentSwaps'   => $recentSwaps,
             'members'       => $members,
             'defaultPenalty'=> $home['default_penalty'] ?? 2.00,
         ]);
     }
 
-    /** GET JSON: tareas nuevas desde ?after=id (igual que el chat) */
+    /** GET JSON: tareas nuevas o actualizadas desde ?after=id&after_ts=timestamp */
     public function poll()
     {
         if (!session()->get('isLoggedIn') || !session()->get('home_id')) {
@@ -124,6 +137,7 @@ class ChoresController extends BaseController
         }
         $homeId  = session()->get('home_id');
         $afterId = (int) ($this->request->getGet('after') ?? 0);
+        $afterTs = $this->request->getGet('after_ts') ?? null;
 
         $uhModel  = new UserHomesModel();
         $members  = $uhModel->getMembersOfHome($homeId);
@@ -133,13 +147,21 @@ class ChoresController extends BaseController
         }
 
         $choreModel = new ChoreModel();
-        $chores = $choreModel
+        $builder = $choreModel
             ->select('chores.*, users.username AS assigned_name')
             ->join('users', 'users.id = chores.assigned_user_id')
-            ->where('chores.home_id', $homeId)
-            ->where('chores.id >', $afterId)
-            ->orderBy('chores.due_date', 'ASC')
-            ->findAll();
+            ->where('chores.home_id', $homeId);
+
+        if ($afterTs) {
+            $builder->groupStart()
+                ->where('chores.id >', $afterId)
+                ->orWhere('chores.updated_at >=', $afterTs)
+                ->groupEnd();
+        } else {
+            $builder->where('chores.id >', $afterId);
+        }
+
+        $chores = $builder->orderBy('chores.due_date', 'ASC')->findAll();
 
         foreach ($chores as &$c) {
             $colors          = $colorMap[$c['assigned_user_id']] ?? self::USER_COLORS[0];
@@ -313,43 +335,12 @@ class ChoresController extends BaseController
         return redirect()->back()->with('success', lang('App.flash_chore_deleted'));
     }
 
-    public function swapRequests()
-    {
-        if ($this->requireHome()) return;
-
-        $userId    = session()->get('user_id');
-        $swapModel = new SwapModel();
-
-        $incoming = $swapModel
-            ->select('swap_requests.*, chores.task_name, chores.due_date, u1.username AS requester_name')
-            ->join('chores', 'chores.id = swap_requests.chore_id')
-            ->join('users AS u1', 'u1.id = swap_requests.requester_user_id')
-            ->where('swap_requests.target_user_id', $userId)
-            ->orderBy('swap_requests.created_at', 'DESC')
-            ->findAll();
-
-        $outgoing = $swapModel
-            ->select('swap_requests.*, chores.task_name, chores.due_date, u2.username AS target_name')
-            ->join('chores', 'chores.id = swap_requests.chore_id')
-            ->join('users AS u2', 'u2.id = swap_requests.target_user_id')
-            ->where('swap_requests.requester_user_id', $userId)
-            ->orderBy('swap_requests.created_at', 'DESC')
-            ->findAll();
-
-        return view('chores/swaps', [
-            'pageTitle'    => lang('App.swaps_title'),
-            'pageSubtitle' => lang('App.swaps_subtitle'),
-            'activeNav'    => 'swaps',
-            'incoming'     => $incoming,
-            'outgoing'     => $outgoing,
-        ]);
-    }
-
     public function swapRequest()
     {
         if ($this->requireHome()) return;
 
         $userId = session()->get('user_id');
+        $homeId = session()->get('home_id');
 
         $rules = [
             'chore_id'       => 'required|is_natural_no_zero',
@@ -360,85 +351,28 @@ class ChoresController extends BaseController
             return redirect()->back()->with('error', lang('App.flash_swap_invalid'));
         }
 
-        $swapModel = new SwapModel();
-        $swapModel->insert([
-            'chore_id'           => $this->request->getPost('chore_id'),
-            'requester_user_id'  => $userId,
-            'target_user_id'     => $this->request->getPost('target_user_id'),
-            'compensation'       => (float) ($this->request->getPost('compensation') ?? 0),
-            'message'            => $this->request->getPost('message'),
-            'status'             => 'pending',
+        $choreId      = (int) $this->request->getPost('chore_id');
+        $targetUserId = (int) $this->request->getPost('target_user_id');
+
+        $choreModel = new ChoreModel();
+        $chore      = $choreModel->find($choreId);
+
+        if (!$chore || $chore['home_id'] != $homeId || $chore['assigned_user_id'] != $userId) {
+            return redirect()->back()->with('error', lang('App.flash_swap_no_perm'));
+        }
+
+        $choreModel->update($choreId, ['assigned_user_id' => $targetUserId]);
+
+        (new SwapModel())->insert([
+            'chore_id'          => $choreId,
+            'requester_user_id' => $userId,
+            'target_user_id'    => $targetUserId,
+            'compensation'      => 0,
+            'message'           => $this->request->getPost('message'),
+            'status'            => 'completed',
         ]);
 
-        return redirect()->to('/chores/swap-requests')->with('success', lang('App.flash_swap_sent'));
-    }
-
-    public function swapAccept(int $id)
-    {
-        if ($this->requireHome()) return;
-
-        $userId    = session()->get('user_id');
-        $swapModel = new SwapModel();
-        $swap      = $swapModel->find($id);
-
-        if (!$swap || $swap['target_user_id'] != $userId) {
-            return redirect()->back()->with('error', lang('App.flash_swap_no_perm'));
-        }
-
-        // Reassign the chore
-        $choreModel = new ChoreModel();
-        $choreModel->update($swap['chore_id'], ['assigned_user_id' => $userId]);
-
-        $swapModel->update($id, ['status' => 'accepted']);
-
-        // If compensation, add to expense balance as a penalty/credit
-        if ($swap['compensation'] > 0) {
-            $expenseModel = new ExpenseModel();
-            $chore = $choreModel->find($swap['chore_id']);
-            $expenseModel->insert([
-                'home_id'     => session()->get('home_id'),
-                'title'       => 'Compensación intercambio: ' . ($chore['task_name'] ?? 'tarea'),
-                'amount'      => $swap['compensation'],
-                'paid_by'     => $swap['requester_user_id'],
-                'category'    => 'other',
-                'date'        => date('Y-m-d'),
-                'description' => 'Pago automático por intercambio de tarea aceptado.',
-            ]);
-        }
-
-        return redirect()->back()->with('success', lang('App.flash_swap_accepted'));
-    }
-
-    public function swapDecline(int $id)
-    {
-        if ($this->requireHome()) return;
-
-        $userId    = session()->get('user_id');
-        $swapModel = new SwapModel();
-        $swap      = $swapModel->find($id);
-
-        if (!$swap || $swap['target_user_id'] != $userId) {
-            return redirect()->back()->with('error', lang('App.flash_swap_no_perm'));
-        }
-
-        $swapModel->update($id, ['status' => 'declined']);
-        return redirect()->back()->with('success', lang('App.flash_swap_declined'));
-    }
-
-    public function swapCancel(int $id)
-    {
-        if ($this->requireHome()) return;
-
-        $userId    = session()->get('user_id');
-        $swapModel = new SwapModel();
-        $swap      = $swapModel->find($id);
-
-        if (!$swap || $swap['requester_user_id'] != $userId) {
-            return redirect()->back()->with('error', lang('App.flash_swap_no_perm'));
-        }
-
-        $swapModel->delete($id);
-        return redirect()->back()->with('success', lang('App.flash_swap_cancelled'));
+        return redirect()->to('/chores')->with('success', lang('App.flash_swap_sent'));
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────

@@ -158,6 +158,7 @@ return [
     'chores_new'          => 'New task',
     'chores_today_btn'    => 'Today',
     'chores_missed'       => 'Missed tasks',
+    'chores_history'      => 'History',
     'chores_status_done'  => 'Completed',
     'chores_status_missed'=> 'Missed',
     'chores_status_pending'=> 'Pending',

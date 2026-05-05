@@ -45,7 +45,7 @@ foreach ($calDays as $day) {
          onclick="selectDay('<?= $day['date'] ?>', this)">
       <div class="cal-day-num"><?= $day['num'] ?></div>
       <?php foreach ($day['tasks'] as $t): ?>
-        <div class="cal-task" style="background:<?= $t['color'] ?? 'rgba(37,99,235,0.12)' ?>;color:<?= $t['text_color'] ?? 'var(--text)' ?>">
+        <div class="cal-task" data-chore-id="<?= $t['id'] ?>" style="background:<?= $t['color'] ?? 'rgba(37,99,235,0.12)' ?>;color:<?= $t['text_color'] ?? 'var(--text)' ?>">
           <?= esc($t['task_name']) ?>
         </div>
       <?php endforeach; ?>
@@ -67,65 +67,95 @@ foreach ($calDays as $day) {
   </div>
 </div>
 
-<!-- Missed chores -->
-<?php if (!empty($missedChores)): ?>
+<!-- History: missed chores + swaps -->
 <?php
-  $missedGrouped = [];
-  foreach ($missedChores as $c) { $missedGrouped[$c['due_date']][] = $c; }
-  $today     = date('Y-m-d');
-  $yesterday = date('Y-m-d', strtotime('-1 day'));
+// Build a unified history list sorted by date DESC
+$history = [];
+foreach ($missedChores as $c) {
+    $history[] = ['type' => 'missed', 'sort' => $c['due_date'], 'data' => $c];
+}
+foreach ($recentSwaps as $s) {
+    $history[] = ['type' => 'swap', 'sort' => $s['created_at'], 'data' => $s];
+}
+usort($history, fn($a, $b) => strcmp($b['sort'], $a['sort']));
+$today     = date('Y-m-d');
+$yesterday = date('Y-m-d', strtotime('-1 day'));
 ?>
-<div class="card" style="margin-top:16px;border-color:rgba(239,68,68,0.3)">
+<?php if (!empty($history)): ?>
+<div class="card" style="margin-top:16px">
   <div class="card-header">
-    <span class="card-title" style="color:var(--danger)">
-      <i data-lucide="alert-triangle" style="width:15px;height:15px;color:var(--danger)"></i> <?= lang('App.chores_missed') ?>
+    <span class="card-title">
+      <i data-lucide="clock" style="width:15px;height:15px"></i> <?= lang('App.chores_history') ?>
     </span>
   </div>
 
-  <div style="display:flex;flex-direction:column;gap:20px">
-    <?php foreach ($missedGrouped as $date => $choroes): ?>
-    <div>
-      <!-- Separador de fecha -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);white-space:nowrap">
-          <?php
-            $ts = strtotime($date);
-            if ($date === $today)         echo lang('App.today') . ' · ' . date('d/m/Y', $ts);
-            elseif ($date === $yesterday) echo lang('App.yesterday') . ' · ' . date('d/m/Y', $ts);
-            else                          echo date('d/m/Y', $ts);
-          ?>
-        </span>
-        <div style="flex:1;height:1px;background:rgba(239,68,68,0.2)"></div>
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <?php foreach ($history as $item):
+      $type = $item['type'];
+      $d    = $item['data'];
+      $dateStr = $type === 'missed' ? $d['due_date'] : substr($d['created_at'], 0, 10);
+      $ts   = strtotime($dateStr);
+      if ($dateStr === $today)         $dateLabel = lang('App.today') . ' · ' . date('d/m/Y', $ts);
+      elseif ($dateStr === $yesterday) $dateLabel = lang('App.yesterday') . ' · ' . date('d/m/Y', $ts);
+      else                             $dateLabel = date('d/m/Y', $ts);
+    ?>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--divider)">
+
+      <!-- Col 1: badge — ancho fijo para alinear ambos tipos -->
+      <div style="flex:0 0 110px">
+        <?php if ($type === 'missed'): ?>
+          <span class="badge badge-missed" style="gap:4px;width:100%;justify-content:center">
+            <i data-lucide="alert-triangle" style="width:10px;height:10px"></i> <?= lang('App.chores_status_missed') ?>
+          </span>
+        <?php else: ?>
+          <span class="badge" style="gap:4px;width:100%;justify-content:center;background:rgba(124,106,247,0.15);color:var(--accent)">
+            <i data-lucide="arrow-left-right" style="width:10px;height:10px"></i> Swap
+          </span>
+        <?php endif; ?>
       </div>
 
-      <!-- Filas -->
-      <div style="display:flex;flex-direction:column;gap:2px">
-        <?php foreach ($choroes as $c): ?>
-        <div style="display:flex;align-items:center;gap:16px;padding:12px 4px;border-bottom:1px solid var(--divider)">
-          <!-- Tarea -->
-          <div style="flex:2;min-width:0;font-weight:500;font-size:0.9rem"><?= esc($c['task_name']) ?></div>
-          <!-- Responsable -->
-          <div style="flex:1;display:flex;align-items:center;gap:6px">
-            <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($c['assigned_name'], 0, 1)) ?></div>
-            <span class="chore-person-name" style="font-size:0.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($c['assigned_name']) ?></span>
-          </div>
-          <!-- Penalización -->
-          <div style="flex:0 0 80px;text-align:right;font-size:1rem;font-weight:700;color:var(--danger)">
-            -€<?= number_format($c['penalty_amount'], 2) ?>
-          </div>
-          <!-- Eliminar -->
-          <div style="flex:0 0 auto">
-            <form method="post" action="<?= site_url('/chores/delete/' . $c['id']) ?>"
-                  data-confirm="¿Eliminar la tarea «<?= esc(addslashes($c['task_name'])) ?>»?">
-              <?= csrf_field() ?>
-              <button class="btn btn-sm btn-danger btn-icon" title="Eliminar">
-                <i data-lucide="trash-2" style="width:13px;height:13px"></i>
-              </button>
-            </form>
-          </div>
+      <!-- Col 2: nombre de la tarea -->
+      <div style="flex:2;min-width:0;font-weight:500;font-size:0.9rem"><?= esc($d['task_name']) ?></div>
+
+      <!-- Col 3: persona(s) -->
+      <?php if ($type === 'missed'): ?>
+        <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0">
+          <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['assigned_name'], 0, 1)) ?></div>
+          <span class="chore-person-name" style="font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= esc($d['assigned_name']) ?></span>
         </div>
-        <?php endforeach; ?>
+      <?php else: ?>
+        <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0">
+          <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['requester_name'], 0, 1)) ?></div>
+          <span class="chore-person-name" style="font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($d['requester_name']) ?></span>
+          <i data-lucide="arrow-right" style="width:12px;height:12px;flex-shrink:0;color:var(--muted)"></i>
+          <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['target_name'], 0, 1)) ?></div>
+          <span class="chore-person-name" style="font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($d['target_name']) ?></span>
+        </div>
+      <?php endif; ?>
+
+      <!-- Col 4: penalización (vacío para swaps) -->
+      <div style="flex:0 0 70px;text-align:right;font-weight:700;color:var(--danger)">
+        <?php if ($type === 'missed'): ?>-€<?= number_format($d['penalty_amount'], 2) ?><?php endif; ?>
       </div>
+
+      <!-- Col 5: fecha -->
+      <div style="flex:0 0 auto;font-size:0.75rem;color:var(--muted);white-space:nowrap"><?= $dateLabel ?></div>
+
+      <!-- Col 6: acción (vacío para swaps) -->
+      <div style="flex:0 0 auto">
+        <?php if ($type === 'missed'): ?>
+          <form method="post" action="<?= site_url('/chores/delete/' . $d['id']) ?>"
+                data-confirm="¿Eliminar la tarea «<?= esc(addslashes($d['task_name'])) ?>»?">
+            <?= csrf_field() ?>
+            <button class="btn btn-sm btn-danger btn-icon" title="Eliminar">
+              <i data-lucide="trash-2" style="width:13px;height:13px"></i>
+            </button>
+          </form>
+        <?php else: ?>
+          <div style="width:28px"></div>
+        <?php endif; ?>
+      </div>
+
     </div>
     <?php endforeach; ?>
   </div>
@@ -234,10 +264,6 @@ foreach ($calDays as $day) {
       <?= csrf_field() ?>
       <input type="hidden" name="chore_id" id="swap-chore-id">
       <div class="form-group">
-        <label><?= lang('App.chores_swap_task') ?></label>
-        <input type="text" id="swap-chore-name" readonly style="opacity:.7">
-      </div>
-      <div class="form-group">
         <label><?= lang('App.chores_swap_with') ?></label>
         <select name="target_user_id" required>
           <?php foreach ($members as $m): ?>
@@ -246,10 +272,6 @@ foreach ($calDays as $day) {
             <?php endif; ?>
           <?php endforeach; ?>
         </select>
-      </div>
-      <div class="form-group">
-        <label><?= lang('App.chores_swap_comp') ?> <small style="color:var(--muted)"><?= lang('App.optional') ?></small></label>
-        <input type="number" name="compensation" value="0" min="0" step="0.5" placeholder="0.00">
       </div>
       <div class="form-group">
         <label><?= lang('App.chores_swap_msg') ?></label>
@@ -465,7 +487,6 @@ function openEditChoreModal(id) {
 
 function openSwapModal(choreId, choreName) {
   document.getElementById('swap-chore-id').value = choreId;
-  document.getElementById('swap-chore-name').value = choreName;
   openModal('modal-swap');
 }
 
@@ -490,6 +511,7 @@ document.querySelector('#modal-add-chore form').addEventListener('submit', funct
           if (cell) {
             const chip = document.createElement('div');
             chip.className = 'cal-task';
+            chip.dataset.choreId = t.id;
             chip.style.background = t.color || 'rgba(37,99,235,0.12)';
             chip.style.color = t.text_color || 'var(--text)';
             chip.textContent = t.task_name;
@@ -523,39 +545,93 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-// Polling de tareas — mismo patrón que el chat
+// Polling de tareas — detecta tareas nuevas y actualizadas (intercambios)
 const CHORE_POLL_URL = '<?= site_url('/chores/poll') ?>';
 let lastChoreId = Object.keys(TASKS_BY_ID).length
   ? Math.max(...Object.keys(TASKS_BY_ID).map(Number))
   : 0;
 
+function sqlNow() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0') + ' ' +
+    String(d.getHours()).padStart(2,'0') + ':' +
+    String(d.getMinutes()).padStart(2,'0') + ':' +
+    String(d.getSeconds()).padStart(2,'0');
+}
+
+let lastPollAt = sqlNow();
+
 function pollChores() {
-  fetch(`${CHORE_POLL_URL}?after=${lastChoreId}`)
+  const pollTs = sqlNow();
+  fetch(`${CHORE_POLL_URL}?after=${lastChoreId}&after_ts=${encodeURIComponent(lastPollAt)}`)
     .then(r => r.json())
     .then(data => {
+      lastPollAt = pollTs;
       if (!data.chores || data.chores.length === 0) return;
       data.chores.forEach(t => {
         lastChoreId = Math.max(lastChoreId, parseInt(t.id));
 
-        // Actualizar estructuras JS
-        if (!TASKS[t.due_date]) TASKS[t.due_date] = [];
-        TASKS[t.due_date].push(t);
-        TASKS_BY_ID[t.id] = t;
+        const isUpdate = !!TASKS_BY_ID[t.id];
 
-        // Añadir chip en la celda del calendario si está visible
-        const cell = document.querySelector(`.cal-day[data-date="${t.due_date}"]`);
-        if (cell) {
-          const chip = document.createElement('div');
-          chip.className = 'cal-task';
-          chip.style.background = t.color || 'rgba(37,99,235,0.12)';
-          chip.style.color = t.text_color || 'var(--text)';
-          chip.textContent = t.task_name;
-          cell.appendChild(chip);
+        if (isUpdate) {
+          const old = TASKS_BY_ID[t.id];
+          // Actualizar en el array de la fecha antigua
+          if (TASKS[old.due_date]) {
+            const idx = TASKS[old.due_date].findIndex(x => x.id == t.id);
+            if (idx !== -1) {
+              if (old.due_date !== t.due_date) {
+                TASKS[old.due_date].splice(idx, 1);
+              } else {
+                TASKS[old.due_date][idx] = t;
+              }
+            }
+          }
+          // Si cambió de fecha, añadir a la nueva
+          if (old.due_date !== t.due_date) {
+            if (!TASKS[t.due_date]) TASKS[t.due_date] = [];
+            TASKS[t.due_date].push(t);
+          }
+          TASKS_BY_ID[t.id] = t;
+
+          // Actualizar chip en el calendario
+          const chip = document.querySelector(`.cal-day .cal-task[data-chore-id="${t.id}"]`);
+          if (chip) {
+            chip.style.background = t.color || 'rgba(37,99,235,0.12)';
+            chip.style.color = t.text_color || 'var(--text)';
+            chip.textContent = t.task_name;
+            // Mover el chip si cambió de fecha
+            if (old.due_date !== t.due_date) {
+              chip.remove();
+              const newCell = document.querySelector(`.cal-day[data-date="${t.due_date}"]`);
+              if (newCell) newCell.appendChild(chip);
+            }
+          }
+        } else {
+          // Tarea nueva
+          if (!TASKS[t.due_date]) TASKS[t.due_date] = [];
+          TASKS[t.due_date].push(t);
+          TASKS_BY_ID[t.id] = t;
+
+          const cell = document.querySelector(`.cal-day[data-date="${t.due_date}"]`);
+          if (cell) {
+            const chip = document.createElement('div');
+            chip.className = 'cal-task';
+            chip.dataset.choreId = t.id;
+            chip.style.background = t.color || 'rgba(37,99,235,0.12)';
+            chip.style.color = t.text_color || 'var(--text)';
+            chip.textContent = t.task_name;
+            cell.appendChild(chip);
+          }
         }
 
-        // Re-renderizar panel de día si está abierto para esta fecha
-        if (selectedEl && selectedEl.dataset.date === t.due_date) {
-          selectDay(t.due_date, selectedEl);
+        // Re-renderizar panel abierto si afecta a esa fecha
+        if (selectedEl) {
+          const openDate = selectedEl.dataset.date;
+          if (openDate === t.due_date || (isUpdate && openDate === TASKS_BY_ID[t.id]?.due_date)) {
+            renderPanel(openDate);
+          }
         }
       });
     })
