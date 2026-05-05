@@ -1,5 +1,57 @@
 <?= view('layouts/header') ?>
 
+<style>
+.svc-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  transition: transform .2s, box-shadow .2s;
+  border: 1.5px solid rgba(0,0,0,0.05);
+}
+.svc-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.13);
+}
+.svc-section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.svc-icon-wrap {
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.svc-phone-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 11px 14px;
+  border-radius: 14px; color: #fff;
+  font-size: 0.84rem; font-weight: 800;
+  text-decoration: none; letter-spacing: 0.01em;
+  transition: opacity .15s, transform .15s;
+}
+.svc-phone-btn:hover { opacity: .88; transform: scale(1.02); }
+.svc-link-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 9px 14px;
+  border-radius: 12px; font-size: 0.8rem; font-weight: 600;
+  text-decoration: none; transition: background .15s;
+}
+.svc-osm-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 7px 14px;
+  border-radius: 10px; font-size: 0.74rem;
+  text-decoration: none; color: #94A3B8;
+  border: 1px solid #E2E8F0; transition: background .15s;
+}
+.svc-osm-btn:hover { background: #F8FAFC; }
+</style>
+
 <!-- Barra superior -->
 <div class="card" style="margin-bottom:24px">
   <div style="display:flex;flex-direction:column;gap:14px">
@@ -95,10 +147,10 @@ const SVC_L = {
 };
 
 const COLOR_MAP = {
-  accent:  { bg: 'rgba(37,99,235,0.08)',  text: 'var(--primary)',  star: '#2563EB' },
-  warning: { bg: 'rgba(245,158,11,0.08)', text: 'var(--warning)', star: '#F59E0B' },
-  success: { bg: 'rgba(34,197,94,0.08)',  text: 'var(--success)', star: '#22C55E' },
-  danger:  { bg: 'rgba(239,68,68,0.08)',  text: 'var(--danger)',  star: '#EF4444' },
+  accent:  { bg: 'rgba(79,128,255,0.10)',  text: '#4F80FF', grad1: '#4F80FF', grad2: '#818CF8', soft: 'rgba(79,128,255,0.08)' },
+  warning: { bg: 'rgba(245,158,11,0.10)',  text: '#D97706', grad1: '#F59E0B', grad2: '#FBBF24', soft: 'rgba(245,158,11,0.08)' },
+  success: { bg: 'rgba(34,197,94,0.10)',   text: '#16A34A', grad1: '#22C55E', grad2: '#4ADE80', soft: 'rgba(34,197,94,0.08)' },
+  danger:  { bg: 'rgba(239,68,68,0.10)',   text: '#DC2626', grad1: '#EF4444', grad2: '#F87171', soft: 'rgba(239,68,68,0.08)' },
 };
 
 let userLat = null, userLng = null;
@@ -263,7 +315,7 @@ function resolveCategory(tags) {
 
 /* ── Una query única con todos los tags exactos (sin regex) ─── */
 function buildCombinedQuery() {
-  const a = `(around:5000,${userLat},${userLng})`;
+  const a = `(around:20000,${userLat},${userLng})`;
   const lines = [
     // cerrajería
     `node["craft"="locksmith"]${a};`,
@@ -293,7 +345,7 @@ function buildCombinedQuery() {
     `node["office"="moving_company"]${a};`,
     `node["amenity"="storage_rental"]${a};`,
   ].join('');
-  return `[out:json][timeout:20];(${lines});out 120;`;
+  return `[out:json][timeout:40];(${lines});out 300;`;
 }
 
 /* Lanza la query contra 3 mirrors en paralelo, usa el primero que responda */
@@ -306,7 +358,7 @@ async function overpassFetch() {
   ];
   const tries = mirrors.map(async url => {
     const ctrl  = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 22000);
+    const timer = setTimeout(() => ctrl.abort(), 45000);
     try {
       const r = await fetch(`${url}?data=${encodeURIComponent(q)}`, { signal: ctrl.signal });
       clearTimeout(timer);
@@ -326,20 +378,20 @@ async function overpassFetch() {
 function buildSkeleton(cat) {
   const c   = COLOR_MAP[cat.color] || COLOR_MAP.accent;
   const div = document.createElement('div');
-  div.className = 'card service-category';
+  div.className = 'service-category';
   div.dataset.label = cat.label.toLowerCase();
-  div.style.marginBottom = '24px';
+  div.style.marginBottom = '32px';
   div.innerHTML = `
-    <div class="card-header" style="margin-bottom:12px">
-      <span class="card-title">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:${c.bg};flex-shrink:0">
-          <i data-lucide="${cat.icon}" style="width:14px;height:14px;color:${c.text}"></i>
-        </span>
-        ${cat.label}
-      </span>
-      <span class="cat-count" style="font-size:0.78rem;color:var(--muted)">${SVC_L.searching}</span>
+    <div class="svc-section-header">
+      <div class="svc-icon-wrap" style="background:linear-gradient(135deg,${c.grad1},${c.grad2})">
+        <i data-lucide="${cat.icon}" style="width:22px;height:22px;color:#fff"></i>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:1.1rem;font-weight:900;color:#1E293B;letter-spacing:-0.01em">${cat.label}</div>
+        <span class="cat-count" style="font-size:0.78rem;color:#94A3B8;font-weight:500">${SVC_L.searching}</span>
+      </div>
     </div>
-    <div class="cat-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px">
+    <div class="cat-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
       ${[1,2,3].map(skeletonCard).join('')}
     </div>`;
   if (window.lucide) lucide.createIcons(div);
@@ -347,10 +399,12 @@ function buildSkeleton(cat) {
 }
 
 function skeletonCard() {
-  return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;height:140px;animation:pulse 1.4s ease-in-out infinite">
-    <div style="height:13px;border-radius:4px;background:#E2E8F0;margin-bottom:10px;width:65%"></div>
-    <div style="height:10px;border-radius:4px;background:#E2E8F0;margin-bottom:8px;width:40%"></div>
-    <div style="height:10px;border-radius:4px;background:#E2E8F0;width:55%"></div>
+  return `<div style="background:#fff;border-radius:20px;overflow:hidden;border:1.5px solid rgba(0,0,0,0.05);box-shadow:0 4px 18px rgba(0,0,0,0.07);animation:pulse 1.4s ease-in-out infinite">
+    <div style="height:68px;background:#F1F5F9"></div>
+    <div style="padding:14px 16px">
+      <div style="height:10px;border-radius:6px;background:#E2E8F0;margin-bottom:8px;width:45%"></div>
+      <div style="height:34px;border-radius:12px;background:#E2E8F0;margin-top:14px"></div>
+    </div>
   </div>`;
 }
 
@@ -362,58 +416,60 @@ function renderResults(section, cat, results) {
 
   if (!results.length) {
     section.querySelector('.cat-body').innerHTML =
-      `<p style="color:var(--muted);font-size:0.85rem;padding:4px 0;grid-column:1/-1">${SVC_L.noResultsSub}</p>`;
+      `<p style="color:#94A3B8;font-size:0.85rem;padding:4px 0;grid-column:1/-1">${SVC_L.noResultsSub}</p>`;
     return;
   }
 
   section.querySelector('.cat-body').innerHTML = results.map(p => `
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:9px;transition:box-shadow .15s"
-         onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,0.08)'"
-         onmouseout="this.style.boxShadow='none'">
+    <div class="svc-card">
 
-      <!-- Nombre + distancia -->
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-        <div style="font-weight:600;font-size:0.9rem;line-height:1.3">${escHtml(p.name)}</div>
-        <span style="font-size:0.7rem;background:var(--surface);border:1px solid var(--border);padding:2px 8px;border-radius:20px;white-space:nowrap;color:var(--muted);display:flex;align-items:center;gap:3px;flex-shrink:0">
-          <i data-lucide="map-pin" style="width:10px;height:10px"></i>${escHtml(p.distance)}
+      <!-- Colored top banner: icon + name + distance -->
+      <div style="background:linear-gradient(135deg,${c.grad1}18,${c.grad2}10);padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1.5px solid ${c.grad1}22">
+        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,${c.grad1},${c.grad2});display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px ${c.grad1}55">
+          <i data-lucide="${cat.icon}" style="width:18px;height:18px;color:#fff"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:0.88rem;color:#1E293B;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(p.name)}</div>
+        </div>
+        <span style="background:#fff;border-radius:20px;padding:3px 10px;font-size:0.68rem;font-weight:700;color:${c.text};display:flex;align-items:center;gap:3px;white-space:nowrap;box-shadow:0 1px 5px rgba(0,0,0,0.08);flex-shrink:0;border:1px solid ${c.grad1}30">
+          <i data-lucide="map-pin" style="width:9px;height:9px"></i>${escHtml(p.distance)}
         </span>
       </div>
 
-      <!-- Dirección -->
-      ${p.address ? `
-      <div style="font-size:0.78rem;color:var(--muted);display:flex;align-items:flex-start;gap:5px">
-        <i data-lucide="map-pin" style="width:11px;height:11px;flex-shrink:0;margin-top:2px"></i>
-        <span>${escHtml(p.address)}</span>
-      </div>` : ''}
+      <!-- Body -->
+      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:7px;flex:1">
 
-      <!-- Horario -->
-      ${p.hours ? `
-      <div style="font-size:0.78rem;color:var(--muted);display:flex;align-items:flex-start;gap:5px">
-        <i data-lucide="clock" style="width:11px;height:11px;flex-shrink:0;margin-top:2px"></i>
-        <span>${escHtml(p.hours)}</span>
-      </div>` : ''}
+        ${p.address ? `
+        <div style="font-size:0.76rem;color:#94A3B8;display:flex;align-items:flex-start;gap:5px">
+          <i data-lucide="map-pin" style="width:10px;height:10px;flex-shrink:0;margin-top:2px;color:${c.text}"></i>
+          <span>${escHtml(p.address)}</span>
+        </div>` : ''}
 
-      <!-- Botones: teléfono / web / mapa -->
-      <div style="display:flex;flex-direction:column;gap:6px;margin-top:auto">
-        ${p.phone ? `
-        <a href="tel:${escHtml(p.phone.replace(/\s/g,''))}"
-           style="display:flex;align-items:center;justify-content:center;gap:7px;padding:7px;background:${c.bg};border-radius:8px;color:${c.text};font-size:0.82rem;font-weight:600;text-decoration:none"
-           onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-          <i data-lucide="phone" style="width:13px;height:13px"></i>${escHtml(p.phone)}
-        </a>` : ''}
+        ${p.hours ? `
+        <div style="font-size:0.76rem;color:#94A3B8;display:flex;align-items:flex-start;gap:5px">
+          <i data-lucide="clock" style="width:10px;height:10px;flex-shrink:0;margin-top:2px;color:${c.text}"></i>
+          <span>${escHtml(p.hours)}</span>
+        </div>` : ''}
 
-        ${p.website ? `
-        <a href="${escHtml(p.website)}" target="_blank" rel="noopener"
-           style="display:flex;align-items:center;justify-content:center;gap:7px;padding:7px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.82rem;font-weight:500;text-decoration:none"
-           onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
-          <i data-lucide="globe" style="width:13px;height:13px"></i>${SVC_L.website}
-        </a>` : ''}
+        <!-- Action buttons -->
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:auto;padding-top:8px">
+          ${p.phone ? `
+          <a href="tel:${escHtml(p.phone.replace(/\s/g,''))}" class="svc-phone-btn"
+             style="background:linear-gradient(135deg,${c.grad1},${c.grad2})">
+            <i data-lucide="phone" style="width:14px;height:14px"></i>${escHtml(p.phone)}
+          </a>` : ''}
 
-        <a href="https://www.openstreetmap.org/${escHtml(p.osm_type)}/${escHtml(String(p.osm_id))}" target="_blank" rel="noopener"
-           style="display:flex;align-items:center;justify-content:center;gap:7px;padding:7px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.78rem;text-decoration:none"
-           onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
-          <i data-lucide="map" style="width:12px;height:12px"></i>${SVC_L.osm}
-        </a>
+          ${p.website ? `
+          <a href="${escHtml(p.website)}" target="_blank" rel="noopener" class="svc-link-btn"
+             style="background:${c.soft};border:1.5px solid ${c.grad1}30;color:${c.text}"
+             onmouseover="this.style.background='${c.grad1}18'" onmouseout="this.style.background='${c.soft}'">
+            <i data-lucide="globe" style="width:13px;height:13px"></i>${SVC_L.website}
+          </a>` : ''}
+
+          <a href="https://www.openstreetmap.org/${escHtml(p.osm_type)}/${escHtml(String(p.osm_id))}" target="_blank" rel="noopener" class="svc-osm-btn">
+            <i data-lucide="map" style="width:11px;height:11px"></i>${SVC_L.osm}
+          </a>
+        </div>
       </div>
     </div>`).join('');
 
@@ -423,7 +479,7 @@ function renderResults(section, cat, results) {
 function renderError(section, msg) {
   section.querySelector('.cat-count').textContent = 'Error';
   section.querySelector('.cat-body').innerHTML =
-    `<p style="color:var(--danger);font-size:0.85rem;padding:4px 0;grid-column:1/-1">${escHtml(msg)}</p>`;
+    `<p style="color:#EF4444;font-size:0.85rem;padding:4px 0;grid-column:1/-1">${escHtml(msg)}</p>`;
 }
 
 /* ── Cambio manual de ubicación (Nominatim) ─────────────────── */
