@@ -369,4 +369,14 @@ return [
     // Landing — Marquee
     'landing_mq_free'      => 'Always free',
     'landing_mq_quick'     => 'Ready in 2 min',
+
+    // Roulette assignment
+    'ruleta_title'         => 'Assignment roulette',
+    'ruleta_btn'           => '🎡 Roulette',
+    'ruleta_spin'          => '🎡 Spin the wheel',
+    'ruleta_respin'        => '↺ Spin again',
+    'ruleta_confirm'       => '✓ Confirm',
+    'ruleta_assigned_to'   => 'Assigned to:',
+    'ruleta_no_tasks'      => 'No tasks for this day.',
+    'ruleta_add_task'      => 'Add task',
 ];

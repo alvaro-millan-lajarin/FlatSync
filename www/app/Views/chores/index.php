@@ -177,8 +177,14 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label><?= lang('App.chores_assign') ?></label>
-          <select name="assigned_user_id" required>
+          <label style="display:flex;align-items:center;justify-content:space-between">
+            <?= lang('App.chores_assign') ?>
+            <button type="button" onclick="openRuleta()"
+                    style="font-size:0.72rem;background:none;border:none;cursor:pointer;color:var(--primary);padding:0;font-weight:700;display:inline-flex;align-items:center;gap:3px;line-height:1">
+              <?= lang('App.ruleta_btn') ?>
+            </button>
+          </label>
+          <select name="assigned_user_id" id="add-assigned-select" required>
             <?php foreach ($members as $m): ?>
               <option value="<?= $m['id'] ?>"><?= esc($m['username']) ?></option>
             <?php endforeach; ?>
@@ -210,6 +216,53 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
         <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-chore')"><?= lang('App.cancel') ?></button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- Modal: Ruleta de asignación -->
+<div class="modal-overlay" id="modal-ruleta">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-header">
+      <h3 class="modal-title"><?= lang('App.ruleta_title') ?></h3>
+      <button class="modal-close" onclick="closeModal('modal-ruleta')">×</button>
+    </div>
+    <div style="padding:8px 24px 24px;display:flex;flex-direction:column;align-items:center">
+      <!-- Wheel container -->
+      <div style="position:relative;display:inline-block;margin-bottom:20px;margin-top:8px">
+        <!-- Arrow indicator -->
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:10;
+                    width:0;height:0;
+                    border-left:10px solid transparent;border-right:10px solid transparent;
+                    border-top:18px solid #1E293B;
+                    filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))"></div>
+        <!-- Wheel canvas -->
+        <canvas id="ruleta-canvas" width="280" height="280"
+                style="display:block;border-radius:50%;box-shadow:0 6px 28px rgba(0,0,0,0.18)">
+        </canvas>
+        <!-- Center hub -->
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                    width:28px;height:28px;background:#fff;border-radius:50%;
+                    border:3px solid #1E293B;box-shadow:0 2px 8px rgba(0,0,0,0.25);z-index:5"></div>
+      </div>
+      <!-- Result -->
+      <div id="ruleta-result" style="min-height:54px;margin-bottom:16px;text-align:center;width:100%"></div>
+      <!-- Spin button -->
+      <button class="btn btn-primary" id="btn-spin" onclick="spinRuleta()"
+              style="width:100%;justify-content:center;margin-bottom:8px;font-size:1rem">
+        <?= lang('App.ruleta_spin') ?>
+      </button>
+      <!-- Re-spin + Confirm row (hidden until result) -->
+      <div style="display:flex;gap:8px;width:100%">
+        <button class="btn btn-secondary" id="btn-respin"
+                style="display:none;flex:1;justify-content:center" onclick="spinRuleta()">
+          <?= lang('App.ruleta_respin') ?>
+        </button>
+        <button class="btn btn-primary" id="btn-confirm-ruleta"
+                style="display:none;flex:1;justify-content:center" onclick="confirmRuleta()">
+          <?= lang('App.ruleta_confirm') ?>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -378,7 +431,13 @@ function renderPanel(date) {
   title.textContent = label.charAt(0).toUpperCase() + label.slice(1);
 
   if (tasks.length === 0) {
-    body.innerHTML = '<div style="text-align:center;padding:28px 0;color:var(--muted);font-size:0.88rem">No hay tareas para este día.</div>';
+    body.innerHTML = `<div style="text-align:center;padding:24px 0 8px;color:var(--muted);font-size:0.88rem"><?= lang('App.ruleta_no_tasks') ?></div>
+      <div style="text-align:center;padding-bottom:20px">
+        <button class="btn btn-primary btn-sm" onclick="openAddChoreForDate('${date}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <?= lang('App.ruleta_add_task') ?>
+        </button>
+      </div>`;
     panel.style.display = 'block';
     setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
     return;
@@ -469,6 +528,11 @@ function toggleDone(id) {
 function closePanel() {
   document.getElementById('day-panel').style.display = 'none';
   if (selectedEl) { selectedEl.classList.remove('selected'); selectedEl = null; }
+}
+
+function openAddChoreForDate(date) {
+  document.getElementById('modal-due-date').value = date;
+  openModal('modal-add-chore');
 }
 
 function escHtml(s) {
@@ -644,6 +708,142 @@ function pollChores() {
 }
 
 setInterval(pollChores, 3000);
+
+// ── RULETA ──
+const RULETA_COLORS  = ['#4F80FF','#F59E0B','#4ECDC4','#EF4444','#8B5CF6','#EC4899','#10B981','#F97316','#6366F1','#06B6D4'];
+const MEMBERS_DATA   = <?= json_encode(array_values(array_map(fn($m) => ['id' => (int)$m['id'], 'username' => $m['username']], $members))) ?>;
+let ruletaWinner     = null;
+let ruletaSpinning   = false;
+
+function drawRuletaWheel() {
+  const canvas = document.getElementById('ruleta-canvas');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2, r = W / 2 - 6;
+  const n  = MEMBERS_DATA.length;
+  ctx.clearRect(0, 0, W, H);
+  if (n === 0) return;
+
+  const sliceRad = (2 * Math.PI) / n;
+
+  for (let i = 0; i < n; i++) {
+    const start    = i * sliceRad - Math.PI / 2;
+    const end      = start + sliceRad;
+    const midAngle = start + sliceRad / 2;
+    const color    = RULETA_COLORS[i % RULETA_COLORS.length];
+
+    // Segment fill
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Segment divider
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth   = 3;
+    ctx.stroke();
+
+    // Text — rotate so it reads outward; flip left-half for legibility
+    const textR = r * 0.65;
+    const tx = cx + Math.cos(midAngle) * textR;
+    const ty = cy + Math.sin(midAngle) * textR;
+    const inLeftHalf = midAngle > Math.PI / 2 && midAngle < 3 * Math.PI / 2;
+
+    ctx.save();
+    ctx.translate(tx, ty);
+    ctx.rotate(inLeftHalf ? midAngle + Math.PI : midAngle);
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle    = '#fff';
+    const fs = n > 5 ? 11 : 13;
+    ctx.font         = `800 ${fs}px Nunito, system-ui, sans-serif`;
+    ctx.shadowColor  = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur   = 4;
+    const maxLen = n > 6 ? 7 : 10;
+    const name = MEMBERS_DATA[i].username.length > maxLen
+      ? MEMBERS_DATA[i].username.slice(0, maxLen - 1) + '…'
+      : MEMBERS_DATA[i].username;
+    ctx.fillText(name, 0, 0);
+    ctx.restore();
+  }
+
+  // Outer rim
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth   = 6;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + 3, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.lineWidth   = 2;
+  ctx.stroke();
+}
+
+function openRuleta() {
+  ruletaWinner   = null;
+  ruletaSpinning = false;
+  const canvas = document.getElementById('ruleta-canvas');
+  canvas.style.transition = 'none';
+  canvas.style.transform  = 'rotate(0deg)';
+  document.getElementById('ruleta-result').innerHTML          = '';
+  document.getElementById('btn-confirm-ruleta').style.display = 'none';
+  document.getElementById('btn-respin').style.display         = 'none';
+  document.getElementById('btn-spin').style.display           = '';
+  drawRuletaWheel();
+  openModal('modal-ruleta');
+}
+
+function spinRuleta() {
+  if (ruletaSpinning || MEMBERS_DATA.length === 0) return;
+  ruletaSpinning = true;
+  ruletaWinner   = null;
+
+  document.getElementById('btn-spin').style.display           = 'none';
+  document.getElementById('btn-confirm-ruleta').style.display = 'none';
+  document.getElementById('btn-respin').style.display         = 'none';
+  document.getElementById('ruleta-result').innerHTML          = '';
+
+  const n          = MEMBERS_DATA.length;
+  const winnerIdx  = Math.floor(Math.random() * n);
+  const sliceDeg   = 360 / n;
+  const extraSpins = (5 + Math.floor(Math.random() * 4)) * 360;
+  // FIX: no +90 — formula: finalDeg = extraSpins - (winnerIdx+0.5)*sliceDeg
+  const finalDeg   = extraSpins - (winnerIdx + 0.5) * sliceDeg;
+  const duration   = 3000 + Math.floor(Math.random() * 800);
+
+  const canvas = document.getElementById('ruleta-canvas');
+  canvas.style.transition = 'none';
+  canvas.style.transform  = 'rotate(0deg)';
+  canvas.offsetHeight; // force reflow
+  canvas.style.transition = `transform ${duration}ms cubic-bezier(0.17, 0.67, 0.12, 0.99)`;
+  canvas.style.transform  = `rotate(${finalDeg}deg)`;
+
+  setTimeout(() => {
+    ruletaSpinning = false;
+    ruletaWinner   = MEMBERS_DATA[winnerIdx];
+    const color    = RULETA_COLORS[winnerIdx % RULETA_COLORS.length];
+    document.getElementById('ruleta-result').innerHTML = `
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px"><?= lang('App.ruleta_assigned_to') ?></div>
+      <div style="font-size:1.4rem;font-weight:900;color:${color}">${escHtml(ruletaWinner.username)}</div>`;
+    document.getElementById('btn-confirm-ruleta').style.display = '';
+    document.getElementById('btn-respin').style.display         = '';
+    if (navigator.vibrate) navigator.vibrate([80, 30, 80]);
+  }, duration);
+}
+
+function confirmRuleta() {
+  if (!ruletaWinner) return;
+  document.getElementById('add-assigned-select').value = ruletaWinner.id;
+  closeModal('modal-ruleta');
+}
 </script>
 
 <?= view('layouts/footer') ?>

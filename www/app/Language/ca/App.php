@@ -369,4 +369,14 @@ return [
     // Landing — Marquee
     'landing_mq_free'      => 'Sempre gratis',
     'landing_mq_quick'     => 'Llest en 2 min',
+
+    // Ruleta d'assignació
+    'ruleta_title'         => 'Ruleta d\'assignació',
+    'ruleta_btn'           => '🎡 Ruleta',
+    'ruleta_spin'          => '🎡 Girar la ruleta',
+    'ruleta_respin'        => '↺ Tornar a girar',
+    'ruleta_confirm'       => '✓ Confirmar',
+    'ruleta_assigned_to'   => 'Assignat a:',
+    'ruleta_no_tasks'      => 'No hi ha tasques per a aquest dia.',
+    'ruleta_add_task'      => 'Afegir tasca',
 ];

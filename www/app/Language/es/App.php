@@ -369,4 +369,14 @@ return [
     // Landing — Marquee
     'landing_mq_free'      => 'Siempre gratis',
     'landing_mq_quick'     => 'Listo en 2 min',
+
+    // Ruleta de asignación
+    'ruleta_title'         => 'Ruleta de asignación',
+    'ruleta_btn'           => '🎡 Ruleta',
+    'ruleta_spin'          => '🎡 Girar ruleta',
+    'ruleta_respin'        => '↺ Volver a girar',
+    'ruleta_confirm'       => '✓ Confirmar',
+    'ruleta_assigned_to'   => 'Asignado a:',
+    'ruleta_no_tasks'      => 'No hay tareas para este día.',
+    'ruleta_add_task'      => 'Añadir tarea',
 ];
