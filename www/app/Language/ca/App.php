@@ -336,7 +336,9 @@ return [
     'greeting'            => 'Hola, {username}!',
 
     // Landing
-    'landing_title'       => 'FlatSync — Gestiona el teu pis compartit',
+    'landing_title'       => 'FlatSync — App gratuïta per gestionar el teu pis compartit',
+    'landing_meta_desc'   => 'FlatSync és l\'app gratuïta per a pisos compartits: divideix despeses, organitza tasques, xateja amb els teus companys i consulta el balanç a l\'instant. Sense targeta de crèdit.',
+    'landing_og_title'    => 'FlatSync — Gestiona el teu pis compartit gratis',
     'landing_nav_login'   => 'Iniciar sessió',
     'landing_nav_register'=> 'Registrar-se',
     'landing_demo'        => 'Provar demo',

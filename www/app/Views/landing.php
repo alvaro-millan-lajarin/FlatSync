@@ -15,12 +15,56 @@ $_locale = session()->get('lang');
 \Config\Services::language()->setLocale($_locale);
 $_typewriter = lang('App.landing_typewriter');
 ?>
+<?php
+$_metaDesc  = lang('App.landing_meta_desc');
+$_ogTitle   = lang('App.landing_og_title');
+$_canonical = rtrim(base_url(), '/') . '/';
+$_ogImage   = base_url('assets/logo.png');
+?>
 <!DOCTYPE html>
 <html lang="<?= $_locale ?>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title><?= lang('App.landing_title') ?></title>
+  <meta name="description" content="<?= esc($_metaDesc) ?>">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="<?= esc($_canonical) ?>">
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="<?= esc($_canonical) ?>">
+  <meta property="og:site_name"   content="FlatSync">
+  <meta property="og:title"       content="<?= esc($_ogTitle) ?>">
+  <meta property="og:description" content="<?= esc($_metaDesc) ?>">
+  <meta property="og:image"       content="<?= esc($_ogImage) ?>">
+  <meta property="og:locale"      content="<?= $_locale === 'en' ? 'en_GB' : ($_locale === 'ca' ? 'ca_ES' : 'es_ES') ?>">
+
+  <!-- Twitter / X card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="<?= esc($_ogTitle) ?>">
+  <meta name="twitter:description" content="<?= esc($_metaDesc) ?>">
+  <meta name="twitter:image"       content="<?= esc($_ogImage) ?>">
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "FlatSync",
+    "url": "<?= esc($_canonical) ?>",
+    "description": "<?= esc($_metaDesc) ?>",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    }
+  }
+  </script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

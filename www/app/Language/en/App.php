@@ -336,7 +336,9 @@ return [
     'greeting'            => 'Hello, {username}!',
 
     // Landing
-    'landing_title'       => 'FlatSync — Manage your shared flat',
+    'landing_title'       => 'FlatSync — Free app to manage your shared flat',
+    'landing_meta_desc'   => 'FlatSync is the free app for shared flats: split expenses, organise chores, chat with flatmates and check balances instantly. No credit card needed.',
+    'landing_og_title'    => 'FlatSync — Manage your shared flat for free',
     'landing_nav_login'   => 'Log in',
     'landing_nav_register'=> 'Sign up',
     'landing_demo'        => 'Try demo',
