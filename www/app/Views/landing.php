@@ -712,6 +712,8 @@ $_ogImage   = base_url('assets/logo.png');
       .cta-section { padding: 56px 5%; }
       footer { flex-direction: column; text-align: center; }
       .nav-flags { display: none; }
+      .nav-links .btn-nav-demo,
+      .nav-links .btn-nav-login { display: none; }
     }
   </style>
 </head>
@@ -740,7 +742,7 @@ $_ogImage   = base_url('assets/logo.png');
       </a>
       <?php endforeach; ?>
     </div>
-    <a href="<?= site_url('/demo') ?>" class="btn-nav-login" style="border-color:rgba(124,106,247,0.5);color:#7C6AF7" onmouseover="this.style.borderColor='#7C6AF7';this.style.color='#7C6AF7'" onmouseout="this.style.borderColor='rgba(124,106,247,0.5)';this.style.color='#7C6AF7'"><?= lang('App.landing_demo') ?></a>
+    <a href="<?= site_url('/demo') ?>" class="btn-nav-login btn-nav-demo" style="border-color:rgba(124,106,247,0.5);color:#7C6AF7" onmouseover="this.style.borderColor='#7C6AF7';this.style.color='#7C6AF7'" onmouseout="this.style.borderColor='rgba(124,106,247,0.5)';this.style.color='#7C6AF7'"><?= lang('App.landing_demo') ?></a>
     <a href="<?= site_url('/login') ?>" class="btn-nav-login"><?= lang('App.landing_nav_login') ?></a>
     <a href="<?= site_url('/register') ?>" class="btn-nav-register"><?= lang('App.landing_nav_register') ?></a>
   </div>

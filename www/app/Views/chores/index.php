@@ -89,7 +89,7 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
     </span>
   </div>
 
-  <div style="display:flex;flex-direction:column;gap:2px">
+  <div class="history-list">
     <?php foreach ($history as $item):
       $type = $item['type'];
       $d    = $item['data'];
@@ -99,10 +99,10 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
       elseif ($dateStr === $yesterday) $dateLabel = lang('App.yesterday') . ' · ' . date('d/m/Y', $ts);
       else                             $dateLabel = date('d/m/Y', $ts);
     ?>
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--divider)">
+    <div class="history-item">
 
-      <!-- Col 1: badge — ancho fijo para alinear ambos tipos -->
-      <div style="flex:0 0 110px">
+      <!-- badge -->
+      <div class="hi-badge">
         <?php if ($type === 'missed'): ?>
           <span class="badge badge-missed" style="gap:4px;width:100%;justify-content:center">
             <i data-lucide="alert-triangle" style="width:10px;height:10px"></i> <?= lang('App.chores_status_missed') ?>
@@ -114,35 +114,38 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
         <?php endif; ?>
       </div>
 
-      <!-- Col 2: nombre de la tarea -->
-      <div style="flex:2;min-width:0;font-weight:500;font-size:0.9rem"><?= esc($d['task_name']) ?></div>
+      <!-- task name -->
+      <div class="hi-name"><?= esc($d['task_name']) ?></div>
 
-      <!-- Col 3: persona(s) -->
+      <!-- flex line-break (hidden desktop, visible mobile) -->
+      <div class="hi-break"></div>
+
+      <!-- person(s) -->
       <?php if ($type === 'missed'): ?>
-        <div style="flex:0 0 220px;display:flex;align-items:center;justify-content:center;gap:6px">
+        <div class="hi-person">
           <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['assigned_name'], 0, 1)) ?></div>
-          <span style="font-size:0.85rem;white-space:nowrap"><?= esc($d['assigned_name']) ?></span>
+          <span class="hi-person-name"><?= esc($d['assigned_name']) ?></span>
         </div>
       <?php else: ?>
-        <div style="flex:0 0 220px;display:flex;align-items:center;justify-content:center;gap:6px">
+        <div class="hi-person">
           <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['requester_name'], 0, 1)) ?></div>
-          <span style="font-size:0.85rem;white-space:nowrap"><?= esc($d['requester_name']) ?></span>
+          <span class="hi-person-name"><?= esc($d['requester_name']) ?></span>
           <i data-lucide="arrow-right" style="width:12px;height:12px;flex-shrink:0;color:var(--muted)"></i>
           <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['target_name'], 0, 1)) ?></div>
-          <span style="font-size:0.85rem;white-space:nowrap"><?= esc($d['target_name']) ?></span>
+          <span class="hi-person-name"><?= esc($d['target_name']) ?></span>
         </div>
       <?php endif; ?>
 
-      <!-- Col 4: penalización (vacío para swaps) -->
-      <div style="flex:0 0 70px;text-align:right;font-weight:700;color:var(--danger)">
+      <!-- penalty -->
+      <div class="hi-penalty">
         <?php if ($type === 'missed'): ?>-€<?= number_format($d['penalty_amount'], 2) ?><?php endif; ?>
       </div>
 
-      <!-- Col 5: fecha -->
-      <div style="flex:0 0 140px;text-align:right;font-size:0.75rem;color:var(--muted);white-space:nowrap"><?= $dateLabel ?></div>
+      <!-- date -->
+      <div class="hi-date"><?= $dateLabel ?></div>
 
-      <!-- Col 6: acción (vacío para swaps) -->
-      <div style="flex:0 0 auto">
+      <!-- action -->
+      <div class="hi-action">
         <?php if ($type === 'missed'): ?>
           <form method="post" action="<?= site_url('/chores/delete/' . $d['id']) ?>"
                 data-confirm="¿Eliminar la tarea «<?= esc(addslashes($d['task_name'])) ?>»?">
@@ -366,6 +369,27 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
 }
 .day-task-row:last-child { margin-bottom: 0; }
 
+/* ── History rows ───────────────────────────────────────────── */
+.history-list { display: flex; flex-direction: column; gap: 2px; }
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--divider);
+}
+.hi-badge   { flex: 0 0 110px; }
+.hi-name    { flex: 2; min-width: 0; font-weight: 500; font-size: 0.9rem;
+              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hi-break   { display: none; }
+.hi-person  { flex: 0 0 220px; display: flex; align-items: center;
+              justify-content: center; gap: 6px; }
+.hi-person-name { font-size: 0.85rem; white-space: nowrap; }
+.hi-penalty { flex: 0 0 70px; text-align: right; font-weight: 700; color: var(--danger); }
+.hi-date    { flex: 0 0 140px; text-align: right; font-size: 0.75rem;
+              color: var(--muted); white-space: nowrap; }
+.hi-action  { flex: 0 0 auto; }
+
 @media (max-width: 768px) {
   /* Calendar: hide task name chips in cells, show coloured dot instead */
   .cal-task {
@@ -386,6 +410,30 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
   }
   /* Missed chores: hide person name, keep avatar */
   .chore-person-name { display: none; }
+
+  /* History rows: card layout on mobile */
+  .history-list { gap: 0; padding: 4px 0; }
+  .history-item {
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface2);
+    margin-bottom: 8px;
+  }
+  .hi-badge   { flex: 0 0 auto; order: 1; }
+  .hi-name    { flex: 1 1 0; min-width: 0; order: 2;
+                font-size: 0.95rem; font-weight: 600; }
+  .hi-break   { display: block; flex: 1 0 100%; height: 1px;
+                background: var(--divider); order: 3; margin: 2px 0; }
+  .hi-person  { flex: 1 1 0; min-width: 0; justify-content: flex-start; order: 4; }
+  .hi-person-name { display: inline; font-size: 0.82rem;
+                    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                    max-width: 80px; }
+  .hi-penalty { flex: 0 0 auto; width: auto; font-size: 0.9rem; order: 5; }
+  .hi-date    { flex: 0 0 auto; text-align: right; font-size: 0.72rem; order: 6; }
+  .hi-action  { order: 7; flex: 0 0 auto; }
 }
 </style>
 
