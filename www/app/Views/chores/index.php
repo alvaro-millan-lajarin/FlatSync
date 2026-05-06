@@ -119,17 +119,17 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
 
       <!-- Col 3: persona(s) -->
       <?php if ($type === 'missed'): ?>
-        <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0">
+        <div style="flex:0 0 220px;display:flex;align-items:center;justify-content:center;gap:6px">
           <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['assigned_name'], 0, 1)) ?></div>
-          <span class="chore-person-name" style="font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= esc($d['assigned_name']) ?></span>
+          <span style="font-size:0.85rem;white-space:nowrap"><?= esc($d['assigned_name']) ?></span>
         </div>
       <?php else: ?>
-        <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0">
+        <div style="flex:0 0 220px;display:flex;align-items:center;justify-content:center;gap:6px">
           <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['requester_name'], 0, 1)) ?></div>
-          <span class="chore-person-name" style="font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($d['requester_name']) ?></span>
+          <span style="font-size:0.85rem;white-space:nowrap"><?= esc($d['requester_name']) ?></span>
           <i data-lucide="arrow-right" style="width:12px;height:12px;flex-shrink:0;color:var(--muted)"></i>
           <div class="user-avatar" style="width:24px;height:24px;font-size:0.65rem;flex-shrink:0"><?= strtoupper(substr($d['target_name'], 0, 1)) ?></div>
-          <span class="chore-person-name" style="font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($d['target_name']) ?></span>
+          <span style="font-size:0.85rem;white-space:nowrap"><?= esc($d['target_name']) ?></span>
         </div>
       <?php endif; ?>
 
@@ -139,7 +139,7 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
       </div>
 
       <!-- Col 5: fecha -->
-      <div style="flex:0 0 auto;font-size:0.75rem;color:var(--muted);white-space:nowrap"><?= $dateLabel ?></div>
+      <div style="flex:0 0 140px;text-align:right;font-size:0.75rem;color:var(--muted);white-space:nowrap"><?= $dateLabel ?></div>
 
       <!-- Col 6: acción (vacío para swaps) -->
       <div style="flex:0 0 auto">

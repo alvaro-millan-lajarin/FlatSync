@@ -136,6 +136,7 @@ return [
     // Balance
     'balance_title'       => 'Balanç de Despeses',
     'balance_subtitle'    => 'Qui deu què a qui',
+    'balance_all_time'    => 'Tot el temps',
     'balance_per_person'  => 'Balanç per persona',
     'balance_paid'        => 'Ha pagat',
     'balance_should'      => 'Ha de pagar',

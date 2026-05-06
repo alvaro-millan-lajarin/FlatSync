@@ -267,20 +267,25 @@ class ExpensesController extends BaseController
         if ($this->requireHome()) return;
 
         $homeId       = session()->get('home_id');
+        $filterMonth  = $this->request->getGet('month') ?: '';
         $expenseModel = new ExpenseModel();
         $settleModel  = new SettlementModel();
         $uhModel      = new UserHomesModel();
 
-        $members    = $uhModel->getMembersOfHome($homeId);
+        $members      = $uhModel->getMembersOfHome($homeId);
         $allMemberIds = array_column($members, 'id');
 
-        // Fetch all expenses once
-        $allExpenses = $expenseModel
+        $query = $expenseModel
             ->select('amount, paid_by, split_with')
-            ->where('home_id', $homeId)
-            ->findAll();
+            ->where('home_id', $homeId);
 
-        // Per-member: how much each person should pay across all expenses
+        if ($filterMonth !== '') {
+            [$year, $month] = explode('-', $filterMonth);
+            $query->where('YEAR(date)', $year)->where('MONTH(date)', $month);
+        }
+
+        $allExpenses = $query->findAll();
+
         $shouldPay = array_fill_keys($allMemberIds, 0.0);
         $paid      = array_fill_keys($allMemberIds, 0.0);
 
@@ -300,22 +305,17 @@ class ExpensesController extends BaseController
             }
         }
 
-        // Per-member balance
         $memberBalances = [];
         foreach ($members as $m) {
             $uid = (int) $m['id'];
 
-            $received = (float) ($settleModel
-                ->selectSum('amount')
-                ->where('to_user_id', $uid)
-                ->where('home_id', $homeId)
-                ->first()['amount'] ?? 0);
-
-            $sent = (float) ($settleModel
-                ->selectSum('amount')
-                ->where('from_user_id', $uid)
-                ->where('home_id', $homeId)
-                ->first()['amount'] ?? 0);
+            // Only apply settlement offsets in all-time view
+            $received = 0.0;
+            $sent     = 0.0;
+            if ($filterMonth === '') {
+                $received = (float) ($settleModel->selectSum('amount')->where('to_user_id', $uid)->where('home_id', $homeId)->first()['amount'] ?? 0);
+                $sent     = (float) ($settleModel->selectSum('amount')->where('from_user_id', $uid)->where('home_id', $homeId)->first()['amount'] ?? 0);
+            }
 
             $memberBalances[] = [
                 'id'         => $uid,
@@ -326,24 +326,24 @@ class ExpensesController extends BaseController
             ];
         }
 
-        // Compute minimal settlements (positive = owed to others, negative = owe others)
         $settlements = $this->computeSettlements($memberBalances);
 
-        // Settlement history
-        $settleHistory = $settleModel
-            ->select('settlements.*, u1.username AS from_name, u2.username AS to_name')
-            ->join('users AS u1', 'u1.id = settlements.from_user_id')
-            ->join('users AS u2', 'u2.id = settlements.to_user_id')
-            ->where('settlements.home_id', $homeId)
-            ->orderBy('settlements.settled_at', 'DESC')
-            ->limit(20)
-            ->findAll();
+        // Month navigation labels
+        $monthLabel = '';
+        $prevMonth  = '';
+        $nextMonth  = '';
+        if ($filterMonth !== '') {
+            [$y, $mo] = explode('-', $filterMonth);
+            $ts         = mktime(0, 0, 0, $mo, 1, $y);
+            $monthLabel = ucfirst(strftime('%B %Y', $ts) ?: date('F Y', $ts));
+            $prevMonth  = date('Y-m', strtotime('-1 month', $ts));
+            $nextMonth  = date('Y-m', strtotime('+1 month', $ts));
+        }
 
         if ($this->isApi()) {
             return $this->apiOk([
                 'memberBalances' => $memberBalances,
                 'settlements'    => $settlements,
-                'settleHistory'  => $settleHistory,
             ]);
         }
 
@@ -353,7 +353,10 @@ class ExpensesController extends BaseController
             'activeNav'      => 'balance',
             'memberBalances' => $memberBalances,
             'settlements'    => $settlements,
-            'settleHistory'  => $settleHistory,
+            'filterMonth'    => $filterMonth,
+            'monthLabel'     => $monthLabel,
+            'prevMonth'      => $prevMonth,
+            'nextMonth'      => $nextMonth,
         ]);
     }
 

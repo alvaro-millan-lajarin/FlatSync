@@ -136,6 +136,7 @@ return [
     // Balance
     'balance_title'       => 'Balance de Gastos',
     'balance_subtitle'    => 'Quién debe qué a quién',
+    'balance_all_time'    => 'Todo el tiempo',
     'balance_per_person'  => 'Balance por persona',
     'balance_paid'        => 'Ha pagado',
     'balance_should'      => 'Debe pagar',
