@@ -51,3 +51,10 @@ document.querySelectorAll('[data-animate]').forEach(el => {
 document.querySelectorAll('.progress-fill[data-width]').forEach(el => {
   setTimeout(() => { el.style.width = el.dataset.width + '%'; }, 100);
 });
+
+// ── Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}

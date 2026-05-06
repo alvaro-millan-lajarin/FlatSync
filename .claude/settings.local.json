@@ -25,7 +25,8 @@
       "Bash(php -l \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync/www/app/Views/landing.php\")",
       "Bash(php -l \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync/www/app/Views/auth/login.php\")",
       "Bash(php -l \"/Users/alvaro/Documents/2,3,4 carrera/2semestre/pw2/FlatSync/www/app/Views/auth/register.php\")",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(php *)"
     ]
   }
 }

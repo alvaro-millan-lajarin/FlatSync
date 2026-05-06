@@ -32,10 +32,12 @@ $_ogImage   = base_url('assets/logo.png');
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="<?= esc($_canonical) ?>">
 
-  <!-- Favicon -->
+  <!-- Favicon + PWA -->
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="<?= base_url('favicon.ico') ?>" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/logo.png') ?>">
-  <link rel="apple-touch-icon" href="<?= base_url('assets/logo.png') ?>">
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/icon-192.png') ?>">
+  <link rel="apple-touch-icon" href="<?= base_url('assets/icon-192.png') ?>">
 
   <!-- hreflang — misma URL sirve los tres idiomas según sesión -->
   <link rel="alternate" hreflang="es"      href="<?= esc($_canonical) ?>">
