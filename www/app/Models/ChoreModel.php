@@ -10,7 +10,7 @@ class ChoreModel extends Model
     protected $primaryKey    = 'id';
     protected $allowedFields = [
         'home_id', 'task_name', 'icon', 'assigned_user_id',
-        'due_date', 'status', 'recurrence', 'penalty_amount', 'completed_at',
+        'due_date', 'status', 'recurrence', 'recurrence_parent_id', 'penalty_amount', 'completed_at',
     ];
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';

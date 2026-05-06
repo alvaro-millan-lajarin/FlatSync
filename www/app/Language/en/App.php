@@ -215,6 +215,9 @@ return [
     'chores_swap_msg'     => 'Message',
     'chores_swap_msg_ph'  => 'Explain why you need the swap...',
     'chores_swap_send'    => 'Send request',
+    'chores_rec_delete_title'  => 'Delete recurring task',
+    'chores_rec_delete_this'   => 'Only this occurrence',
+    'chores_rec_delete_future' => 'This and following',
 
     // Swaps
     'swaps_title'         => 'Task Swaps',

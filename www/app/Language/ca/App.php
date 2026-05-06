@@ -215,6 +215,9 @@ return [
     'chores_swap_msg'     => 'Missatge',
     'chores_swap_msg_ph'  => 'Explica per què necessites el canvi...',
     'chores_swap_send'    => 'Enviar sol·licitud',
+    'chores_rec_delete_title'  => 'Eliminar tasca recurrent',
+    'chores_rec_delete_this'   => 'Només aquesta ocurrència',
+    'chores_rec_delete_future' => 'Aquesta i les següents',
 
     // Swaps
     'swaps_title'         => 'Intercanvis de Tasques',

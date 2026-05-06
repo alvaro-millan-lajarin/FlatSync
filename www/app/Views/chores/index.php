@@ -46,7 +46,7 @@ foreach ($calDays as $day) {
       <div class="cal-day-num"><?= $day['num'] ?></div>
       <?php foreach ($day['tasks'] as $t): ?>
         <div class="cal-task" data-chore-id="<?= $t['id'] ?>" style="background:<?= $t['color'] ?? 'rgba(37,99,235,0.12)' ?>;color:<?= $t['text_color'] ?? 'var(--text)' ?>">
-          <?= esc($t['task_name']) ?>
+          <?php if ($t['recurrence'] !== 'none'): ?><span style="opacity:.6;margin-right:2px">↻</span><?php endif; ?><?= esc($t['task_name']) ?>
         </div>
       <?php endforeach; ?>
     </div>
@@ -147,9 +147,9 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
       <!-- action -->
       <div class="hi-action">
         <?php if ($type === 'missed'): ?>
-          <form method="post" action="<?= site_url('/chores/delete/' . $d['id']) ?>"
-                data-confirm="¿Eliminar la tarea «<?= esc(addslashes($d['task_name'])) ?>»?">
+          <form method="post" action="<?= site_url('/chores/delete/' . $d['id']) ?>">
             <?= csrf_field() ?>
+            <input type="hidden" name="scope" value="this">
             <button class="btn btn-sm btn-danger btn-icon" title="Eliminar">
               <i data-lucide="trash-2" style="width:13px;height:13px"></i>
             </button>
@@ -341,6 +341,33 @@ $yesterday = date('Y-m-d', strtotime('-1 day'));
   </div>
 </div>
 
+<!-- Modal: Delete recurring task -->
+<div class="modal-overlay" id="modal-delete-recurring">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h3 class="modal-title"><i data-lucide="repeat-2" style="width:18px;height:18px;color:var(--danger)"></i> <?= lang('App.chores_rec_delete_title') ?></h3>
+      <button class="modal-close" onclick="closeModal('modal-delete-recurring')">×</button>
+    </div>
+    <div style="padding:0 24px 24px;display:flex;flex-direction:column;gap:10px">
+      <form method="post" id="form-delete-this">
+        <?= csrf_field() ?>
+        <input type="hidden" name="scope" value="this">
+        <button type="submit" class="btn btn-secondary" style="width:100%;justify-content:center">
+          <i data-lucide="calendar-x" style="width:14px;height:14px"></i> <?= lang('App.chores_rec_delete_this') ?>
+        </button>
+      </form>
+      <form method="post" id="form-delete-future">
+        <?= csrf_field() ?>
+        <input type="hidden" name="scope" value="future">
+        <button type="submit" class="btn btn-danger" style="width:100%;justify-content:center">
+          <i data-lucide="calendar-off" style="width:14px;height:14px"></i> <?= lang('App.chores_rec_delete_future') ?>
+        </button>
+      </form>
+      <button type="button" class="btn btn-secondary" onclick="closeModal('modal-delete-recurring')" style="width:100%;justify-content:center"><?= lang('App.cancel') ?></button>
+    </div>
+  </div>
+</div>
+
 <style>
 .cal-day {
   cursor: pointer;
@@ -457,6 +484,25 @@ const MARK_URL   = '<?= site_url('/chores/mark-done/') ?>';
 const TOGGLE_URL = '<?= site_url('/chores/toggle/') ?>';
 const UPD_URL    = '<?= site_url('/chores/update/') ?>';
 const DEL_URL    = '<?= site_url('/chores/delete/') ?>';
+const REC_DEL_TITLE  = '<?= lang('App.chores_rec_delete_title') ?>';
+const REC_DEL_THIS   = '<?= lang('App.chores_rec_delete_this') ?>';
+const REC_DEL_FUTURE = '<?= lang('App.chores_rec_delete_future') ?>';
+
+function deleteChore(id, isRecurring) {
+  const url = `${DEL_URL}${id}`;
+  if (isRecurring) {
+    document.getElementById('form-delete-this').action   = url;
+    document.getElementById('form-delete-future').action = url;
+    openModal('modal-delete-recurring');
+  } else {
+    const fd = new FormData();
+    fd.append(CSRF_KEY, CSRF);
+    fd.append('scope', 'this');
+    fetch(url, { method: 'POST', body: fd })
+      .then(r => { if (r.ok) location.reload(); })
+      .catch(() => {});
+  }
+}
 
 let selectedEl = null;
 
@@ -525,13 +571,10 @@ function renderPanel(date) {
               onclick="openEditChoreModal(${t.id})">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
       </button>
-      <form method="post" action="${DEL_URL}${t.id}" style="display:inline"
-            data-confirm="¿Eliminar la tarea «${escJs(t.task_name)}»?">
-        <input type="hidden" name="${CSRF_KEY}" value="${CSRF}">
-        <button class="btn btn-sm btn-danger btn-icon" type="submit" title="Eliminar">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        </button>
-      </form>`;
+      <button class="btn btn-sm btn-danger btn-icon" type="button" title="Eliminar"
+              onclick="deleteChore(${t.id}, ${t.recurrence && t.recurrence !== 'none' ? 'true' : 'false'})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>`;
 
     html += `
       <div class="day-task-row">
@@ -540,7 +583,7 @@ function renderPanel(date) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${t.text_color ?? 'var(--primary)'}" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 11 12 14 22 4"/></svg>
           </div>
           <div style="min-width:0">
-            <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(t.task_name)}</div>
+            <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.recurrence && t.recurrence !== 'none' ? '<span style="opacity:.5;margin-right:3px;font-size:0.8em">↻</span>' : ''}${escHtml(t.task_name)}</div>
             <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">${escHtml(t.assigned_name)}</div>
           </div>
         </div>

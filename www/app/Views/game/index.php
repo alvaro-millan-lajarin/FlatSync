@@ -9,16 +9,16 @@
       <div id="fr-ttl" style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#fff;letter-spacing:-.5px;text-shadow:0 2px 10px rgba(0,0,0,.3)">FlatRunner</div>
       <div id="fr-scr" style="font-size:.88rem;color:rgba(255,255,255,.7);min-height:1.4em;text-align:center"></div>
       <button onclick="FR.jump()" class="btn btn-primary" id="fr-btn" style="font-size:1rem;padding:10px 32px;margin-top:2px">▶ Jugar</button>
-      <div style="font-size:.72rem;color:rgba(255,255,255,.38)">Espacio · Click · Tap para saltar</div>
+      <div id="fr-hint" style="font-size:.72rem;color:rgba(255,255,255,.38)">Espacio · Click · Tap para saltar</div>
     </div>
   </div>
 </div>
 
 <!-- Bottom grid: hi-score + ranking -->
-<div style="display:grid;grid-template-columns:auto 1fr;gap:16px;margin-top:16px;align-items:start">
+<div id="fr-bottom-grid" style="display:grid;grid-template-columns:auto 1fr;gap:16px;margin-top:16px;align-items:start">
 
   <!-- Personal hi-score -->
-  <div class="card" style="min-width:160px">
+  <div class="card" id="fr-hi-card" style="min-width:160px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
       <i data-lucide="star" style="width:18px;height:18px;color:#f59e0b;flex-shrink:0"></i>
       <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Tu récord</div>
@@ -65,8 +65,31 @@
 </div>
 
 <style>
-@media (max-width:520px) {
-  #fr-bottom-grid { grid-template-columns: 1fr !important; }
+@media (max-width: 640px) {
+  /* Taller canvas on mobile so the game is actually playable */
+  #fr-cv { aspect-ratio: 2 !important; }
+
+  /* Stack hi-score + ranking vertically */
+  #fr-bottom-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #fr-hi-card {
+    min-width: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  #fr-hi-card > :first-child { flex: 1; }
+  #fr-hi {
+    font-size: 2.4rem !important;
+    flex: 0 0 auto;
+  }
+  #fr-hi-card .btn { margin-top: 0 !important; width: auto !important; }
+
+  /* Bigger overlay text on mobile */
+  #fr-ttl { font-size: 1.5rem !important; }
+  #fr-hint { display: none; }
 }
 </style>
 
@@ -77,8 +100,19 @@ const FR = (() => {
 /* ── Canvas setup ─────────────────────────────────────────────────── */
 const cv  = document.getElementById('fr-cv');
 const ctx = cv.getContext('2d');
-const W = 800, H = 200;
-cv.width = W; cv.height = H;
+const W = 800, H = 200;  // game coordinate space (fixed)
+let scale = 1, visibleW = W;
+
+function fitCanvas() {
+  const w = cv.clientWidth  || W;
+  const h = cv.clientHeight || H;
+  cv.width  = w;
+  cv.height = h;
+  scale    = h / H;          // uniform scale: fit to height
+  visibleW = w / scale;      // visible game units horizontally
+}
+fitCanvas();
+window.addEventListener('resize', () => { fitCanvas(); if (state !== 'running') draw(); });
 
 /* ── Server / CSRF ────────────────────────────────────────────────── */
 const CSRF_NAME  = '<?= csrf_token() ?>';
@@ -147,14 +181,14 @@ function shadow(cx, rx) {
 function spawn() {
   const flying = Math.random() < 0.22;           // 22 % flying
   const t = flying ? TYPES[3] : TYPES[Math.floor(Math.random()*3)];
-  obs.push({...t, x:W+16, y: flying ? FLY_Y : GND-t.h});
+  obs.push({...t, x:visibleW+16, y: flying ? FLY_Y : GND-t.h});
 
   // 30 % chance of a tight pair — gap always small enough to jump both at once
   let paired = false;
   if (!flying && Math.random() < 0.30) {
     const t2 = TYPES[Math.floor(Math.random()*3)];
     const gap = 8 + Math.floor(Math.random() * 22); // 8–29 px: always clearable in one jump
-    obs.push({...t2, x:W+16+t.w+gap, y:GND-t2.h});
+    obs.push({...t2, x:visibleW+16+t.w+gap, y:GND-t2.h});
     paired = true;
   }
 
@@ -171,7 +205,7 @@ function update() {
   P.t++; if (P.onG && P.t%7===0) P.f = (P.f+1)%4;
   if (++oT >= oN) spawn();
   for (let i=obs.length-1;i>=0;i--) { obs[i].x-=speed; if(obs[i].x+obs[i].w<0) obs.splice(i,1); }
-  clouds.forEach(c => { c.x -= speed*0.22; if (c.x+c.w<0) c.x = W+c.w; });
+  clouds.forEach(c => { c.x -= speed*0.22; if (c.x+c.w<0) c.x = visibleW+c.w; });
   const m=5, px=P.x+m, pw=P.x+P.w-m, py=P.y+m, ph=P.y+P.h-m;
   for (const o of obs) {
     if (px<o.x+o.w-m && pw>o.x+m && py<o.y+o.h-m && ph>o.y+m) {
@@ -186,13 +220,13 @@ function update() {
 function drawBg() {
   const g = ctx.createLinearGradient(0,0,0,GND);
   g.addColorStop(0,C.bg1); g.addColorStop(1,C.bg2);
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,GND);
+  ctx.fillStyle=g; ctx.fillRect(0,0,visibleW,GND);
   clouds.forEach(c => { ctx.fillStyle=C.cloud; rr(c.x,c.y,c.w,c.h,c.h/2); ctx.fill(); });
-  ctx.fillStyle=C.gnd;  ctx.fillRect(0,GND,W,H-GND);
-  ctx.fillStyle=C.gndD; ctx.fillRect(0,GND,W,4);
+  ctx.fillStyle=C.gnd;  ctx.fillRect(0,GND,visibleW,H-GND);
+  ctx.fillStyle=C.gndD; ctx.fillRect(0,GND,visibleW,4);
   ctx.fillStyle='rgba(255,255,255,0.2)';
   const off=(frameN*speed)%50|0;
-  for (let x=-50+off;x<W;x+=50) ctx.fillRect(x,GND+10,24,2);
+  for (let x=-50+off;x<visibleW;x+=50) ctx.fillRect(x,GND+10,24,2);
 }
 
 function drawPlayer() {
@@ -267,11 +301,19 @@ function drawObs(o) {
 function drawScore() {
   ctx.fillStyle=C.scoreCol; ctx.font='bold 14px "Syne",monospace';
   ctx.textAlign='right'; ctx.textBaseline='top';
-  ctx.fillText('PUNTOS  '+String(score).padStart(5,'0'), W-14, 10);
+  ctx.fillText('PUNTOS  '+String(score).padStart(5,'0'), visibleW-14, 10);
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
 }
 
-function draw() { drawBg(); obs.forEach(drawObs); drawPlayer(); drawScore(); }
+function draw() {
+  ctx.save();
+  ctx.scale(scale, scale);
+  drawBg();
+  obs.forEach(drawObs);
+  drawPlayer();
+  if (state === 'running') drawScore();
+  ctx.restore();
+}
 
 /* ── Ranking update ───────────────────────────────────────────────── */
 function renderRanking(ranking) {
@@ -353,7 +395,7 @@ function resetHi() {
 /* ── Init ─────────────────────────────────────────────────────────── */
 document.getElementById('fr-hi').textContent = hi.toLocaleString();
 if (hi > 0) document.getElementById('fr-scr').textContent = 'Récord: ' + hi;
-draw();
+requestAnimationFrame(() => { fitCanvas(); draw(); });
 
 document.addEventListener('keydown', e => {
   if (e.code==='Space'||e.code==='ArrowUp') { e.preventDefault(); jump(); }

@@ -215,6 +215,9 @@ return [
     'chores_swap_msg'     => 'Mensaje',
     'chores_swap_msg_ph'  => 'Explica por qué necesitas el cambio...',
     'chores_swap_send'    => 'Enviar solicitud',
+    'chores_rec_delete_title'  => 'Eliminar tarea recurrente',
+    'chores_rec_delete_this'   => 'Solo esta ocurrencia',
+    'chores_rec_delete_future' => 'Esta y las siguientes',
 
     // Swaps
     'swaps_title'         => 'Intercambios de Tareas',

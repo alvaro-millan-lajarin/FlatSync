@@ -48,6 +48,9 @@ class ChoresController extends BaseController
             ->set(['status' => 'missed'])
             ->update();
 
+        // Auto-extend recurring series: ensure ≥3 pending future instances exist
+        $this->extendRecurringSeries($homeId, $choreModel, $members);
+
         // Calendar data
         [$calDays, $calendarTitle, $startDate, $endDate] = $this->buildCalendar($view, $offset);
 
@@ -204,9 +207,10 @@ class ChoresController extends BaseController
             'status'           => 'pending',
         ];
 
+        $data['recurrence_parent_id'] = null;
         $newId = $choreModel->insert($data);
 
-        // If recurring, generate next occurrences (4 iterations)
+        // If recurring, generate instances up to 10 weeks / occurrences ahead
         $recurrence = $data['recurrence'];
         if ($recurrence !== 'none') {
             $intervals = ['weekly' => '+1 week', 'biweekly' => '+2 weeks', 'monthly' => '+1 month'];
@@ -214,14 +218,16 @@ class ChoresController extends BaseController
             $members   = (new UserHomesModel())->getMembersOfHome($homeId);
             $userCount = count($members);
             if ($interval && $userCount > 0) {
-                $baseDate   = $data['due_date'];
-                $userIndex  = array_search($data['assigned_user_id'], array_column($members, 'id'));
-                for ($i = 1; $i <= 4; $i++) {
+                $baseDate  = $data['due_date'];
+                $userIndex = array_search($data['assigned_user_id'], array_column($members, 'id'));
+                $limit     = $recurrence === 'monthly' ? 6 : 10;
+                for ($i = 1; $i <= $limit; $i++) {
                     $baseDate = date('Y-m-d', strtotime($baseDate . ' ' . $interval));
                     $nextUser = $members[($userIndex + $i) % $userCount];
                     $choreModel->insert(array_merge($data, [
-                        'due_date'         => $baseDate,
-                        'assigned_user_id' => $nextUser['id'],
+                        'due_date'             => $baseDate,
+                        'assigned_user_id'     => $nextUser['id'],
+                        'recurrence_parent_id' => $newId,
                     ]));
                 }
             }
@@ -321,14 +327,32 @@ class ChoresController extends BaseController
     {
         if ($this->requireHome()) return;
 
+        $homeId     = session()->get('home_id');
         $choreModel = new ChoreModel();
         $chore      = $choreModel->find($id);
 
-        if (!$chore || $chore['home_id'] != session()->get('home_id')) {
+        if (!$chore || $chore['home_id'] != $homeId) {
             return redirect()->back()->with('error', lang('App.flash_chore_not_found'));
         }
 
-        $choreModel->delete($id);
+        $scope = $this->request->getPost('scope') ?? 'this';
+
+        if ($scope === 'future' && $chore['recurrence'] !== 'none') {
+            $rootId = $chore['recurrence_parent_id'] ?? $id;
+            db_connect()->table('chores')
+                ->where('home_id', $homeId)
+                ->groupStart()
+                    ->where('id', $id)
+                    ->orGroupStart()
+                        ->where('recurrence_parent_id', $rootId)
+                        ->where('due_date >=', $chore['due_date'])
+                        ->where('status', 'pending')
+                    ->groupEnd()
+                ->groupEnd()
+                ->delete();
+        } else {
+            $choreModel->delete($id);
+        }
 
         if ($this->isApi()) return $this->apiOk();
 
@@ -376,6 +400,70 @@ class ChoresController extends BaseController
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────
+
+    private function extendRecurringSeries(int $homeId, ChoreModel $choreModel, array $members): void
+    {
+        $today    = date('Y-m-d');
+        $intervals = ['weekly' => '+1 week', 'biweekly' => '+2 weeks', 'monthly' => '+1 month'];
+
+        // Find all series roots for this home
+        $roots = $choreModel
+            ->where('home_id', $homeId)
+            ->where('recurrence !=', 'none')
+            ->where('recurrence_parent_id IS NULL')
+            ->findAll();
+
+        foreach ($roots as $root) {
+            $interval = $intervals[$root['recurrence']] ?? null;
+            if (!$interval || empty($members)) continue;
+
+            // Count pending future instances
+            $pendingCount = $choreModel
+                ->where('home_id', $homeId)
+                ->where('due_date >', $today)
+                ->where('status', 'pending')
+                ->groupStart()
+                    ->where('id', $root['id'])
+                    ->orWhere('recurrence_parent_id', $root['id'])
+                ->groupEnd()
+                ->countAllResults();
+
+            if ($pendingCount >= 3) continue;
+
+            // Find the last task in series (to continue from)
+            $last = $choreModel
+                ->where('home_id', $homeId)
+                ->groupStart()
+                    ->where('id', $root['id'])
+                    ->orWhere('recurrence_parent_id', $root['id'])
+                ->groupEnd()
+                ->orderBy('due_date', 'DESC')
+                ->first();
+
+            if (!$last) continue;
+
+            $baseDate  = $last['due_date'];
+            $userIndex = array_search($last['assigned_user_id'], array_column($members, 'id'));
+            if ($userIndex === false) $userIndex = 0;
+            $limit     = $root['recurrence'] === 'monthly' ? 4 : 6;
+
+            for ($i = 1; $i <= $limit; $i++) {
+                $baseDate  = date('Y-m-d', strtotime($baseDate . ' ' . $interval));
+                $nextUser  = $members[($userIndex + $i) % count($members)];
+                $choreModel->insert([
+                    'home_id'              => $homeId,
+                    'task_name'            => $root['task_name'],
+                    'icon'                 => $root['icon'],
+                    'assigned_user_id'     => $nextUser['id'],
+                    'due_date'             => $baseDate,
+                    'penalty_amount'       => $root['penalty_amount'],
+                    'recurrence'           => $root['recurrence'],
+                    'recurrence_parent_id' => $root['id'],
+                    'status'               => 'pending',
+                ]);
+            }
+        }
+    }
 
     private function buildCalendar(string $view, int $offset): array
     {
