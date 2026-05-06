@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\HomeModel;
 use App\Models\UserHomesModel;
+use App\Models\UserModel;
 
 class HomesController extends BaseController
 {
