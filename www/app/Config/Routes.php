@@ -39,6 +39,9 @@ $routes->get('/api/members',                 'MembersController::index');
 // Language
 $routes->get('/lang/(:segment)', 'LanguageController::switch/$1');
 
+// Public SEO
+$routes->get('/sitemap.xml', 'SitemapController::index');
+
 // Landing & Dashboard
 $routes->get('/debug-url', 'HomeController::debugUrl');
 $routes->get('/',          'HomeController::landing');

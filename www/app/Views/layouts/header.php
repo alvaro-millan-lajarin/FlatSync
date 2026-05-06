@@ -18,7 +18,11 @@ helper('avatar');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= esc($pageTitle ?: 'FlatMate') ?> — FlatMate</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title><?= esc($pageTitle ?: 'FlatSync') ?> — FlatSync</title>
+  <link rel="icon" href="<?= base_url('favicon.ico') ?>" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/logo.png') ?>">
+  <link rel="apple-touch-icon" href="<?= base_url('assets/logo.png') ?>">
   <link rel="stylesheet" href="<?= base_url('css/app.css') ?>?v=<?= filemtime(FCPATH . 'css/app.css') ?>">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>

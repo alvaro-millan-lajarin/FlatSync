@@ -1,2 +1,24 @@
 User-agent: *
-Disallow: 
+Allow: /$
+Allow: /login
+Allow: /register
+Allow: /assets/
+Allow: /css/
+Allow: /js/
+Disallow: /dashboard
+Disallow: /expenses
+Disallow: /chores
+Disallow: /balance
+Disallow: /chat
+Disallow: /members
+Disallow: /profile
+Disallow: /homes
+Disallow: /services
+Disallow: /game
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /lang/
+Disallow: /demo
+Disallow: /debug-url
+
+Sitemap: https://flatsync.es/sitemap.xml
