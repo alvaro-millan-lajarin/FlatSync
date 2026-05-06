@@ -158,6 +158,10 @@ class HomesController extends BaseController
             return view('homes/join', ['error' => 'Código inválido. Compruébalo con el administrador.']);
         }
 
+        if ($home['name'] === \App\Controllers\DemoController::DEMO_HOME) {
+            return view('homes/join', ['error' => 'No puedes unirte a este hogar.']);
+        }
+
         $uhModel = new UserHomesModel();
 
         if ($uhModel->isMember($userId, $home['id'])) {
