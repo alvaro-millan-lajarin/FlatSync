@@ -2,15 +2,11 @@
 
 <!-- Month selector -->
 <div style="display:flex;gap:10px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
-  <?php if ($filterMonth !== ''): ?>
-    <a href="<?= site_url('/expenses/balance?month=' . $prevMonth) ?>" class="btn btn-secondary"><?= lang('App.previous') ?></a>
-    <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700"><?= $monthLabel ?></span>
-    <a href="<?= site_url('/expenses/balance?month=' . $nextMonth) ?>" class="btn btn-secondary"><?= lang('App.next') ?></a>
-    <a href="<?= site_url('/expenses/balance') ?>" class="btn btn-secondary"><?= lang('App.balance_all_time') ?></a>
-  <?php else: ?>
-    <a href="<?= site_url('/expenses/balance?month=' . date('Y-m', strtotime('-1 month')) ) ?>" class="btn btn-secondary"><?= lang('App.previous') ?></a>
-    <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700"><?= lang('App.balance_all_time') ?></span>
-    <a href="<?= site_url('/expenses/balance?month=' . date('Y-m')) ?>" class="btn btn-secondary"><?= lang('App.current_month') ?></a>
+  <a href="<?= site_url('/expenses/balance?month=' . $prevMonth) ?>" class="btn btn-secondary"><?= lang('App.previous') ?></a>
+  <span style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700"><?= $monthLabel ?></span>
+  <a href="<?= site_url('/expenses/balance?month=' . $nextMonth) ?>" class="btn btn-secondary"><?= lang('App.next') ?></a>
+  <?php if ($filterMonth !== date('Y-m')): ?>
+    <a href="<?= site_url('/expenses/balance') ?>" class="btn btn-secondary"><?= lang('App.current_month') ?></a>
   <?php endif; ?>
 </div>
 

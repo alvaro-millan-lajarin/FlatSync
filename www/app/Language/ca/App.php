@@ -137,6 +137,12 @@ return [
     'balance_title'       => 'Balanç de Despeses',
     'balance_subtitle'    => 'Qui deu què a qui',
     'balance_all_time'    => 'Tot el temps',
+
+    // Game
+    'nav_extra'   => 'Extra',
+    'nav_game'    => 'Mini joc',
+    'game_title'  => 'FlatRunner',
+    'game_subtitle' => 'Esquiva les tasques i les despeses!',
     'balance_per_person'  => 'Balanç per persona',
     'balance_paid'        => 'Ha pagat',
     'balance_should'      => 'Ha de pagar',
@@ -326,6 +332,7 @@ return [
     'landing_title'       => 'FlatSync — Gestiona el teu pis compartit',
     'landing_nav_login'   => 'Iniciar sessió',
     'landing_nav_register'=> 'Registrar-se',
+    'landing_demo'        => 'Provar demo',
     'landing_badge'       => 'Gestió de pis compartit',
     'landing_h1_line1'    => 'Viure junts,',
     'landing_typewriter'  => 'sense complicacions.',

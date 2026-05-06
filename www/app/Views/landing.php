@@ -683,6 +683,7 @@ $_typewriter = lang('App.landing_typewriter');
       </a>
       <?php endforeach; ?>
     </div>
+    <a href="<?= site_url('/demo') ?>" class="btn-nav-login" style="border-color:rgba(124,106,247,0.5);color:#7C6AF7" onmouseover="this.style.borderColor='#7C6AF7';this.style.color='#7C6AF7'" onmouseout="this.style.borderColor='rgba(124,106,247,0.5)';this.style.color='#7C6AF7'"><?= lang('App.landing_demo') ?></a>
     <a href="<?= site_url('/login') ?>" class="btn-nav-login"><?= lang('App.landing_nav_login') ?></a>
     <a href="<?= site_url('/register') ?>" class="btn-nav-register"><?= lang('App.landing_nav_register') ?></a>
   </div>
@@ -701,7 +702,9 @@ $_typewriter = lang('App.landing_typewriter');
       <a href="<?= site_url('/register') ?>" class="btn-hero">
         <?= lang('App.landing_start') ?> <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
       </a>
-      <a href="<?= site_url('/login') ?>" class="btn-hero-ghost"><?= lang('App.landing_login') ?></a>
+      <a href="<?= site_url('/demo') ?>" class="btn-hero-ghost" style="border-color:rgba(124,106,247,0.5);color:#7C6AF7;display:inline-flex;align-items:center;gap:8px">
+        <i data-lucide="play-circle" style="width:16px;height:16px"></i> <?= lang('App.landing_demo') ?>
+      </a>
     </div>
     <p class="hero-note"><?= lang('App.landing_note') ?></p>
   </div>
@@ -915,7 +918,10 @@ $_mqItems = [
 <section class="cta-section" id="cta-section">
   <h2 class="reveal"><?= lang('App.landing_cta_h2') ?></h2>
   <p class="reveal"><?= lang('App.landing_cta_p') ?></p>
-  <a href="<?= site_url('/register') ?>" class="btn-cta reveal"><?= lang('App.landing_cta_btn') ?> <i data-lucide="arrow-right" style="width:16px;height:16px"></i></a>
+  <div class="reveal" style="display:inline-flex;gap:14px;flex-wrap:wrap;justify-content:center">
+    <a href="<?= site_url('/register') ?>" class="btn-cta"><?= lang('App.landing_cta_btn') ?> <i data-lucide="arrow-right" style="width:16px;height:16px"></i></a>
+    <a href="<?= site_url('/demo') ?>" class="btn-cta" style="background:rgba(255,255,255,0.12);box-shadow:none;border:1.5px solid rgba(255,255,255,0.25)"><i data-lucide="play-circle" style="width:16px;height:16px"></i> <?= lang('App.landing_demo') ?></a>
+  </div>
 </section>
 
 <!-- ── FOOTER ── -->

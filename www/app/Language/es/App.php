@@ -137,6 +137,12 @@ return [
     'balance_title'       => 'Balance de Gastos',
     'balance_subtitle'    => 'Quién debe qué a quién',
     'balance_all_time'    => 'Todo el tiempo',
+
+    // Game
+    'nav_extra'   => 'Extra',
+    'nav_game'    => 'Mini juego',
+    'game_title'  => 'FlatRunner',
+    'game_subtitle' => '¡Esquiva las tareas y los gastos!',
     'balance_per_person'  => 'Balance por persona',
     'balance_paid'        => 'Ha pagado',
     'balance_should'      => 'Debe pagar',
@@ -326,6 +332,7 @@ return [
     'landing_title'       => 'FlatSync — Gestiona tu piso compartido',
     'landing_nav_login'   => 'Iniciar sesión',
     'landing_nav_register'=> 'Registrarse',
+    'landing_demo'        => 'Probar demo',
     'landing_badge'       => 'Gestión de piso compartido',
     'landing_h1_line1'    => 'Vivir juntos,',
     'landing_typewriter'  => 'sin complicaciones.',

@@ -267,7 +267,7 @@ class ExpensesController extends BaseController
         if ($this->requireHome()) return;
 
         $homeId       = session()->get('home_id');
-        $filterMonth  = $this->request->getGet('month') ?: '';
+        $filterMonth  = $this->request->getGet('month') ?: date('Y-m');
         $expenseModel = new ExpenseModel();
         $settleModel  = new SettlementModel();
         $uhModel      = new UserHomesModel();
@@ -275,16 +275,14 @@ class ExpensesController extends BaseController
         $members      = $uhModel->getMembersOfHome($homeId);
         $allMemberIds = array_column($members, 'id');
 
-        $query = $expenseModel
+        [$year, $month] = explode('-', $filterMonth);
+
+        $allExpenses = $expenseModel
             ->select('amount, paid_by, split_with')
-            ->where('home_id', $homeId);
-
-        if ($filterMonth !== '') {
-            [$year, $month] = explode('-', $filterMonth);
-            $query->where('YEAR(date)', $year)->where('MONTH(date)', $month);
-        }
-
-        $allExpenses = $query->findAll();
+            ->where('home_id', $homeId)
+            ->where('YEAR(date)', $year)
+            ->where('MONTH(date)', $month)
+            ->findAll();
 
         $shouldPay = array_fill_keys($allMemberIds, 0.0);
         $paid      = array_fill_keys($allMemberIds, 0.0);
@@ -308,37 +306,29 @@ class ExpensesController extends BaseController
         $memberBalances = [];
         foreach ($members as $m) {
             $uid = (int) $m['id'];
-
-            // Only apply settlement offsets in all-time view
-            $received = 0.0;
-            $sent     = 0.0;
-            if ($filterMonth === '') {
-                $received = (float) ($settleModel->selectSum('amount')->where('to_user_id', $uid)->where('home_id', $homeId)->first()['amount'] ?? 0);
-                $sent     = (float) ($settleModel->selectSum('amount')->where('from_user_id', $uid)->where('home_id', $homeId)->first()['amount'] ?? 0);
-            }
-
             $memberBalances[] = [
                 'id'         => $uid,
                 'username'   => $m['username'],
                 'paid'       => $paid[$uid] ?? 0,
                 'should_pay' => $shouldPay[$uid] ?? 0,
-                'balance'    => ($paid[$uid] ?? 0) - ($shouldPay[$uid] ?? 0) + $received - $sent,
+                'balance'    => ($paid[$uid] ?? 0) - ($shouldPay[$uid] ?? 0),
             ];
         }
 
         $settlements = $this->computeSettlements($memberBalances);
 
-        // Month navigation labels
-        $monthLabel = '';
-        $prevMonth  = '';
-        $nextMonth  = '';
-        if ($filterMonth !== '') {
-            [$y, $mo] = explode('-', $filterMonth);
-            $ts         = mktime(0, 0, 0, $mo, 1, $y);
-            $monthLabel = ucfirst(strftime('%B %Y', $ts) ?: date('F Y', $ts));
-            $prevMonth  = date('Y-m', strtotime('-1 month', $ts));
-            $nextMonth  = date('Y-m', strtotime('+1 month', $ts));
-        }
+        // Month navigation labels — localized
+        $monthNames = [
+            'es' => ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+            'en' => ['January','February','March','April','May','June','July','August','September','October','November','December'],
+            'ca' => ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'],
+        ];
+        $lang       = session()->get('lang') ?? 'es';
+        $names      = $monthNames[$lang] ?? $monthNames['es'];
+        $ts         = mktime(0, 0, 0, (int)$month, 1, (int)$year);
+        $monthLabel = $names[(int)$month - 1] . ' ' . $year;
+        $prevMonth  = date('Y-m', strtotime('-1 month', $ts));
+        $nextMonth  = date('Y-m', strtotime('+1 month', $ts));
 
         if ($this->isApi()) {
             return $this->apiOk([

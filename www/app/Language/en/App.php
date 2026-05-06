@@ -137,6 +137,12 @@ return [
     'balance_title'       => 'Expense Balance',
     'balance_subtitle'    => 'Who owes what to whom',
     'balance_all_time'    => 'All time',
+
+    // Game
+    'nav_extra'   => 'Extra',
+    'nav_game'    => 'Mini game',
+    'game_title'  => 'FlatRunner',
+    'game_subtitle' => 'Dodge chores and expenses!',
     'balance_per_person'  => 'Balance per person',
     'balance_paid'        => 'Has paid',
     'balance_should'      => 'Should pay',
@@ -326,6 +332,7 @@ return [
     'landing_title'       => 'FlatSync — Manage your shared flat',
     'landing_nav_login'   => 'Log in',
     'landing_nav_register'=> 'Sign up',
+    'landing_demo'        => 'Try demo',
     'landing_badge'       => 'Shared flat management',
     'landing_h1_line1'    => 'Living together,',
     'landing_typewriter'  => 'without the hassle.',

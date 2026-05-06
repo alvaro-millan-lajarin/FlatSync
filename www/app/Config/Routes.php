@@ -43,6 +43,7 @@ $routes->get('/lang/(:segment)', 'LanguageController::switch/$1');
 $routes->get('/debug-url', 'HomeController::debugUrl');
 $routes->get('/',          'HomeController::landing');
 $routes->get('/dashboard', 'HomeController::index');
+$routes->get('/demo',      'DemoController::enter');
 
 // Chores
 $routes->get('/chores',                          'ChoresController::index');
@@ -63,6 +64,10 @@ $routes->get('/expenses/balance',      'ExpensesController::balance');
 $routes->get('/expenses/poll',         'ExpensesController::poll');
 $routes->get('/expenses/summary',      'ExpensesController::summary');
 $routes->get('/expenses/export',       'ExpensesController::export');
+
+// Game
+$routes->get('/game',        'GameController::index');
+$routes->post('/game/score', 'GameController::saveScore');
 
 // Services
 $routes->get('/services',        'ServicesController::index');

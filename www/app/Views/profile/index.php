@@ -6,17 +6,9 @@
   <div class="card" style="margin-bottom:20px">
     <div class="profile-header-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
 
-      <!-- Avatar -->
-      <div style="position:relative;flex-shrink:0">
-        <?php if (!empty($user['avatar_url'])): ?>
-          <img src="<?= base_url($user['avatar_url']) ?>"
-               alt="Avatar"
-               style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--border)">
-        <?php else: ?>
-          <div style="width:88px;height:88px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;border:3px solid var(--border)">
-            <?= strtoupper(substr($user['username'], 0, 1)) ?>
-          </div>
-        <?php endif; ?>
+      <!-- Initials -->
+      <div style="width:88px;height:88px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;border:3px solid var(--border);flex-shrink:0">
+        <?= strtoupper(substr($user['username'], 0, 1)) ?>
       </div>
 
       <!-- Info -->
@@ -36,7 +28,7 @@
   </div>
 
   <!-- Stats row -->
-  <div class="profile-stats-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+  <div class="profile-stats-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
     <div class="card" style="text-align:center;padding:20px 16px">
       <div style="font-size:1.6rem;font-weight:700;color:var(--primary);letter-spacing:-0.03em"><?= esc($user['username'][0]) ?></div>
       <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px"><?= lang('App.profile_initial') ?></div>
@@ -44,16 +36,6 @@
     <div class="card" style="text-align:center;padding:20px 16px">
       <div style="font-size:1.6rem;font-weight:700;color:var(--text);letter-spacing:-0.03em"><?= date('Y', strtotime($user['created_at'])) ?></div>
       <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px"><?= lang('App.profile_year') ?></div>
-    </div>
-    <div class="card" style="text-align:center;padding:20px 16px">
-      <div style="display:flex;align-items:center;justify-content:center;height:1.6rem">
-        <?php if ($user['avatar_url']): ?>
-          <i data-lucide="check-circle" style="width:24px;height:24px;color:var(--success)"></i>
-        <?php else: ?>
-          <i data-lucide="circle" style="width:24px;height:24px;color:var(--muted)"></i>
-        <?php endif; ?>
-      </div>
-      <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px"><?= lang('App.profile_avatar_lbl') ?></div>
     </div>
   </div>
 

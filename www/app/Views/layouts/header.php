@@ -131,6 +131,13 @@ helper('avatar');
     </a>
   </div>
 
+  <div class="sidebar-section">
+    <div class="sidebar-section-label"><?= lang('App.nav_extra') ?></div>
+    <a href="<?= site_url('/game') ?>" class="nav-item <?= $activeNav === 'game' ? 'active' : '' ?>">
+      <i data-lucide="gamepad-2" class="nav-icon"></i> <?= lang('App.nav_game') ?>
+    </a>
+  </div>
+
   <!-- Language switcher -->
   <?php
   $_lang = session()->get('lang') ?? 'es';
