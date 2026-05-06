@@ -79,8 +79,15 @@ return [
     'join_home_btn'     => 'Unir-me a la llar',
 
     // Members
-    'members_invite_code' => 'Codi d\'invitació',
-    'members_invite_hint' => 'Comparteix aquest codi perquè noves persones s\'uneixin a la llar.',
+    'members_invite_code' => 'Enllaç d\'invitació',
+    'members_invite_hint' => 'Comparteix aquest enllaç perquè noves persones s\'uneixin a la llar amb un sol clic.',
+    'members_copy_link'   => 'Copiar enllaç',
+    'copied'              => 'Copiat',
+    'join_invite_login_prompt' => 'Inicia sessió o crea un compte per unir-te a la llar.',
+    'join_invalid_code'   => 'Codi d\'invitació invàlid.',
+    'join_demo_blocked'   => 'No pots unir-te a aquesta llar.',
+    'join_already_member' => 'Ja ets membre. Sessió canviada.',
+    'join_welcome'        => 'T\'has unit a',
     'members_paid'        => 'Pagat',
     'members_done'        => 'Completades',
     'members_missed'      => 'Perdudes',

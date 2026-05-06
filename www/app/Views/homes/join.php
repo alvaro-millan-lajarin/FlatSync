@@ -40,6 +40,7 @@ $_locale = session()->get('lang');
       <div class="form-group">
         <label><?= lang('App.join_home_code') ?></label>
         <input type="text" name="invite_code" required placeholder="Ej: AB12-CD34-EF56" autofocus
+          value="<?= esc($prefill ?? '') ?>"
           style="text-transform:uppercase;letter-spacing:.15em;font-size:1.1rem;font-weight:700;text-align:center">
       </div>
       <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px;font-size:0.83rem;color:var(--muted)">

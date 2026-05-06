@@ -79,8 +79,15 @@ return [
     'join_home_btn'     => 'Unirme al hogar',
 
     // Members
-    'members_invite_code' => 'Código de invitación',
-    'members_invite_hint' => 'Comparte este código para que nuevas personas se unan al hogar.',
+    'members_invite_code' => 'Enlace de invitación',
+    'members_invite_hint' => 'Comparte este enlace para que nuevas personas se unan al hogar con un solo clic.',
+    'members_copy_link'   => 'Copiar enlace',
+    'copied'              => 'Copiado',
+    'join_invite_login_prompt' => 'Inicia sesión o crea una cuenta para unirte al hogar.',
+    'join_invalid_code'   => 'Código de invitación inválido.',
+    'join_demo_blocked'   => 'No puedes unirte a este hogar.',
+    'join_already_member' => 'Ya eres miembro. Sesión cambiada.',
+    'join_welcome'        => 'Te has unido a',
     'members_paid'        => 'Pagado',
     'members_done'        => 'Completadas',
     'members_missed'      => 'Perdidas',

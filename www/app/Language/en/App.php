@@ -79,8 +79,15 @@ return [
     'join_home_btn'     => 'Join home',
 
     // Members
-    'members_invite_code' => 'Invitation code',
-    'members_invite_hint' => 'Share this code so new people can join the home.',
+    'members_invite_code' => 'Invite link',
+    'members_invite_hint' => 'Share this link so new people can join the home with one click.',
+    'members_copy_link'   => 'Copy link',
+    'copied'              => 'Copied',
+    'join_invite_login_prompt' => 'Log in or create an account to join the home.',
+    'join_invalid_code'   => 'Invalid invitation code.',
+    'join_demo_blocked'   => 'You cannot join this home.',
+    'join_already_member' => 'Already a member. Session switched.',
+    'join_welcome'        => 'You joined',
     'members_paid'        => 'Paid',
     'members_done'        => 'Completed',
     'members_missed'      => 'Missed',

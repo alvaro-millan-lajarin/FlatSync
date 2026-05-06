@@ -1,14 +1,34 @@
 <?= view('layouts/header') ?>
 
-<div style="margin-bottom:20px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-  <div>
-    <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px"><?= lang('App.members_invite_code') ?></div>
-    <div style="font-size:1.5rem;font-weight:800;letter-spacing:.15em;color:var(--primary);font-variant-numeric:tabular-nums"><?= esc($home['invite_code']) ?></div>
+<?php $_inviteLink = site_url('/homes/join/' . $home['invite_code']); ?>
+<div style="margin-bottom:20px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+  <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px"><?= lang('App.members_invite_code') ?></div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;overflow:hidden">
+      <i data-lucide="link" style="width:15px;height:15px;color:var(--primary);flex-shrink:0"></i>
+      <span id="invite-link-text" style="font-size:0.85rem;font-weight:600;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= esc($_inviteLink) ?></span>
+    </div>
+    <button onclick="copyInviteLink()" id="copy-btn" class="btn btn-primary" style="flex-shrink:0;gap:6px">
+      <i data-lucide="copy" style="width:14px;height:14px"></i> <?= lang('App.members_copy_link') ?>
+    </button>
   </div>
-  <div style="color:var(--muted);font-size:0.85rem;max-width:320px">
-    <?= lang('App.members_invite_hint') ?>
-  </div>
+  <div style="color:var(--muted);font-size:0.8rem;margin-top:8px"><?= lang('App.members_invite_hint') ?></div>
 </div>
+<script>
+function copyInviteLink() {
+  navigator.clipboard.writeText(<?= json_encode($_inviteLink) ?>).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px"></i> <?= lang('App.copied') ?>';
+    btn.style.background = 'var(--success)';
+    if (window.lucide) lucide.createIcons();
+    setTimeout(() => {
+      btn.innerHTML = '<i data-lucide="copy" style="width:14px;height:14px"></i> <?= lang('App.members_copy_link') ?>';
+      btn.style.background = '';
+      if (window.lucide) lucide.createIcons();
+    }, 2000);
+  });
+}
+</script>
 
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
   <?php foreach ($memberStats as $m): ?>

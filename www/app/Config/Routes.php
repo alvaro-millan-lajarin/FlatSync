@@ -94,8 +94,9 @@ $routes->post('/chat/message/edit/(:num)',   'ChatController::messageEdit/$1');
 
 // Homes (multi-sesión)
 $routes->get('/homes',                'HomesController::select');
-$routes->get('/homes/join',           'HomesController::joinGet');
-$routes->post('/homes/join',          'HomesController::joinPost');
+$routes->get('/homes/join',                  'HomesController::joinGet');
+$routes->post('/homes/join',                 'HomesController::joinPost');
+$routes->get('/homes/join/(:segment)',        'HomesController::joinByLink/$1');
 $routes->get('/homes/create',         'HomesController::createGet');
 $routes->post('/homes/create',        'HomesController::createPost');
 $routes->post('/homes/switch/(:num)',      'HomesController::switchHome/$1');

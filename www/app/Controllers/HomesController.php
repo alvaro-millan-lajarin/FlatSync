@@ -137,7 +137,43 @@ class HomesController extends BaseController
     public function joinGet()
     {
         if ($this->requireLogin()) return;
-        return view('homes/join');
+        $prefill = $this->request->getGet('code') ?? '';
+        return view('homes/join', ['prefill' => strtoupper($prefill)]);
+    }
+
+    public function joinByLink(string $code)
+    {
+        $code = strtoupper(trim($code));
+
+        // Not logged in — save code and send to login/register
+        if (!session()->get('isLoggedIn')) {
+            session()->set('pending_invite', $code);
+            return redirect()->to('/login')->with('info', lang('App.join_invite_login_prompt'));
+        }
+
+        $homeModel = new HomeModel();
+        $home      = $homeModel->where('invite_code', $code)->first();
+
+        if (!$home) {
+            return redirect()->to('/homes')->with('error', lang('App.join_invalid_code'));
+        }
+
+        if ($home['name'] === \App\Controllers\DemoController::DEMO_HOME) {
+            return redirect()->to('/homes')->with('error', lang('App.join_demo_blocked'));
+        }
+
+        $userId  = session()->get('user_id');
+        $uhModel = new UserHomesModel();
+
+        if ($uhModel->isMember($userId, $home['id'])) {
+            session()->set(['home_id' => $home['id'], 'home_name' => $home['name'], 'is_admin' => $uhModel->isAdmin($userId, $home['id'])]);
+            return redirect()->to('/dashboard')->with('success', lang('App.join_already_member'));
+        }
+
+        $uhModel->insert(['user_id' => $userId, 'home_id' => $home['id'], 'is_admin' => 0]);
+        session()->set(['home_id' => $home['id'], 'home_name' => $home['name'], 'is_admin' => false]);
+
+        return redirect()->to('/dashboard')->with('success', lang('App.join_welcome') . ' ' . $home['name'] . '!');
     }
 
     public function joinPost()

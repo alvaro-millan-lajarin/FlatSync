@@ -71,6 +71,7 @@ class AuthController extends BaseController
             ]);
         }
 
+        $pendingInvite = session()->get('pending_invite');
         session()->set([
             'user_id'    => $user['id'],
             'username'   => $user['username'],
@@ -78,6 +79,11 @@ class AuthController extends BaseController
             'avatar_url' => $user['avatar_url'] ?? null,
             'isLoggedIn' => true,
         ]);
+        session()->remove('pending_invite');
+
+        if ($pendingInvite) {
+            return redirect()->to('/homes/join/' . $pendingInvite);
+        }
 
         return redirect()->to('/homes');
     }
