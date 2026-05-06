@@ -180,6 +180,105 @@ class AuthController extends BaseController
             ->with('success', 'Si el correo existe y no está verificado, recibirás un nuevo enlace.');
     }
 
+    // ── Password reset ───────────────────────────────────────────────────────
+
+    public function forgotPassword()
+    {
+        if (session()->get('isLoggedIn')) return redirect()->to('/dashboard');
+        return view('auth/forgot_password');
+    }
+
+    public function forgotPasswordPost()
+    {
+        $email     = trim($this->request->getPost('email') ?? '');
+        $userModel = new UserModel();
+        $user      = $userModel->where('email', $email)->first();
+
+        if ($user) {
+            $token   = bin2hex(random_bytes(32));
+            $expires = date('Y-m-d H:i:s', time() + 3600);
+            $userModel->update($user['id'], ['reset_token' => $token, 'reset_expires' => $expires]);
+            $this->sendResetEmail($email, $token);
+        }
+
+        // Always show the same message to prevent email enumeration
+        return redirect()->to('/forgot-password')->with('success', lang('App.forgot_sent'));
+    }
+
+    public function resetPassword(string $token)
+    {
+        $userModel = new UserModel();
+        $user = $userModel->where('reset_token', $token)
+                          ->where('reset_expires >', date('Y-m-d H:i:s'))
+                          ->first();
+
+        if (!$user) {
+            return redirect()->to('/login')->with('error', lang('App.reset_invalid'));
+        }
+
+        return view('auth/reset_password', ['token' => $token]);
+    }
+
+    public function resetPasswordPost(string $token)
+    {
+        $userModel = new UserModel();
+        $user = $userModel->where('reset_token', $token)
+                          ->where('reset_expires >', date('Y-m-d H:i:s'))
+                          ->first();
+
+        if (!$user) {
+            return redirect()->to('/login')->with('error', lang('App.reset_invalid'));
+        }
+
+        $password = $this->request->getPost('password') ?? '';
+        $confirm  = $this->request->getPost('confirm')  ?? '';
+
+        if (strlen($password) < 6) {
+            return view('auth/reset_password', ['token' => $token, 'error' => lang('App.register_pass_short') ?: 'Mínimo 6 caracteres.']);
+        }
+
+        if ($password !== $confirm) {
+            return view('auth/reset_password', ['token' => $token, 'error' => lang('App.reset_mismatch')]);
+        }
+
+        $userModel->update($user['id'], [
+            'password'       => password_hash($password, PASSWORD_DEFAULT),
+            'reset_token'    => null,
+            'reset_expires'  => null,
+        ]);
+
+        return redirect()->to('/login')->with('success', lang('App.reset_success'));
+    }
+
+    private function sendResetEmail(string $toEmail, string $token): void
+    {
+        $link = site_url('/reset-password/' . $token);
+        $body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+        <body style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;background:#f4f4f4;margin:0;padding:0">
+        <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+          <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:36px 40px;text-align:center">
+            <span style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px">flat<span style="color:#93c5fd">sync</span></span>
+          </div>
+          <div style="padding:36px 40px">
+            <h2 style="margin:0 0 12px;font-size:20px;color:#111">Restablecer contraseña</h2>
+            <p style="color:#555;line-height:1.6;margin:0 0 28px">Haz clic en el botón para elegir una nueva contraseña. El enlace es válido durante <strong>1 hora</strong>.</p>
+            <a href="' . $link . '" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:13px 32px;border-radius:8px;font-weight:600;font-size:15px">Cambiar contraseña</a>
+            <p style="margin:24px 0 0;font-size:12px;color:#999">Si no solicitaste esto, ignora este mensaje.<br>O copia: <a href="' . $link . '" style="color:#2563eb">' . $link . '</a></p>
+          </div>
+        </div></body></html>';
+
+        try {
+            $svc = \Config\Services::email();
+            $svc->setFrom(getenv('MAIL_FROM_ADDRESS') ?: 'noreply@flatsync.es', getenv('MAIL_FROM_NAME') ?: 'FlatSync');
+            $svc->setTo($toEmail);
+            $svc->setSubject('Restablece tu contraseña en FlatSync');
+            $svc->setMessage($body);
+            $svc->send();
+        } catch (\Throwable $e) {
+            log_message('error', 'Reset email failed: ' . $e->getMessage());
+        }
+    }
+
     private function sendVerificationEmail(string $toEmail, string $token): void
     {
         $link = site_url('/verify-email/' . $token);

@@ -130,6 +130,9 @@ $_locale = session()->get('lang') ?? 'es';
           <?= lang('App.login_btn') ?>
           <i data-lucide="arrow-right" style="width:15px;height:15px"></i>
         </button>
+        <div style="text-align:center;margin-top:12px">
+          <a href="<?= site_url('/forgot-password') ?>" style="font-size:.85rem;color:var(--muted);text-decoration:none" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted)'"><?= lang('App.login_forgot') ?></a>
+        </div>
       </form>
 
       <div class="auth-divider"><span><?= lang('App.login_or') ?></span></div>
