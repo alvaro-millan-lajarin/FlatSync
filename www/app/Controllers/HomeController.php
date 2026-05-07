@@ -236,7 +236,8 @@ class HomeController extends BaseController
 
         $prevMonth  = date('Y-m', strtotime('-1 month', mktime(0, 0, 0, $mon, 1, $year)));
         $nextMonth  = date('Y-m', strtotime('+1 month', mktime(0, 0, 0, $mon, 1, $year)));
-        $monthLabel = date('F Y', mktime(0, 0, 0, $mon, 1, $year));
+        $monthsLong = lang('App.months_long');
+        $monthLabel = $monthsLong[(int)$mon - 1] . ' ' . $year;
 
         return view('dashboard', [
             'pageTitle'         => lang('App.nav_dashboard'),

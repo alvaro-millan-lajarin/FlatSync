@@ -137,11 +137,11 @@ $catLabels = ['food'=>lang('App.cat_food'),'cleaning'=>lang('App.cat_cleaning'),
   <!-- Evolución mensual -->
   <div class="card" id="evol-chart">
     <div class="card-header"><span class="card-title"><i data-lucide="trending-up"></i> <?= lang('App.dashboard_evolution') ?></span></div>
-    <?php $maxEvol = max(1, max(array_column($monthlyEvolution, 'total') ?: [0])); ?>
+    <?php $maxEvol = max(1, max(array_column($monthlyEvolution, 'total') ?: [0])); $monthsShort = lang('App.months_short'); ?>
     <div class="chart-bar-group">
       <?php foreach ($monthlyEvolution as $me): ?>
       <div class="chart-row">
-        <div class="chart-label" style="font-size:0.78rem"><?= date('M', mktime(0,0,0,$me['month'],1)) ?> <?= $me['year'] ?></div>
+        <div class="chart-label" style="font-size:0.78rem"><?= $monthsShort[(int)$me['month'] - 1] ?> <?= $me['year'] ?></div>
         <div class="chart-bar-wrap">
           <div class="chart-bar" style="width:<?= round($me['total']/$maxEvol*100) ?>%;background:rgba(124,106,247,0.6);color:var(--accent)">
             €<?= number_format($me['total'], 0) ?>

@@ -472,7 +472,11 @@ class ChoresController extends BaseController
         if ($view === 'week') {
             $monday    = date('Y-m-d', strtotime('monday this week', strtotime("+{$offset} weeks")));
             $sunday    = date('Y-m-d', strtotime("+6 days", strtotime($monday)));
-            $title     = date('d M', strtotime($monday)) . ' – ' . date('d M Y', strtotime($sunday));
+            $monthsShort = lang('App.months_short');
+            $monTs = strtotime($monday); $sunTs = strtotime($sunday);
+            $title = date('d', $monTs) . ' ' . $monthsShort[(int)date('m', $monTs) - 1]
+                   . ' – '
+                   . date('d', $sunTs) . ' ' . $monthsShort[(int)date('m', $sunTs) - 1] . ' ' . date('Y', $sunTs);
             $days      = [];
             for ($i = 0; $i < 7; $i++) {
                 $date = date('Y-m-d', strtotime("+{$i} days", strtotime($monday)));
@@ -486,7 +490,8 @@ class ChoresController extends BaseController
         $month = (int) date('m', strtotime("+{$offset} months"));
         $firstDay = mktime(0, 0, 0, $month, 1, $year);
         $lastDay  = mktime(0, 0, 0, $month + 1, 0, $year);
-        $title    = date('F Y', $firstDay);
+        $monthsLong = lang('App.months_long');
+        $title      = $monthsLong[$month - 1] . ' ' . $year;
 
         // ISO Monday-based: 1=Mon ... 7=Sun
         $startDow = (int) date('N', $firstDay); // 1–7

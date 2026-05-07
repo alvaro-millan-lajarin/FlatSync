@@ -214,6 +214,8 @@ return [
     'chores_edit_title'   => 'Editar tasca',
     'chores_add_title'    => 'Nova tasca',
     'chores_days'         => ['Dl','Dt','Dc','Dj','Dv','Ds','Dg'],
+    'months_short'        => ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'],
+    'months_long'         => ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'],
     'chores_swap_title'   => 'Proposar intercanvi',
     'chores_swap_task'    => 'Tasca a intercanviar',
     'chores_swap_with'    => 'Intercanviar amb',
