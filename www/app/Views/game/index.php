@@ -5,11 +5,11 @@
   <div style="position:relative;line-height:0">
     <canvas id="fr-cv" style="display:block;width:100%;aspect-ratio:4;cursor:pointer;touch-action:none"></canvas>
 
-    <div id="fr-ov" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(30,27,75,0.55);backdrop-filter:blur(3px)">
-      <div id="fr-ttl" style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#fff;letter-spacing:-.5px;text-shadow:0 2px 10px rgba(0,0,0,.3)">FlatRunner</div>
-      <div id="fr-scr" style="font-size:.88rem;color:rgba(255,255,255,.7);min-height:1.4em;text-align:center"></div>
-      <button onclick="FR.jump()" class="btn btn-primary" id="fr-btn" style="font-size:1rem;padding:10px 32px;margin-top:2px">▶ Jugar</button>
-      <div id="fr-hint" style="font-size:.72rem;color:rgba(255,255,255,.38)">Espacio · Click · Tap para saltar</div>
+    <div id="fr-ov" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:rgba(30,27,75,0.55);backdrop-filter:blur(3px)">
+      <div id="fr-ttl" style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;line-height:1;color:#fff;letter-spacing:-.5px;text-shadow:0 2px 10px rgba(0,0,0,.3);margin-bottom:10px">FlatRunner</div>
+      <div id="fr-scr" style="font-size:.88rem;color:rgba(255,255,255,.7);min-height:1.2em;text-align:center;margin-bottom:14px"></div>
+      <button onclick="FR.jump()" class="btn btn-primary" id="fr-btn" style="font-size:1rem;padding:10px 32px">▶ Jugar</button>
+      <div id="fr-hint" style="font-size:.72rem;color:rgba(255,255,255,.38);margin-top:10px">Espacio · Click · Tap para saltar</div>
     </div>
   </div>
 </div>
