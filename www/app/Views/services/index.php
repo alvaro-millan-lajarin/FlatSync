@@ -95,6 +95,71 @@
   </div>
 </div>
 
+<!-- Proveedores verificados (datos de BD, siempre visibles) -->
+<?php if (!empty($featuredByCategory)):
+  $catLabelMap = array_column($categories, 'label', 'key');
+  $catIconMap  = array_column($categories, 'icon',  'key');
+  $catColorMap = array_column($categories, 'color', 'key');
+  $colorDefs = [
+    'accent'  => ['#4F80FF','#818CF8'],
+    'warning' => ['#F59E0B','#FBBF24'],
+    'success' => ['#22C55E','#4ADE80'],
+    'danger'  => ['#EF4444','#F87171'],
+  ];
+?>
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <span class="card-title"><i data-lucide="star"></i> Proveedores verificados</span>
+    <span style="font-size:0.75rem;color:var(--muted)">Colaboran con FlatSync · Solo pagas si llaman</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:20px">
+  <?php foreach ($featuredByCategory as $catKey => $providers):
+    $label = $catLabelMap[$catKey] ?? $catKey;
+    $icon  = $catIconMap[$catKey]  ?? 'briefcase';
+    $color = $catColorMap[$catKey] ?? 'accent';
+    [$g1, $g2] = $colorDefs[$color] ?? ['#4F80FF','#818CF8'];
+  ?>
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,<?= $g1 ?>,<?= $g2 ?>);display:flex;align-items:center;justify-content:center">
+        <i data-lucide="<?= esc($icon) ?>" style="width:15px;height:15px;color:#fff"></i>
+      </div>
+      <span style="font-weight:800;font-size:0.95rem;color:var(--text)"><?= esc($label) ?></span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+      <?php foreach ($providers as $p): ?>
+      <div style="background:linear-gradient(135deg,<?= $g1 ?>10,<?= $g2 ?>08);border:1.5px solid <?= $g1 ?>28;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="font-weight:800;font-size:0.88rem;color:var(--text);line-height:1.3"><?= esc($p['name']) ?></div>
+          <span style="background:<?= $g1 ?>;color:#fff;font-size:0.62rem;font-weight:800;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0">DESTACADO</span>
+        </div>
+        <?php if ($p['city']): ?>
+        <div style="font-size:0.75rem;color:var(--muted);display:flex;align-items:center;gap:4px">
+          <i data-lucide="map-pin" style="width:10px;height:10px;color:<?= $g1 ?>"></i> <?= esc($p['city']) ?>
+        </div>
+        <?php endif; ?>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+          <button onclick="callProvider(<?= (int)$p['id'] ?>, '<?= esc($p['phone'], 'js') ?>')"
+                  style="display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,<?= $g1 ?>,<?= $g2 ?>);color:#fff;border:none;font-size:0.83rem;font-weight:800;font-family:inherit;cursor:pointer;width:100%;transition:opacity .15s"
+                  onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <i data-lucide="phone" style="width:13px;height:13px"></i> <?= esc($p['phone']) ?>
+          </button>
+          <?php if ($p['website']): ?>
+          <a href="<?= esc($p['website']) ?>" target="_blank" rel="noopener"
+             style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:10px;background:<?= $g1 ?>12;border:1.5px solid <?= $g1 ?>25;color:<?= $g1 ?>;font-size:0.78rem;font-weight:600;text-decoration:none">
+            <i data-lucide="globe" style="width:11px;height:11px"></i> Web
+          </a>
+          <?php endif; ?>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+  <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
+
 <!-- Categorías (rellenado por JS) -->
 <div id="services-container"></div>
 
@@ -117,6 +182,18 @@ $cats = array_map(fn($c) => [
 ], $categories);
 ?>
 <script>
+const CSRF_NAME = <?= json_encode(csrf_token()) ?>;
+const CSRF_HASH = <?= json_encode(csrf_hash()) ?>;
+
+function callProvider(id, phone) {
+  fetch('/services/lead/' + id, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: CSRF_NAME + '=' + CSRF_HASH,
+  }).catch(() => {});
+  window.location = 'tel:' + phone.replace(/\s/g, '');
+}
+
 const CATEGORIES = <?= json_encode($cats, JSON_UNESCAPED_UNICODE) ?>;
 const SVC_L = {
   found:           <?= json_encode(lang('App.services_found')) ?>,

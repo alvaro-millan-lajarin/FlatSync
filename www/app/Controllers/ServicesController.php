@@ -88,12 +88,70 @@ class ServicesController extends BaseController
             return $cat;
         }, $this->categories);
 
+        $providers = model('ServiceProviderModel')->where('active', 1)->findAll();
+        $featuredByCategory = [];
+        foreach ($providers as $p) {
+            $featuredByCategory[$p['category']][] = $p;
+        }
+
         return view('services/index', [
-            'pageTitle'    => lang('App.services_title'),
-            'pageSubtitle' => lang('App.services_subtitle'),
-            'activeNav'    => 'services',
-            'categories'   => $categories,
+            'pageTitle'          => lang('App.services_title'),
+            'pageSubtitle'       => lang('App.services_subtitle'),
+            'activeNav'          => 'services',
+            'categories'         => $categories,
+            'featuredByCategory' => $featuredByCategory,
         ]);
+    }
+
+    public function trackLead(int $id)
+    {
+        $provider = model('ServiceProviderModel')->where('id', $id)->where('active', 1)->first();
+        if (!$provider) {
+            return $this->response->setJSON(['ok' => false])->setStatusCode(404);
+        }
+        model('LeadModel')->insert([
+            'provider_id' => $id,
+            'user_id'     => session()->get('user_id'),
+            'ip'          => $this->request->getIPAddress(),
+        ]);
+        return $this->response->setJSON(['ok' => true]);
+    }
+
+    public function registerProvider()
+    {
+        $catKeys = array_column($this->categories, 'key');
+        return view('services/register', [
+            'pageTitle'  => 'Anúnciate en FlatSync',
+            'activeNav'  => 'services',
+            'catKeys'    => $catKeys,
+            'categories' => array_map(fn($c) => ['key' => $c['key'], 'label' => lang('App.svc_cat_' . $c['key'])], $this->categories),
+        ]);
+    }
+
+    public function registerProviderPost()
+    {
+        $allowed = array_column($this->categories, 'key');
+        $rules = [
+            'name'     => 'required|max_length[255]',
+            'category' => 'required|in_list[' . implode(',', $allowed) . ']',
+            'phone'    => 'required|max_length[50]',
+            'email'    => 'required|valid_email|max_length[255]',
+            'website'  => 'permit_empty|valid_url_strict|max_length[500]',
+            'city'     => 'permit_empty|max_length[100]',
+        ];
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+        model('ServiceProviderModel')->insert([
+            'name'     => $this->request->getPost('name'),
+            'category' => $this->request->getPost('category'),
+            'phone'    => $this->request->getPost('phone'),
+            'email'    => $this->request->getPost('email'),
+            'website'  => $this->request->getPost('website') ?: null,
+            'city'     => $this->request->getPost('city') ?: null,
+            'active'   => 0,
+        ]);
+        return redirect()->to('/services/register')->with('success', '¡Solicitud recibida! Te avisaremos cuando tu perfil esté activo.');
     }
 
     /**

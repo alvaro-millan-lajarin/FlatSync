@@ -77,8 +77,16 @@ $routes->get('/game',        'GameController::index');
 $routes->post('/game/score', 'GameController::saveScore');
 
 // Services
-$routes->get('/services',        'ServicesController::index');
-$routes->get('/services/nearby', 'ServicesController::nearby');
+$routes->get('/services',                   'ServicesController::index');
+$routes->get('/services/nearby',            'ServicesController::nearby');
+$routes->post('/services/lead/(:num)',      'ServicesController::trackLead/$1');
+$routes->get('/services/register',          'ServicesController::registerProvider');
+$routes->post('/services/register',         'ServicesController::registerProviderPost');
+
+// Admin
+$routes->get('/admin/leads',                        'AdminController::leads');
+$routes->post('/admin/providers/(:num)/toggle',     'AdminController::toggleProvider/$1');
+$routes->post('/admin/providers/(:num)/delete',     'AdminController::deleteProvider/$1');
 
 $routes->get('/chores/poll', 'ChoresController::poll');
 
