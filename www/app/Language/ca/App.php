@@ -121,8 +121,14 @@ return [
     'dashboard_col_cat'   => 'Categoria',
     'dashboard_col_paid'  => 'Pagat per',
     'dashboard_col_amount'=> 'Import',
-    'dashboard_vs_prev'   => 'vs mes anterior',
-    'dashboard_of_total'  => 'del total',
+    'dashboard_vs_prev'           => 'vs mes anterior',
+    'dashboard_of_total'          => 'del total',
+    'dashboard_chores_missed'     => 'Tasques fallides',
+    'dashboard_daily_spending'    => 'Despesa diària del mes',
+    'dashboard_chores_completion' => 'Compliment de tasques',
+    'dashboard_done'              => 'Completades',
+    'dashboard_missed_lbl'        => 'Fallides',
+    'no_data'                     => 'Sense dades per a aquest període',
 
     // Expenses
     'expenses_title'      => 'Despeses Compartides',

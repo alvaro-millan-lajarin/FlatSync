@@ -185,6 +185,55 @@ class HomeController extends BaseController
             ? (($monthExpenses - $lastMonthTot) / $lastMonthTot) * 100
             : null;
 
+        // Daily spending within selected month
+        $daysInMonth = (int)date('t', mktime(0, 0, 0, $mon, 1, $year));
+        $dailyRows = $expenseModel
+            ->select('DAY(date) AS day, SUM(amount) AS total')
+            ->where('home_id', $homeId)
+            ->where('MONTH(date)', $mon)
+            ->where('YEAR(date)', $year)
+            ->groupBy('DAY(date)')
+            ->orderBy('DAY(date)', 'ASC')
+            ->findAll();
+        $dailyMap = [];
+        foreach ($dailyRows as $r) {
+            $dailyMap[(int)$r['day']] = (float)$r['total'];
+        }
+        $dailySpending = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dailySpending[] = $dailyMap[$d] ?? 0;
+        }
+
+        // Chores done/missed per member for the selected month
+        $choresByMember = [];
+        foreach ($members as $m) {
+            $done = $choreModel
+                ->where('home_id', $homeId)
+                ->where('assigned_user_id', $m['id'])
+                ->where('status', 'done')
+                ->where('MONTH(due_date)', $mon)
+                ->where('YEAR(due_date)', $year)
+                ->countAllResults();
+            $missed = $choreModel
+                ->where('home_id', $homeId)
+                ->where('assigned_user_id', $m['id'])
+                ->where('status', 'missed')
+                ->where('MONTH(due_date)', $mon)
+                ->where('YEAR(due_date)', $year)
+                ->countAllResults();
+            if ($done > 0 || $missed > 0) {
+                $choresByMember[] = ['username' => $m['username'], 'done' => $done, 'missed' => $missed];
+            }
+        }
+
+        // Missed chores total for the month
+        $missedChores = $choreModel
+            ->where('home_id', $homeId)
+            ->where('status', 'missed')
+            ->where('MONTH(due_date)', $mon)
+            ->where('YEAR(due_date)', $year)
+            ->countAllResults();
+
         $prevMonth  = date('Y-m', strtotime('-1 month', mktime(0, 0, 0, $mon, 1, $year)));
         $nextMonth  = date('Y-m', strtotime('+1 month', mktime(0, 0, 0, $mon, 1, $year)));
         $monthLabel = date('F Y', mktime(0, 0, 0, $mon, 1, $year));
@@ -212,6 +261,9 @@ class HomeController extends BaseController
             'prevMonth'         => $prevMonth,
             'nextMonth'         => $nextMonth,
             'monthLabel'        => $monthLabel,
+            'dailySpending'     => $dailySpending,
+            'choresByMember'    => $choresByMember,
+            'missedChores'      => $missedChores,
         ]);
     }
 }

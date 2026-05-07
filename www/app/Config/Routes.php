@@ -110,3 +110,6 @@ $routes->post('/homes/switch/(:num)',      'HomesController::switchHome/$1');
 $routes->get('/homes/leave',               'HomesController::leaveSession');
 $routes->post('/homes/(:num)/leave-home',  'HomesController::leaveHome/$1');
 $routes->post('/homes/(:num)/delete',      'HomesController::deleteHome/$1');
+
+// ── DEV ONLY: email preview ──────────────────────────────────────────────────
+$routes->get('/dev/email-preview', 'DevController::emailPreview');

@@ -86,6 +86,16 @@ class NotificationService
             ];
         }
 
+        // By category
+        $byCategory = $expModel
+            ->select('category, SUM(amount) AS total')
+            ->where('home_id', $homeId)
+            ->where('YEAR(date)', $year)
+            ->where('MONTH(date)', $month)
+            ->groupBy('category')
+            ->orderBy('total', 'DESC')
+            ->findAll();
+
         // Top 3 expenses
         $topExpenses = $expModel
             ->select('expenses.title, expenses.amount, users.username AS paid_by_name')
@@ -104,97 +114,254 @@ class NotificationService
             ->where('MONTH(due_date)', $month)
             ->countAllResults();
 
-        $choresPending = $chorModel
+        $choresMissed = $chorModel
             ->where('home_id', $homeId)
-            ->where('status', 'pending')
+            ->where('status', 'missed')
             ->where('YEAR(due_date)', $year)
             ->where('MONTH(due_date)', $month)
             ->countAllResults();
 
+        // Chores done/missed per member
+        $choresByMember = [];
+        foreach ($members as $m) {
+            $done = $chorModel
+                ->where('home_id', $homeId)
+                ->where('assigned_user_id', $m['id'])
+                ->where('status', 'done')
+                ->where('YEAR(due_date)', $year)
+                ->where('MONTH(due_date)', $month)
+                ->countAllResults();
+            $missed = $chorModel
+                ->where('home_id', $homeId)
+                ->where('assigned_user_id', $m['id'])
+                ->where('status', 'missed')
+                ->where('YEAR(due_date)', $year)
+                ->where('MONTH(due_date)', $month)
+                ->countAllResults();
+            if ($done > 0 || $missed > 0) {
+                $choresByMember[] = ['username' => $m['username'], 'done' => $done, 'missed' => $missed];
+            }
+        }
+
         return [
-            'total'          => $total,
-            'expense_count'  => count($expenses),
-            'balances'       => $balances,
-            'top_expenses'   => $topExpenses,
-            'chores_done'    => $choresDone,
-            'chores_pending' => $choresPending,
+            'total'            => $total,
+            'expense_count'    => count($expenses),
+            'member_count'     => count($members),
+            'balances'         => $balances,
+            'by_category'      => $byCategory,
+            'top_expenses'     => $topExpenses,
+            'chores_done'      => $choresDone,
+            'chores_missed'    => $choresMissed,
+            'chores_by_member' => $choresByMember,
         ];
     }
 
     private function summaryBody(array $member, string $homeName, array $stats, int $year, int $month): string
     {
-        $monthLabel  = $this->monthName($month, $year);
-        $home        = htmlspecialchars($homeName);
-        $name        = htmlspecialchars($member['username']);
-        $total       = number_format($stats['total'], 2);
-        $expCount    = $stats['expense_count'];
-        $myBalance   = $stats['balances'][(int)$member['id']]['balance'] ?? 0;
-        $balanceSign = $myBalance >= 0 ? '+' : '';
-        $balanceColor = $myBalance >= 0 ? '#16a34a' : '#dc2626';
-        $dashUrl     = rtrim(base_url(), '/') . '/dashboard';
+        $monthLabel   = $this->monthName($month, $year);
+        $home         = htmlspecialchars($homeName);
+        $total        = number_format($stats['total'], 2);
+        $perPerson    = $stats['member_count'] > 0
+            ? number_format($stats['total'] / $stats['member_count'], 2) : '0.00';
+        $myUid        = (int) $member['id'];
+        $myBalance    = $stats['balances'][$myUid]['balance'] ?? 0;
+        $balSign      = $myBalance >= 0 ? '+' : '';
+        $balColor     = $myBalance >= 0 ? '#16a34a' : '#dc2626';
+        $dashUrl      = rtrim(base_url(), '/') . '/dashboard';
 
-        // Balance rows
-        $balanceRows = '';
-        foreach ($stats['balances'] as $b) {
-            $sign  = $b['balance'] >= 0 ? '+' : '';
-            $color = $b['balance'] >= 0 ? '#16a34a' : '#dc2626';
-            $balanceRows .= "
-              <tr>
-                <td style='padding:8px 0;font-size:14px;color:#333'>" . htmlspecialchars($b['username']) . "</td>
-                <td style='padding:8px 0;font-size:14px;color:#888;text-align:right'>€" . number_format($b['paid'], 2) . " pagado</td>
-                <td style='padding:8px 0;font-size:14px;font-weight:700;color:{$color};text-align:right'>{$sign}€" . number_format(abs($b['balance']), 2) . "</td>
-              </tr>";
+        $catColors  = ['food'=>'#F59E0B','cleaning'=>'#4F80FF','bills'=>'#6366F1','other'=>'#4ECDC4'];
+        $catLabels  = ['food'=>'Comida','cleaning'=>'Limpieza','bills'=>'Facturas','other'=>'Otros'];
+        $catFb      = ['#94A3B8','#64748B','#475569','#334155'];
+
+        // ── SECTION: 4 stat boxes ──────────────────────────────────────────
+        $statsBox = "
+        <table width='100%' cellpadding='0' cellspacing='0' style='border-collapse:collapse;margin-bottom:24px'>
+          <tr>
+            <td width='50%' style='padding:0 5px 8px 0'>
+              <div style='background:#eff6ff;border-radius:10px;padding:16px;text-align:center'>
+                <div style='font-size:22px;font-weight:800;color:#1d4ed8'>€{$total}</div>
+                <div style='font-size:11px;color:#64748b;margin-top:3px'>{$stats['expense_count']} gastos</div>
+              </div>
+            </td>
+            <td width='50%' style='padding:0 0 8px 5px'>
+              <div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:10px;padding:16px;text-align:center'>
+                <div style='font-size:22px;font-weight:800;color:#334155'>€{$perPerson}</div>
+                <div style='font-size:11px;color:#64748b;margin-top:3px'>por persona</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style='padding:0 5px 0 0'>
+              <div style='background:#f0fdf4;border-radius:10px;padding:16px;text-align:center'>
+                <div style='font-size:22px;font-weight:800;color:#15803d'>{$stats['chores_done']}</div>
+                <div style='font-size:11px;color:#64748b;margin-top:3px'>tareas realizadas</div>
+              </div>
+            </td>
+            <td style='padding:0 0 0 5px'>
+              <div style='background:#fef2f2;border-radius:10px;padding:16px;text-align:center'>
+                <div style='font-size:22px;font-weight:800;color:#dc2626'>{$stats['chores_missed']}</div>
+                <div style='font-size:11px;color:#64748b;margin-top:3px'>tareas fallidas</div>
+              </div>
+            </td>
+          </tr>
+        </table>";
+
+        // ── SECTION: Por categoría ─────────────────────────────────────────
+        $catSection = '';
+        if (!empty($stats['by_category'])) {
+            $maxCat  = max(array_column($stats['by_category'], 'total'));
+            $catRows = '';
+            $fi = 0;
+            foreach ($stats['by_category'] as $cat) {
+                $pct = $maxCat > 0 ? round($cat['total'] / $maxCat * 100) : 0;
+                $col = $catColors[$cat['category']] ?? $catFb[$fi % 4];
+                $lbl = $catLabels[$cat['category']] ?? htmlspecialchars($cat['category']);
+                $pctTotal = round($cat['total'] / max($stats['total'], 1) * 100);
+                $fi++;
+                $catRows .= "
+                <div style='margin-bottom:10px'>
+                  <table width='100%' cellpadding='0' cellspacing='0' style='margin-bottom:5px'>
+                    <tr>
+                      <td style='font-size:12px;color:#555'>{$lbl}</td>
+                      <td style='text-align:right;font-size:12px;font-weight:700;color:#111'>
+                        €" . number_format($cat['total'], 2) . "
+                        <span style='color:#aaa;font-weight:400'> {$pctTotal}%</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <div style='background:#f1f5f9;border-radius:4px;height:8px;overflow:hidden'>
+                    <div style='background:{$col};height:8px;width:{$pct}%;border-radius:4px'></div>
+                  </div>
+                </div>";
+            }
+            $catSection = "
+            <div style='margin-bottom:24px'>
+              <div style='font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px'>Por categoría</div>
+              {$catRows}
+            </div>";
         }
 
-        // Top expenses
-        $topRows = '';
-        foreach ($stats['top_expenses'] as $e) {
-            $topRows .= "
-              <div style='display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px'>
-                <span style='color:#333'>" . htmlspecialchars($e['title']) . " <span style='color:#aaa'>· " . htmlspecialchars($e['paid_by_name']) . "</span></span>
-                <span style='font-weight:600;color:#111'>€" . number_format($e['amount'], 2) . "</span>
-              </div>";
+        // ── SECTION: Gastos por miembro ────────────────────────────────────
+        $memberSection = '';
+        if (!empty($stats['balances'])) {
+            $maxPaid = max(array_map(fn($b) => $b['paid'], $stats['balances']) ?: [1]);
+            $mRows   = '';
+            foreach ($stats['balances'] as $b) {
+                $pct   = $maxPaid > 0 ? round($b['paid'] / $maxPaid * 100) : 0;
+                $sign  = $b['balance'] >= 0 ? '+' : '';
+                $col   = $b['balance'] >= 0 ? '#16a34a' : '#dc2626';
+                $mRows .= "
+                <div style='margin-bottom:14px'>
+                  <table width='100%' cellpadding='0' cellspacing='0' style='margin-bottom:6px'>
+                    <tr>
+                      <td style='font-size:13px;color:#333;font-weight:600'>" . htmlspecialchars($b['username']) . "</td>
+                      <td style='text-align:right;font-size:12px'>
+                        <span style='color:#888'>€" . number_format($b['paid'], 2) . " pagado</span>
+                        <span style='font-weight:700;color:{$col};margin-left:8px'>{$sign}€" . number_format(abs($b['balance']), 2) . "</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <div style='background:#f1f5f9;border-radius:4px;height:7px;overflow:hidden'>
+                    <div style='background:#3b82f6;height:7px;width:{$pct}%;border-radius:4px'></div>
+                  </div>
+                </div>";
+            }
+            $memberSection = "
+            <div style='margin-bottom:24px'>
+              <div style='font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px'>Gastos por miembro</div>
+              {$mRows}
+            </div>";
         }
+
+        // ── SECTION: Tareas por miembro ────────────────────────────────────
+        $choresSection = '';
+        if (!empty($stats['chores_by_member'])) {
+            $cRows = '';
+            foreach ($stats['chores_by_member'] as $cm) {
+                $tot     = $cm['done'] + $cm['missed'];
+                $dPct    = $tot > 0 ? round($cm['done']   / $tot * 100) : 0;
+                $mPct    = $tot > 0 ? round($cm['missed'] / $tot * 100) : 0;
+                // stacked bar via table (email-safe)
+                $doneTd   = $dPct > 0
+                    ? "<td width='{$dPct}%'  style='background:#22c55e;height:8px;font-size:0;line-height:0'>&nbsp;</td>" : '';
+                $missedTd = $mPct > 0
+                    ? "<td width='{$mPct}%'  style='background:#ef4444;height:8px;font-size:0;line-height:0'>&nbsp;</td>" : '';
+                $restPct  = 100 - $dPct - $mPct;
+                $restTd   = $restPct > 0
+                    ? "<td style='background:#f1f5f9;height:8px;font-size:0;line-height:0'>&nbsp;</td>" : '';
+                $cRows .= "
+                <div style='margin-bottom:12px'>
+                  <table width='100%' cellpadding='0' cellspacing='0' style='margin-bottom:5px'>
+                    <tr>
+                      <td style='font-size:13px;color:#333;font-weight:500'>" . htmlspecialchars($cm['username']) . "</td>
+                      <td style='text-align:right;font-size:11px;color:#aaa'>{$tot} tareas</td>
+                    </tr>
+                  </table>
+                  <table width='100%' cellpadding='0' cellspacing='0' style='border-radius:4px;overflow:hidden;height:8px;background:#f1f5f9;table-layout:fixed'>
+                    <tr>{$doneTd}{$missedTd}{$restTd}</tr>
+                  </table>
+                  <table width='100%' cellpadding='0' cellspacing='0' style='margin-top:4px'>
+                    <tr>
+                      <td style='font-size:11px;color:#16a34a;font-weight:600'>{$cm['done']} completadas</td>
+                      <td style='text-align:right;font-size:11px;color:#dc2626;font-weight:600'>{$cm['missed']} fallidas</td>
+                    </tr>
+                  </table>
+                </div>";
+            }
+            $choresSection = "
+            <div style='margin-bottom:24px'>
+              <div style='font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px'>Cumplimiento de tareas</div>
+              {$cRows}
+            </div>";
+        }
+
+        // ── SECTION: Top expenses ──────────────────────────────────────────
+        $topSection = '';
+        if (!empty($stats['top_expenses'])) {
+            $tRows = '';
+            foreach ($stats['top_expenses'] as $i => $e) {
+                $num = ($i + 1) . '.';
+                $tRows .= "
+                <tr>
+                  <td style='padding:9px 0;border-bottom:1px solid #f5f5f5'>
+                    <div style='font-size:13px;color:#222;font-weight:500'>" . htmlspecialchars($e['title']) . "</div>
+                    <div style='font-size:11px;color:#aaa;margin-top:2px'>" . htmlspecialchars($e['paid_by_name']) . "</div>
+                  </td>
+                  <td style='padding:9px 0;border-bottom:1px solid #f5f5f5;text-align:right;font-size:14px;font-weight:800;color:#1d4ed8;white-space:nowrap'>
+                    €" . number_format($e['amount'], 2) . "
+                  </td>
+                </tr>";
+            }
+            $topSection = "
+            <div style='margin-bottom:24px'>
+              <div style='font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px'>Mayores gastos</div>
+              <table width='100%' cellpadding='0' cellspacing='0' style='border-collapse:collapse'>{$tRows}</table>
+            </div>";
+        }
+
+        // ── Divider helper ────────────────────────────────────────────────
+        $div = "<div style='height:1px;background:#f0f0f0;margin:0 0 24px'></div>";
 
         $content = "
-          <h2 style='margin:0 0 4px;font-size:20px;color:#111'>Resumen de {$monthLabel}</h2>
+          <h2 style='margin:0 0 4px;font-size:22px;font-weight:800;color:#111'>Resumen de {$monthLabel}</h2>
           <p style='color:#888;font-size:13px;margin:0 0 28px'>{$home}</p>
 
-          <!-- My balance highlight -->
-          <div style='background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center'>
-            <div style='font-size:12px;font-weight:600;color:#3b82f6;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px'>Tu balance del mes</div>
-            <div style='font-size:32px;font-weight:800;color:{$balanceColor}'>{$balanceSign}€" . number_format(abs($myBalance), 2) . "</div>
-            <div style='font-size:12px;color:#888;margin-top:4px'>" . ($myBalance >= 0 ? 'El hogar te debe' : 'Debes al hogar') . "</div>
+          <div style='background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:22px;margin-bottom:24px;text-align:center'>
+            <div style='font-size:11px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px'>Tu balance del mes</div>
+            <div style='font-size:36px;font-weight:900;color:{$balColor}'>{$balSign}€" . number_format(abs($myBalance), 2) . "</div>
+            <div style='font-size:12px;color:#888;margin-top:6px'>" . ($myBalance >= 0 ? 'El hogar te debe' : 'Debes al hogar') . "</div>
           </div>
 
-          <!-- Total + chores row -->
-          <div style='display:flex;gap:12px;margin-bottom:24px'>
-            <div style='flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;text-align:center'>
-              <div style='font-size:22px;font-weight:800;color:#111'>€{$total}</div>
-              <div style='font-size:11px;color:#888;margin-top:3px'>{$expCount} gastos</div>
-            </div>
-            <div style='flex:1;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;text-align:center'>
-              <div style='font-size:22px;font-weight:800;color:#15803d'>{$stats['chores_done']}</div>
-              <div style='font-size:11px;color:#888;margin-top:3px'>tareas completadas</div>
-            </div>
-          </div>
+          {$statsBox}
+          {$div}
+          {$catSection}
+          {$div}
+          {$memberSection}
+          {$div}
+          {$choresSection}
+          {$topSection}
 
-          <!-- Balance table -->
-          <div style='margin-bottom:24px'>
-            <div style='font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px'>Balance por persona</div>
-            <table style='width:100%;border-collapse:collapse'>
-              {$balanceRows}
-            </table>
-          </div>
-
-          <!-- Top expenses -->
-          " . ($topRows ? "
-          <div style='margin-bottom:24px'>
-            <div style='font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px'>Mayores gastos</div>
-            {$topRows}
-          </div>" : "") . "
-
-          <a href='{$dashUrl}' style='display:block;text-align:center;background:#2563eb;color:#fff;text-decoration:none;padding:13px;border-radius:8px;font-weight:600;font-size:14px'>Ver dashboard completo</a>";
+          <a href='{$dashUrl}' style='display:block;text-align:center;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;text-decoration:none;padding:14px;border-radius:10px;font-weight:700;font-size:14px;letter-spacing:0.01em'>Ver dashboard completo &rarr;</a>";
 
         return $this->wrap($content);
     }
